@@ -26,10 +26,12 @@ const (
 	defaultMaxValidatorStake           = 3_000_000
 	defaultMinStakeDurationHours       = 14 * 24
 	defaultMinStakeDurationHoursString = "14 x 24"
-	defaultMinStakeDuration            = defaultMinStakeDurationHours * time.Hour
 	defaultMaxStakeDurationHours       = 365 * 24
 	defaultMaxStakeDurationHoursString = "365 x 24"
-	defaultMaxStakeDuration            = defaultMaxStakeDurationHours * time.Hour
+	defaultMinValidatorStakeDuration   = defaultMinStakeDurationHours * time.Hour
+	defaultMaxValidatorStakeDuration   = defaultMaxStakeDurationHours * time.Hour
+	defaultMinDelegatorStakeDuration   = defaultMinStakeDurationHours * time.Hour
+	defaultMaxDelegatorStakeDuration   = defaultMaxStakeDurationHours * time.Hour
 	defaultMinDelegationFee            = 20_000
 	defaultMinDelegatorStake           = 25
 	defaultMaxValidatorWeightFactor    = 5
@@ -42,18 +44,20 @@ func GetElasticSubnetConfig(app *application.Avalanche, tokenSymbol string, useD
 		customizeConfig = "Customize elastic subnet config"
 	)
 	elasticSubnetConfig := models.ElasticSubnetConfig{
-		InitialSupply:            defaultInitialSupply,
-		MaxSupply:                defaultMaximumSupply,
-		MinConsumptionRate:       defaultMinConsumptionRate * reward.PercentDenominator,
-		MaxConsumptionRate:       defaultMaxConsumptionRate * reward.PercentDenominator,
-		MinValidatorStake:        defaultMinValidatorStake,
-		MaxValidatorStake:        defaultMaxValidatorStake,
-		MinStakeDuration:         defaultMinStakeDuration,
-		MaxStakeDuration:         defaultMaxStakeDuration,
-		MinDelegationFee:         defaultMinDelegationFee,
-		MinDelegatorStake:        defaultMinDelegatorStake,
-		MaxValidatorWeightFactor: defaultMaxValidatorWeightFactor,
-		UptimeRequirement:        defaultUptimeRequirement * reward.PercentDenominator,
+		InitialSupply:             defaultInitialSupply,
+		MaxSupply:                 defaultMaximumSupply,
+		MinConsumptionRate:        defaultMinConsumptionRate * reward.PercentDenominator,
+		MaxConsumptionRate:        defaultMaxConsumptionRate * reward.PercentDenominator,
+		MinValidatorStake:         defaultMinValidatorStake,
+		MaxValidatorStake:         defaultMaxValidatorStake,
+		MinValidatorStakeDuration: defaultMinValidatorStakeDuration,
+		MaxValidatorStakeDuration: defaultMaxValidatorStakeDuration,
+		MinDelegatorStakeDuration: defaultMinDelegatorStakeDuration,
+		MaxDelegatorStakeDuration: defaultMaxDelegatorStakeDuration,
+		MinDelegationFee:          defaultMinDelegationFee,
+		MinDelegatorStake:         defaultMinDelegatorStake,
+		MaxValidatorWeightFactor:  defaultMaxValidatorWeightFactor,
+		UptimeRequirement:         defaultUptimeRequirement * reward.PercentDenominator,
 	}
 	if useDefaultConfig {
 		return elasticSubnetConfig, nil
@@ -95,7 +99,11 @@ func getCustomElasticSubnetConfig(app *application.Avalanche, tokenSymbol string
 	if err != nil {
 		return models.ElasticSubnetConfig{}, err
 	}
-	minStakeDuration, maxStakeDuration, err := getStakeDuration(app)
+	minValidatorStakeDuration, maxValidatorStakeDuration, err := getValidatorStakeDuration(app)
+	if err != nil {
+		return models.ElasticSubnetConfig{}, err
+	}
+	minDelegatorStakeDuration, maxDelegatorStakeDuration, err := getDelegatorStakeDuration(app)
 	if err != nil {
 		return models.ElasticSubnetConfig{}, err
 	}
@@ -117,18 +125,20 @@ func getCustomElasticSubnetConfig(app *application.Avalanche, tokenSymbol string
 	}
 
 	elasticSubnetConfig := models.ElasticSubnetConfig{
-		InitialSupply:            initialSupply,
-		MaxSupply:                maxSupply,
-		MinConsumptionRate:       minConsumptionRate,
-		MaxConsumptionRate:       maxConsumptionRate,
-		MinValidatorStake:        minValidatorStake,
-		MaxValidatorStake:        maxValidatorStake,
-		MinStakeDuration:         minStakeDuration,
-		MaxStakeDuration:         maxStakeDuration,
-		MinDelegationFee:         minDelegationFee,
-		MinDelegatorStake:        minDelegatorStake,
-		MaxValidatorWeightFactor: maxValidatorWeightFactor,
-		UptimeRequirement:        uptimeReq,
+		InitialSupply:             initialSupply,
+		MaxSupply:                 maxSupply,
+		MinConsumptionRate:        minConsumptionRate,
+		MaxConsumptionRate:        maxConsumptionRate,
+		MinValidatorStake:         minValidatorStake,
+		MaxValidatorStake:         maxValidatorStake,
+		MinValidatorStakeDuration: minValidatorStakeDuration,
+		MaxValidatorStakeDuration: maxValidatorStakeDuration,
+		MinDelegatorStakeDuration: minDelegatorStakeDuration,
+		MaxDelegatorStakeDuration: maxDelegatorStakeDuration,
+		MinDelegationFee:          minDelegationFee,
+		MinDelegatorStake:         minDelegatorStake,
+		MaxValidatorWeightFactor:  maxValidatorWeightFactor,
+		UptimeRequirement:         uptimeReq,
 	}
 	return elasticSubnetConfig, err
 }
@@ -249,7 +259,7 @@ func getValidatorStake(app *application.Avalanche, initialSupply uint64, maximum
 	return minValidatorStake, maxValidatorStake, nil
 }
 
-func getStakeDuration(app *application.Avalanche) (time.Duration, time.Duration, error) {
+func getValidatorStakeDuration(app *application.Avalanche) (time.Duration, time.Duration, error) {
 	ux.Logger.PrintToUser("Select the Minimum Stake Duration. Please enter in units of hours")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinStakeDurationHours, defaultMinStakeDurationHoursString))
 	minStakeDuration, err := app.Prompt.CaptureUint64Compare(
@@ -295,7 +305,53 @@ func getStakeDuration(app *application.Avalanche) (time.Duration, time.Duration,
 	return time.Duration(minStakeDuration) * time.Hour, time.Duration(maxStakeDuration) * time.Hour, nil
 }
 
-func getMinDelegationFee(app *application.Avalanche) (uint32, error) {
+func getDelegatorStakeDuration(app *application.Odyssey) (time.Duration, time.Duration, error) {
+	ux.Logger.PrintToUser("Select the Minimum Stake Duration. Please enter in units of hours")
+	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinStakeDurationHours, defaultMinStakeDurationHoursString))
+	minStakeDuration, err := app.Prompt.CaptureUint64Compare(
+		"Minimum Stake Duration",
+		[]prompts.Comparator{
+			{
+				Label: "0",
+				Type:  prompts.MoreThan,
+				Value: 0,
+			},
+			{
+				Label: "Global Max Stake Duration",
+				Type:  prompts.LessThanEq,
+				Value: uint64(defaultMaxStakeDurationHours),
+			},
+		},
+	)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	ux.Logger.PrintToUser("Select the Maximum Stake Duration")
+	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Stake Duration is %d (%s)", defaultMaxStakeDurationHours, defaultMaxStakeDurationHoursString))
+	maxStakeDuration, err := app.Prompt.CaptureUint64Compare(
+		"Maximum Stake Duration",
+		[]prompts.Comparator{
+			{
+				Label: "Minimum Stake Duration",
+				Type:  prompts.MoreThanEq,
+				Value: minStakeDuration,
+			},
+			{
+				Label: "Global Max Stake Duration",
+				Type:  prompts.LessThanEq,
+				Value: uint64(defaultMaxStakeDurationHours),
+			},
+		},
+	)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return time.Duration(minStakeDuration) * time.Hour, time.Duration(maxStakeDuration) * time.Hour, nil
+}
+
+func getMinDelegationFee(app *application.Odyssey) (uint32, error) {
 	ux.Logger.PrintToUser("Select the Minimum Delegation Fee. Please denominate your percentage in PercentDenominator")
 	ux.Logger.PrintToUser("To denominate your percentage in PercentDenominator just multiply it by 10_000. For example, 1 percent corresponds to 10_000")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Delegation Fee is %s", ux.ConvertToStringWithThousandSeparator(uint64(defaultMinDelegationFee))))

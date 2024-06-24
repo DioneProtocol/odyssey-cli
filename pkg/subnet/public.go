@@ -583,8 +583,10 @@ func (d *PublicDeployer) createTransformSubnetTX(
 	unsignedTx, err := wallet.P().Builder().NewTransformSubnetTx(elasticSubnetConfig.SubnetID, assetID,
 		elasticSubnetConfig.InitialSupply, elasticSubnetConfig.MaxSupply, elasticSubnetConfig.MinConsumptionRate,
 		elasticSubnetConfig.MaxConsumptionRate, elasticSubnetConfig.MinValidatorStake, elasticSubnetConfig.MaxValidatorStake,
-		elasticSubnetConfig.MinStakeDuration, elasticSubnetConfig.MaxStakeDuration, elasticSubnetConfig.MinDelegationFee,
-		elasticSubnetConfig.MinDelegatorStake, elasticSubnetConfig.MaxValidatorWeightFactor, elasticSubnetConfig.UptimeRequirement, options...)
+		elasticSubnetConfig.MinValidatorStakeDuration, elasticSubnetConfig.MaxValidatorStakeDuration, 
+		elasticSubnetConfig.MinDelegatorStakeDuration, elasticSubnetConfig.MaxDelegatorStakeDuration, 
+		elasticSubnetConfig.MinDelegationFee, elasticSubnetConfig.MinDelegatorStake, 
+		elasticSubnetConfig.MaxValidatorWeightFactor, elasticSubnetConfig.UptimeRequirement, options...)
 	if err != nil {
 		return nil, fmt.Errorf("error building tx: %w", err)
 	}

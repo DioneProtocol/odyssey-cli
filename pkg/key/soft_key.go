@@ -104,7 +104,8 @@ func NewSoft(networkID uint32, opts ...SOpOption) (*SoftKey, error) {
 	// generate a new one
 	if ret.privKey == nil {
 		var err error
-		ret.privKey, err = secp256k1.NewPrivateKey()
+		f := secp256k1.Factory{}
+		ret.privKey, err = f.NewPrivateKey()
 		if err != nil {
 			return nil, err
 		}
@@ -186,7 +187,8 @@ func LoadSoftFromBytes(networkID uint32, kb []byte) (*SoftKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	privKey, err := secp256k1.ToPrivateKey(skBytes)
+	f := secp256k1.Factory{}
+	privKey, err := f.ToPrivateKey(skBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +245,8 @@ func decodePrivateKey(enc string) (*secp256k1.PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	privKey, err := secp256k1.ToPrivateKey(skBytes)
+	f := secp256k1.Factory{}
+	privKey, err := f.ToPrivateKey(skBytes)
 	if err != nil {
 		return nil, err
 	}

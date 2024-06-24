@@ -43,30 +43,58 @@ func validatePositiveBigInt(input string) error {
 	return nil
 }
 
-func validateMainnetStakingDuration(input string) error {
+func validateMainnetValidatorStakingDuration(input string) error {
 	d, err := time.ParseDuration(input)
 	if err != nil {
 		return err
 	}
-	if d > genesis.MainnetParams.MaxStakeDuration {
-		return fmt.Errorf("exceeds maximum staking duration of %s", ux.FormatDuration(genesis.MainnetParams.MaxStakeDuration))
+	if d > genesis.MainnetParams.MaxValidatorStakeDuration {
+		return fmt.Errorf("exceeds maximum validator staking duration of %s", ux.FormatDuration(genesis.MainnetParams.MaxValidatorStakeDuration))
 	}
-	if d < genesis.MainnetParams.MinStakeDuration {
-		return fmt.Errorf("below the minimum staking duration of %s", ux.FormatDuration(genesis.MainnetParams.MinStakeDuration))
+	if d < genesis.MainnetParams.MinValidatorStakeDuration {
+		return fmt.Errorf("below the minimum validator staking duration of %s", ux.FormatDuration(genesis.MainnetParams.MinValidatorStakeDuration))
 	}
 	return nil
 }
 
-func validateFujiStakingDuration(input string) error {
+func validateTestnetValidatorStakingDuration(input string) error {
 	d, err := time.ParseDuration(input)
 	if err != nil {
 		return err
 	}
-	if d > genesis.FujiParams.MaxStakeDuration {
-		return fmt.Errorf("exceeds maximum staking duration of %s", ux.FormatDuration(genesis.FujiParams.MaxStakeDuration))
+	if d > genesis.TestnetParams.MaxValidatorStakeDuration {
+		return fmt.Errorf("exceeds maximum validator staking duration of %s", ux.FormatDuration(genesis.TestnetParams.MaxValidatorStakeDuration))
 	}
-	if d < genesis.FujiParams.MinStakeDuration {
-		return fmt.Errorf("below the minimum staking duration of %s", ux.FormatDuration(genesis.FujiParams.MinStakeDuration))
+	if d < genesis.TestnetParams.MinValidatorStakeDuration {
+		return fmt.Errorf("below the minimum validator staking duration of %s", ux.FormatDuration(genesis.TestnetParams.MinValidatorStakeDuration))
+	}
+	return nil
+}
+
+func validateMainnetDelegatorStakingDuration(input string) error {
+	d, err := time.ParseDuration(input)
+	if err != nil {
+		return err
+	}
+	if d > genesis.MainnetParams.MaxDelegatorStakeDuration {
+		return fmt.Errorf("exceeds maximum delegator staking duration of %s", ux.FormatDuration(genesis.MainnetParams.MaxDelegatorStakeDuration))
+	}
+	if d < genesis.MainnetParams.MinDelegatorStakeDuration {
+		return fmt.Errorf("below the minimum delegator staking duration of %s", ux.FormatDuration(genesis.MainnetParams.MinDelegatorStakeDuration))
+	}
+	return nil
+}
+
+func validateTestnetDelegatorStakingDuration(input string) error {
+	d, err := time.ParseDuration(input)
+	if err != nil {
+		return err
+	}
+	if d > genesis.TestnetParams.MaxDelegatorStakeDuration {
+		return fmt.Errorf("exceeds maximum delegator staking duration of %s", ux.FormatDuration(genesis.TestnetParams.MaxDelegatorStakeDuration))
+	}
+	if d < genesis.TestnetParams.MinDelegatorStakeDuration {
+		return fmt.Errorf("below the minimum delegator staking duration of %s", ux.FormatDuration(genesis.TestnetParams.MinDelegatorStakeDuration))
 	}
 	return nil
 }

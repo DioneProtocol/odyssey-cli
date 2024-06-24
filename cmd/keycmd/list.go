@@ -64,13 +64,6 @@ keys or for the ledger addresses associated to certain indices.`,
 	)
 	cmd.Flags().BoolVarP(
 		&testnet,
-		fujiFlag,
-		"f",
-		false,
-		"list testnet (fuji) network addresses",
-	)
-	cmd.Flags().BoolVarP(
-		&testnet,
 		testnetFlag,
 		"t",
 		false,

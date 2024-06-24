@@ -211,8 +211,10 @@ func IssueTransformSubnetTx(
 	transformSubnetTx, err := wallet.P().IssueTransformSubnetTx(elasticSubnetConfig.SubnetID, subnetAssetID,
 		elasticSubnetConfig.InitialSupply, elasticSubnetConfig.MaxSupply, elasticSubnetConfig.MinConsumptionRate,
 		elasticSubnetConfig.MaxConsumptionRate, elasticSubnetConfig.MinValidatorStake, elasticSubnetConfig.MaxValidatorStake,
-		elasticSubnetConfig.MinStakeDuration, elasticSubnetConfig.MaxStakeDuration, elasticSubnetConfig.MinDelegationFee,
-		elasticSubnetConfig.MinDelegatorStake, elasticSubnetConfig.MaxValidatorWeightFactor, elasticSubnetConfig.UptimeRequirement,
+		elasticSubnetConfig.MinValidatorStakeDuration, elasticSubnetConfig.MaxValidatorStakeDuration,
+		elasticSubnetConfig.MinDelegatorStakeDuration, elasticSubnetConfig.MaxDelegatorStakeDuration,
+		elasticSubnetConfig.MinDelegationFee, elasticSubnetConfig.MinDelegatorStake,
+		elasticSubnetConfig.MaxValidatorWeightFactor, elasticSubnetConfig.UptimeRequirement,
 		common.WithContext(ctx),
 	)
 	defer cancel()

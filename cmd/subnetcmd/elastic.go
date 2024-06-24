@@ -657,7 +657,7 @@ func transformValidatorsToPermissionlessLocal(sc models.Sidecar, subnetID ids.ID
 
 func handleRemoveAndAddValidators(sc models.Sidecar, subnetID ids.ID, validator ids.NodeID, stakedAmount uint64) error {
 	startTime := time.Now().Add(constants.StakingMinimumLeadTime).UTC()
-	endTime := startTime.Add(genesis.MainnetParams.MinStakeDuration)
+	endTime := startTime.Add(genesis.MainnetParams.MinValidatorStakeDuration)
 	testKey := genesis.EWOQKey
 	keyChain := secp256k1fx.NewKeychain(testKey)
 	_, err := subnet.IssueRemoveSubnetValidatorTx(keyChain, subnetID, validator)

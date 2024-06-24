@@ -55,12 +55,13 @@ func TestNewKey(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ewoqPk, err := secp256k1.ToPrivateKey(skBytes)
+	f := secp256k1.Factory{}
+	ewoqPk, err := f.ToPrivateKey(skBytes)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	privKey2, err := secp256k1.NewPrivateKey()
+	privKey2, err := f.NewPrivateKey()
 	if err != nil {
 		t.Fatal(err)
 	}
