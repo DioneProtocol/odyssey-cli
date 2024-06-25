@@ -2,12 +2,12 @@
 
 
 # NOTE: This script can only generate mocks from interfaces inside this repository.
-# For interfaces in other repositories (e.g. avalanchego), the mocks should
+# For interfaces in other repositories (e.g. odysseygo), the mocks should
 # still be created manually for the time being.
 #
 # This currently affects the following mocks:
 # * InfoClient
-# * PClient
+# * OClient
 
 if ! [[ "$0" =~ scripts/regenerate_mocks.sh ]]; then
   echo "must be run from repository root"

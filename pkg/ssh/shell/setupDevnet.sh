@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -e
 #name:TASK [stop node]
-sudo systemctl stop avalanchego
-#name:TASK [remove previous avalanchego db and logs]
-rm -rf /home/ubuntu/.avalanchego/db/
-rm -rf /home/ubuntu/.avalanchego/logs/
+sudo systemctl stop odysseygo
+#name:TASK [remove previous odysseygo db and logs]
+rm -rf /home/ubuntu/.odysseygo/db/
+rm -rf /home/ubuntu/.odysseygo/logs/
 #name:TASK [start node]
-sudo systemctl start avalanchego
+sudo systemctl start odysseygo

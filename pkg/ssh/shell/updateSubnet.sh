@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -e
-#name:TASK [stop node - stop avalanchego]
-sudo systemctl stop avalanchego
+#name:TASK [stop node - stop odysseygo]
+sudo systemctl stop odysseygo
 #name:TASK [import subnet]
-/home/ubuntu/bin/avalanche subnet import file {{ .SubnetExportFileName }} --force
-#name:TASK [avalanche join subnet]
-/home/ubuntu/bin/avalanche subnet join {{ .SubnetName }} --fuji --avalanchego-config /home/ubuntu/.avalanchego/configs/node.json --plugin-dir /home/ubuntu/.avalanchego/plugins --force-write
-#name:TASK [restart node - start avalanchego]
-sudo systemctl start avalanchego
+/home/ubuntu/bin/odyssey subnet import file {{ .SubnetExportFileName }} --force
+#name:TASK [odyssey join subnet]
+/home/ubuntu/bin/odyssey subnet join {{ .SubnetName }} --fuji --odysseygo-config /home/ubuntu/.odysseygo/configs/node.json --plugin-dir /home/ubuntu/.odysseygo/plugins --force-write
+#name:TASK [restart node - start odysseygo]
+sudo systemctl start odysseygo

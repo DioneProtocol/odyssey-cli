@@ -4,14 +4,14 @@ set -e
 usage() {
   this=$1
   cat <<EOF
-$this: download go binaries for ava-labs/avalanche-cli
+$this: download go binaries for DioneProtocol/odyssey-cli
 
 Usage: $this [-b] bindir [-d] [tag] [-c]
   -b sets bindir or installation directory, Defaults to ~/bin
-  -c run the shell completions setup 
+  -c run the shell completions setup
   -d turns on debug logging
    [tag] is a tag from
-   https://github.com/ava-labs/avalanche-cli/releases
+   https://github.com/DioneProtocol/odyssey-cli/releases
    If tag is missing, then the latest will be used.
 
 EOF
@@ -30,7 +30,7 @@ parse_args() {
       b) BINDIR="$OPTARG" ;;
       d) log_set_priority 10 ;;
       h | \?) usage "$0" ;;
-      n) RUN_COMPLETIONS=false;; 
+      n) RUN_COMPLETIONS=false;;
       x) set -x ;;
     esac
   done
@@ -61,10 +61,10 @@ execute() {
 }
 get_binaries() {
   case "$PLATFORM" in
-    darwin/amd64) BINARIES="avalanche" ;;
-    darwin/arm64) BINARIES="avalanche" ;;
-    linux/amd64) BINARIES="avalanche" ;;
-    linux/arm64) BINARIES="avalanche" ;;
+    darwin/amd64) BINARIES="odyssey" ;;
+    darwin/arm64) BINARIES="odyssey" ;;
+    linux/amd64) BINARIES="odyssey" ;;
+    linux/arm64) BINARIES="odyssey" ;;
     *)
       log_crit "platform $PLATFORM is not supported.  Make sure this script is up-to-date and file request at https://github.com/${PREFIX}/issues/new"
       exit 1
@@ -333,10 +333,10 @@ End of functions from https://github.com/client9/shlib
 ------------------------------------------------------------------------
 EOF
 
-PROJECT_NAME=avalanche-cli
-OWNER=ava-labs
-REPO="avalanche-cli"
-BINARY=avalanche
+PROJECT_NAME=odyssey-cli
+OWNER=DioneProtocol
+REPO="odyssey-cli"
+BINARY=odyssey
 FORMAT=tar.gz
 OS=$(uname_os)
 ARCH=$(uname_arch)
@@ -392,15 +392,15 @@ completions() {
   then
     BASH_COMPLETION_MAIN=~/.bash_completion
     BASH_COMPLETION_SCRIPTS_DIR=~/.local/share/bash-completion/completions
-    BASH_COMPLETION_SCRIPT_PATH=$BASH_COMPLETION_SCRIPTS_DIR/avalanche.sh
+    BASH_COMPLETION_SCRIPT_PATH=$BASH_COMPLETION_SCRIPTS_DIR/odyssey.sh
     mkdir -p $BASH_COMPLETION_SCRIPTS_DIR
     COBRA_COMPLETION_SUCCEDED=false
     $BINDIR/$BINARY completion bash > $BASH_COMPLETION_SCRIPT_PATH 2> /dev/null && COBRA_COMPLETION_SUCCEDED=true
     if [ $COBRA_COMPLETION_SUCCEDED = true ]
     then
       touch $BASH_COMPLETION_MAIN
-      sed_in_place "/.*# avalanche completion/d" $BASH_COMPLETION_MAIN
-      echo "source $BASH_COMPLETION_SCRIPT_PATH # avalanche completion" >> $BASH_COMPLETION_MAIN
+      sed_in_place "/.*# odyssey completion/d" $BASH_COMPLETION_MAIN
+      echo "source $BASH_COMPLETION_SCRIPT_PATH # odyssey completion" >> $BASH_COMPLETION_MAIN
       if [ $(uname) = Darwin ]
       then
         HAS_BREW=false
@@ -413,17 +413,17 @@ completions() {
           then
             BASHRC=~/.bashrc
             touch $BASHRC
-            sed_in_place "/.*# avalanche completion/d" $BASHRC
-            echo "source $(brew --prefix)/etc/bash_completion # avalanche completion" >> $BASHRC
+            sed_in_place "/.*# odyssey completion/d" $BASHRC
+            echo "source $(brew --prefix)/etc/bash_completion # odyssey completion" >> $BASHRC
           else
-            echo "warning: brew bash-completion package not found. avalanche command completion for bash not installed"
+            echo "warning: brew bash-completion package not found. odyssey command completion for bash not installed"
           fi
         else
-          echo "warning: brew not found. avalanche command completion for bash not installed"
+          echo "warning: brew not found. odyssey command completion for bash not installed"
         fi
       fi
     else
-      echo "warning: auto completion generation command failed. avalanche command completion for bash not installed"
+      echo "warning: auto completion generation command failed. odyssey command completion for bash not installed"
     fi
   fi
 
@@ -433,18 +433,18 @@ completions() {
   then
     ZSH_COMPLETION_MAIN=~/.zshrc
     ZSH_COMPLETION_SCRIPTS_DIR=~/.local/share/zsh-completion/completions
-    ZSH_COMPLETION_SCRIPT_PATH=$ZSH_COMPLETION_SCRIPTS_DIR/_avalanche
+    ZSH_COMPLETION_SCRIPT_PATH=$ZSH_COMPLETION_SCRIPTS_DIR/_odyssey
     mkdir -p $ZSH_COMPLETION_SCRIPTS_DIR
     COBRA_COMPLETION_SUCCEDED=false
     $BINDIR/$BINARY completion zsh > $BASH_COMPLETION_SCRIPT_PATH 2> /dev/null && COBRA_COMPLETION_SUCCEDED=true
     if [ $COBRA_COMPLETION_SUCCEDED = true ]
     then
       touch $ZSH_COMPLETION_MAIN
-      sed_in_place "/.*# avalanche completion/d" $ZSH_COMPLETION_MAIN
-      echo "fpath=($ZSH_COMPLETION_SCRIPTS_DIR \$fpath) # avalanche completion" >> $ZSH_COMPLETION_MAIN
-      echo "rm -f ~/.zcompdump; compinit # avalanche completion" >> $ZSH_COMPLETION_MAIN
+      sed_in_place "/.*# odyssey completion/d" $ZSH_COMPLETION_MAIN
+      echo "fpath=($ZSH_COMPLETION_SCRIPTS_DIR \$fpath) # odyssey completion" >> $ZSH_COMPLETION_MAIN
+      echo "rm -f ~/.zcompdump; compinit # odyssey completion" >> $ZSH_COMPLETION_MAIN
     else
-      echo "warning: auto completion generation command failed. avalanche command completion for zsh not installed"
+      echo "warning: auto completion generation command failed. odyssey command completion for zsh not installed"
     fi
   fi
 }

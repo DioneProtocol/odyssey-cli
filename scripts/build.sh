@@ -31,4 +31,4 @@ then
 	extra_build_args="-tags ledger_zemu"
 fi
 
-go build -v -ldflags="-X 'github.com/ava-labs/avalanche-cli/cmd.Version=$VERSION' -X github.com/ava-labs/avalanche-cli/pkg/utils.telemetryToken=$TELEMETRY_TOKEN" $extra_build_args -o bin/avalanche
+go build -v -ldflags="-X 'github.com/DioneProtocol/odyssey-cli/cmd.Version=$VERSION' -X github.com/DioneProtocol/odyssey-cli/pkg/utils.telemetryToken=$TELEMETRY_TOKEN" $extra_build_args -o bin/odyssey
