@@ -6,11 +6,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/testutils"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/internal/testutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/require"
 )
 

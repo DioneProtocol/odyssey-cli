@@ -9,19 +9,19 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/ids"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/ids"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
 var deployed bool
 
-// avalanche subnet list
+// odyssey subnet list
 func newListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -96,7 +96,7 @@ func listSubnets(cmd *cobra.Command, args []string) error {
 			vmID,
 			string(sc.VM),
 			sc.VMVersion,
-			strconv.FormatBool(sc.ImportedFromAPM),
+			strconv.FormatBool(sc.ImportedFromOPM),
 		})
 	}
 	sort.Sort(rows)
@@ -107,7 +107,7 @@ func listSubnets(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getSidecars(app *application.Avalanche) ([]*models.Sidecar, error) {
+func getSidecars(app *application.Odyssey) ([]*models.Sidecar, error) {
 	subnets, err := os.ReadDir(filepath.Join(app.GetBaseDir(), constants.SubnetDir))
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func getSidecars(app *application.Avalanche) ([]*models.Sidecar, error) {
 }
 
 func listDeployInfo(*cobra.Command, []string) error {
-	header := []string{"subnet", "chain", "vm ID", "Local Network", "Fuji (testnet)", "Mainnet"}
+	header := []string{"subnet", "chain", "vm ID", "Local Network", "Testnet", "Mainnet"}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(header)
 	table.SetAutoMergeCellsByColumnIndex([]int{0, 1, 2, 3, 4})
@@ -160,7 +160,7 @@ func listDeployInfo(*cobra.Command, []string) error {
 		return err
 	}
 
-	fujiKey := models.Fuji.String()
+	testnetKey := models.Testnet.String()
 	mainKey := models.Mainnet.String()
 
 	singleLine := true
@@ -171,16 +171,16 @@ func listDeployInfo(*cobra.Command, []string) error {
 		if _, ok := deployedNames[sc.Subnet]; ok {
 			deployedLocal = constants.YesLabel
 		}
-		if _, ok := sc.Networks[fujiKey]; ok {
-			if sc.Networks[fujiKey].SubnetID != ids.Empty {
-				netToID[fujiKey] = []string{
-					constants.SubnetIDLabel + sc.Networks[fujiKey].SubnetID.String(),
-					constants.BlockchainIDLabel + sc.Networks[fujiKey].BlockchainID.String(),
+		if _, ok := sc.Networks[testnetKey]; ok {
+			if sc.Networks[testnetKey].SubnetID != ids.Empty {
+				netToID[testnetKey] = []string{
+					constants.SubnetIDLabel + sc.Networks[testnetKey].SubnetID.String(),
+					constants.BlockchainIDLabel + sc.Networks[testnetKey].BlockchainID.String(),
 				}
 				singleLine = false
 			}
 		} else {
-			netToID[fujiKey] = []string{constants.NoLabel, constants.NoLabel}
+			netToID[testnetKey] = []string{constants.NoLabel, constants.NoLabel}
 		}
 		if _, ok := sc.Networks[mainKey]; ok {
 			if sc.Networks[mainKey].SubnetID != ids.Empty {
@@ -208,7 +208,7 @@ func listDeployInfo(*cobra.Command, []string) error {
 			sc.Name,
 			vmID,
 			deployedLocal,
-			netToID[fujiKey][0],
+			netToID[testnetKey][0],
 			netToID[mainKey][0],
 		})
 
@@ -218,7 +218,7 @@ func listDeployInfo(*cobra.Command, []string) error {
 				sc.Name,
 				vmID,
 				deployedLocal,
-				netToID[fujiKey][1],
+				netToID[testnetKey][1],
 				netToID[mainKey][1],
 			})
 		}

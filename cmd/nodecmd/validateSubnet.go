@@ -8,17 +8,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ava-labs/avalanchego/vms/platformvm/status"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/status"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
 
-	subnetcmd "github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
+	subnetcmd "github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/maps"
 )
@@ -31,11 +31,11 @@ func newValidateSubnetCmd() *cobra.Command {
 
 The node validate subnet command enables all nodes in a cluster to be validators of a Subnet.
 If the command is run before the nodes are Primary Network validators, the command will first
-make the nodes Primary Network validators before making them Subnet validators. 
-If The command is run before the nodes are bootstrapped on the Primary Network, the command will fail. 
-You can check the bootstrap status by calling avalanche node status <clusterName>
+make the nodes Primary Network validators before making them Subnet validators.
+If The command is run before the nodes are bootstrapped on the Primary Network, the command will fail.
+You can check the bootstrap status by calling odyssey node status <clusterName>
 If The command is run before the nodes are synced to the subnet, the command will fail.
-You can check the subnet sync status by calling avalanche node status <clusterName> --subnet <subnetName>`,
+You can check the subnet sync status by calling odyssey node status <clusterName> --subnet <subnetName>`,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(2),
 		RunE:         validateSubnet,
@@ -43,16 +43,15 @@ You can check the subnet sync status by calling avalanche node status <clusterNa
 
 	cmd.Flags().StringVar(&endpoint, "endpoint", "", "use the given endpoint for network operations")
 	cmd.Flags().BoolVarP(&deployDevnet, "devnet", "d", false, "set up validator in devnet")
-	cmd.Flags().BoolVarP(&deployTestnet, "testnet", "t", false, "set up validator in testnet (alias to `fuji`)")
-	cmd.Flags().BoolVarP(&deployTestnet, "fuji", "f", false, "set up validator in fuji (alias to `testnet`")
+	cmd.Flags().BoolVarP(&deployTestnet, "testnet", "t", false, "set up validator in testnet")
 	cmd.Flags().BoolVarP(&deployMainnet, "mainnet", "m", false, "set up validator in mainnet")
 
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji/devnet only]")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji/devnet)")
-	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [fuji/devnet only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet/devnet only]")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet/devnet)")
+	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [testnet/devnet only]")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 
-	cmd.Flags().Uint64Var(&weight, "stake-amount", 0, "how many AVAX to stake in the validator")
+	cmd.Flags().Uint64Var(&weight, "stake-amount", 0, "how many DIONE to stake in the validator")
 	cmd.Flags().DurationVar(&duration, "staking-period", 0, "how long validator validates for after start time")
 	cmd.Flags().StringVar(&startTimeStr, "start-time", "", "UTC start time when this validator starts validating, in 'YYYY-MM-DD HH:MM:SS' format")
 	cmd.Flags().BoolVar(&defaultValidatorParams, "default-validator-params", false, "use default weight/start/duration params for subnet validator")

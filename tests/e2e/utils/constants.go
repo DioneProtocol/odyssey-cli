@@ -4,7 +4,7 @@
 package utils
 
 const (
-	baseDir      = ".avalanche-cli"
+	baseDir      = ".odyssey-cli"
 	hardhatDir   = "./tests/e2e/hardhat"
 	confFilePath = hardhatDir + "/dynamic_conf.json"
 	greeterFile  = hardhatDir + "/greeter.json"
@@ -14,14 +14,14 @@ const (
 	GreeterCheck           = "./scripts/checkGreeting.ts"
 	SoloSubnetEVMKey1      = "soloSubnetEVMVersion1"
 	SoloSubnetEVMKey2      = "soloSubnetEVMVersion2"
-	SoloAvagoKey           = "soloAvagoVersion"
-	OnlyAvagoKey           = "onlyAvagoVersion"
-	MultiAvagoSubnetEVMKey = "multiAvagoSubnetEVMVersion"
-	MultiAvago1Key         = "multiAvagoVersion1"
-	MultiAvago2Key         = "multiAvagoVersion2"
-	LatestEVM2AvagoKey     = "latestEVM2Avago"
-	LatestAvago2EVMKey     = "latestAvago2EVM"
-	OnlyAvagoValue         = "latest"
+	SoloOdygoKey           = "soloOdygoVersion"
+	OnlyOdygoKey           = "onlyOdygoVersion"
+	MultiOdygoSubnetEVMKey = "multiOdygoSubnetEVMVersion"
+	MultiOdygo1Key         = "multiOdygoVersion1"
+	MultiOdygo2Key         = "multiOdygoVersion2"
+	LatestEVM2OdygoKey     = "latestEVM2Odygo"
+	LatestOdygo2EVMKey     = "latestOdygo2EVM"
+	OnlyOdygoValue         = "latest"
 
 	SubnetEvmGenesisPath      = "tests/e2e/assets/test_subnet_evm_genesis.json"
 	SubnetEvmGenesis2Path     = "tests/e2e/assets/test_subnet_evm_genesis_2.json"

@@ -9,29 +9,29 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/config"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/config"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/kardianos/osext"
 	"github.com/shirou/gopsutil/process"
 )
 
 var (
-	// env var for avalanchego data dir
-	defaultUnexpandedDataDir = "$" + config.AvalancheGoDataDirVar
+	// env var for odysseygo data dir
+	defaultUnexpandedDataDir = "$" + config.OdysseyGoDataDirVar
 	// expected file name for the config
 	// TODO should other file names be supported? e.g. conf.json, etc.
 	defaultConfigFileName = "config.json"
 	// expected name of the plugins dir
 	defaultPluginDir = "plugins"
 	// default dir where the binary is usually found
-	defaultAvalanchegoBuildDir = filepath.Join("go", "src", "github.com", constants.AvaLabsOrg, constants.AvalancheGoRepoName, "build")
+	defaultOdysseygoBuildDir = filepath.Join("go", "src", "github.com", constants.DioneProtocolOrg, constants.OdysseyGoRepoName, "build")
 )
 
 // This function needs to be called to initialize this package
 //
-// this init is partly "borrowed" from avalanchego/config/config.go
+// this init is partly "borrowed" from odysseygo/config/config.go
 func getScanConfigDirs() ([]string, error) {
 	folderPath, err := osext.ExecutableFolder()
 	scanConfigDirs := []string{}
@@ -49,13 +49,13 @@ func getScanConfigDirs() ([]string, error) {
 	}
 	// TODO: Any other dirs we want to scan?
 	scanConfigDirs = append(scanConfigDirs,
-		filepath.Join("/", "etc", constants.AvalancheGoRepoName),
-		filepath.Join("/", "usr", "local", "lib", constants.AvalancheGoRepoName),
+		filepath.Join("/", "etc", constants.OdysseyGoRepoName),
+		filepath.Join("/", "usr", "local", "lib", constants.OdysseyGoRepoName),
 		wd,
 		home,
-		filepath.Join(home, constants.AvalancheGoRepoName),
-		filepath.Join(home, defaultAvalanchegoBuildDir),
-		filepath.Join(home, ".avalanchego"),
+		filepath.Join(home, constants.OdysseyGoRepoName),
+		filepath.Join(home, defaultOdysseygoBuildDir),
+		filepath.Join(home, ".odysseygo"),
 		defaultUnexpandedDataDir,
 	)
 	return scanConfigDirs, nil
@@ -75,11 +75,11 @@ func FindPluginDir() (string, error) {
 	return "", nil
 }
 
-func FindAvagoConfigPath() (string, error) {
+func FindOdygoConfigPath() (string, error) {
 	ux.Logger.PrintToUser(logging.Yellow.Wrap("Scanning your system for existing files..."))
 	var path string
 	// Attempt 1: Try the admin API
-	if path = findByRunningProcesses(constants.AvalancheGoRepoName, config.ConfigFileKey); path != "" {
+	if path = findByRunningProcesses(constants.OdysseyGoRepoName, config.ConfigFileKey); path != "" {
 		return path, nil
 	}
 	// Attempt 2: find looking at some usual dirs

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +18,7 @@ type LastActions struct {
 	LastCheckGit  time.Time
 }
 
-func (app *Avalanche) WriteLastActionsFile(acts *LastActions) {
+func (app *Odyssey) WriteLastActionsFile(acts *LastActions) {
 	bLastActs, err := json.Marshal(&acts)
 	if err != nil {
 		app.Log.Warn("failed to marshal lastActions! This is non-critical but is logged", zap.Error(err))
@@ -32,7 +32,7 @@ func (app *Avalanche) WriteLastActionsFile(acts *LastActions) {
 	}
 }
 
-func (app *Avalanche) ReadLastActionsFile() (*LastActions, error) {
+func (app *Odyssey) ReadLastActionsFile() (*LastActions, error) {
 	var lastActs *LastActions
 	fileBytes, err := os.ReadFile(filepath.Join(app.GetBaseDir(), constants.LastFileName))
 	if err != nil {

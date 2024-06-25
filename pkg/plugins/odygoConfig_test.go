@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/testutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/internal/testutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,14 +60,14 @@ func TestEditConfigFileWithOldPattern(t *testing.T) {
 	fileBytes, err := os.ReadFile(configPath)
 	require.NoError(err)
 
-	var avagoConfig map[string]interface{}
-	err = json.Unmarshal(fileBytes, &avagoConfig)
+	var odygoConfig map[string]interface{}
+	err = json.Unmarshal(fileBytes, &odygoConfig)
 	require.NoError(err)
 
-	require.Equal("subNetId000,testSubNet", avagoConfig["track-subnets"])
+	require.Equal("subNetId000,testSubNet", odygoConfig["track-subnets"])
 
 	// ensure that the old setting has been deleted
-	require.Equal(nil, avagoConfig["whitelisted-subnets"])
+	require.Equal(nil, odygoConfig["whitelisted-subnets"])
 }
 
 // testing backward compatibility
@@ -102,14 +102,14 @@ func TestEditConfigFileWithNewPattern(t *testing.T) {
 	fileBytes, err := os.ReadFile(configPath)
 	require.NoError(err)
 
-	var avagoConfig map[string]interface{}
-	err = json.Unmarshal(fileBytes, &avagoConfig)
+	var odygoConfig map[string]interface{}
+	err = json.Unmarshal(fileBytes, &odygoConfig)
 	require.NoError(err)
 
-	require.Equal("subNetId000,testSubNet", avagoConfig["track-subnets"])
+	require.Equal("subNetId000,testSubNet", odygoConfig["track-subnets"])
 
 	// ensure that the old setting wont be applied at all
-	require.Equal(nil, avagoConfig["whitelisted-subnets"])
+	require.Equal(nil, odygoConfig["whitelisted-subnets"])
 }
 
 func TestEditConfigFileWithNoSettings(t *testing.T) {
@@ -143,12 +143,12 @@ func TestEditConfigFileWithNoSettings(t *testing.T) {
 	fileBytes, err := os.ReadFile(configPath)
 	require.NoError(err)
 
-	var avagoConfig map[string]interface{}
-	err = json.Unmarshal(fileBytes, &avagoConfig)
+	var odygoConfig map[string]interface{}
+	err = json.Unmarshal(fileBytes, &odygoConfig)
 	require.NoError(err)
 
-	require.Equal("testSubNet", avagoConfig["track-subnets"])
+	require.Equal("testSubNet", odygoConfig["track-subnets"])
 
 	// ensure that the old setting wont be applied at all
-	require.Equal(nil, avagoConfig["whitelisted-subnets"])
+	require.Equal(nil, odygoConfig["whitelisted-subnets"])
 }

@@ -6,13 +6,13 @@ import (
 	"errors"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
 var forceDelete bool
 
-// avalanche key delete
+// odyssey key delete
 func newDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete [keyName]",

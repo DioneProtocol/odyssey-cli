@@ -4,13 +4,13 @@
 package plugins
 
 import (
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 )
 
-func ManualUpgrade(app *application.Avalanche, sc models.Sidecar, targetVersion string) error {
+func ManualUpgrade(app *application.Odyssey, sc models.Sidecar, targetVersion string) error {
 	vmid, err := sc.GetVMID()
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func ManualUpgrade(app *application.Avalanche, sc models.Sidecar, targetVersion 
 	return nil
 }
 
-func AutomatedUpgrade(app *application.Avalanche, sc models.Sidecar, targetVersion string, pluginDir string) error {
+func AutomatedUpgrade(app *application.Odyssey, sc models.Sidecar, targetVersion string, pluginDir string) error {
 	// Attempt an automated update
 	var err error
 	if pluginDir == "" {
@@ -45,7 +45,7 @@ func AutomatedUpgrade(app *application.Avalanche, sc models.Sidecar, targetVersi
 			}
 		}
 		if pluginDir == "" {
-			pluginDir, err = app.Prompt.CaptureString("Path to your avalanchego plugin dir (likely ~/.avalanchego/build/plugins)")
+			pluginDir, err = app.Prompt.CaptureString("Path to your odysseygo plugin dir (likely ~/.odysseygo/build/plugins)")
 			if err != nil {
 				return err
 			}
@@ -81,8 +81,8 @@ To upgrade your node, you must do three things:
 
 To add the VM to your plugin directory, copy or scp from %s
 
-If you installed avalanchego with the install script, your plugin directory is likely
-~/.avalanchego/build/plugins.
+If you installed odysseygo with the install script, your plugin directory is likely
+~/.odysseygo/build/plugins.
 `
 
 	ux.Logger.PrintToUser(msg, vmPath)

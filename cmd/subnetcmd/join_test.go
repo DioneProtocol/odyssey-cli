@@ -5,9 +5,9 @@ package subnetcmd
 import (
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -18,17 +18,17 @@ func TestIsNodeValidatingSubnet(t *testing.T) {
 	nonValidator := ids.GenerateTestNodeID()
 	subnetID := ids.GenerateTestID()
 
-	pClient := &mocks.PClient{}
-	pClient.On("GetCurrentValidators", mock.Anything, mock.Anything, mock.Anything).Return(
-		[]platformvm.ClientPermissionlessValidator{
+	oClient := &mocks.OClient{}
+	oClient.On("GetCurrentValidators", mock.Anything, mock.Anything, mock.Anything).Return(
+		[]omegavm.ClientPermissionlessValidator{
 			{
-				ClientStaker: platformvm.ClientStaker{
+				ClientStaker: omegavm.ClientStaker{
 					NodeID: nodeID,
 				},
 			},
 		}, nil)
 
-	pClient.On("GetPendingValidators", mock.Anything, mock.Anything, mock.Anything).Return(
+	oClient.On("GetPendingValidators", mock.Anything, mock.Anything, mock.Anything).Return(
 		[]interface{}{}, nil, nil).Once()
 
 	interfaceReturn := make([]interface{}, 1)
@@ -36,21 +36,21 @@ func TestIsNodeValidatingSubnet(t *testing.T) {
 		"nodeID": nonValidator.String(),
 	}
 	interfaceReturn[0] = val
-	pClient.On("GetPendingValidators", mock.Anything, mock.Anything, mock.Anything).Return(interfaceReturn, nil, nil)
+	oClient.On("GetPendingValidators", mock.Anything, mock.Anything, mock.Anything).Return(interfaceReturn, nil, nil)
 
 	// first pass: should return true for the GetCurrentValidators
-	isValidating, err := checkIsValidating(subnetID, nodeID, pClient)
+	isValidating, err := checkIsValidating(subnetID, nodeID, oClient)
 	require.NoError(err)
 	require.True(isValidating)
 
 	// second pass: The nonValidator is not in current nor pending validators, hence false
-	isValidating, err = checkIsValidating(subnetID, nonValidator, pClient)
+	isValidating, err = checkIsValidating(subnetID, nonValidator, oClient)
 	require.NoError(err)
 	require.False(isValidating)
 
 	// third pass: The second mocked GetPendingValidators applies, and this time
 	// nonValidator is in the pending set, hence true
-	isValidating, err = checkIsValidating(subnetID, nonValidator, pClient)
+	isValidating, err = checkIsValidating(subnetID, nonValidator, oClient)
 	require.NoError(err)
 	require.True(isValidating)
 }

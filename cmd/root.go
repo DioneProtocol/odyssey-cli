@@ -11,34 +11,34 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/cmd/primarycmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/primarycmd"
 
-	"github.com/ava-labs/avalanche-cli/cmd/nodecmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/nodecmd"
 
-	"github.com/ava-labs/avalanche-cli/cmd/configcmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/configcmd"
 
-	"github.com/ava-labs/avalanche-cli/cmd/backendcmd"
-	"github.com/ava-labs/avalanche-cli/cmd/keycmd"
-	"github.com/ava-labs/avalanche-cli/cmd/networkcmd"
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/cmd/transactioncmd"
-	"github.com/ava-labs/avalanche-cli/cmd/updatecmd"
-	"github.com/ava-labs/avalanche-cli/internal/migrations"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/config"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/metrics"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/perms"
+	"github.com/DioneProtocol/odyssey-cli/cmd/backendcmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/keycmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/networkcmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/transactioncmd"
+	"github.com/DioneProtocol/odyssey-cli/cmd/updatecmd"
+	"github.com/DioneProtocol/odyssey-cli/internal/migrations"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/config"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/metrics"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/perms"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
 var (
-	app *application.Avalanche
+	app *application.Odyssey
 
 	logLevel  string
 	Version   = ""
@@ -49,13 +49,13 @@ var (
 func NewRootCmd() *cobra.Command {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
-		Use: "avalanche",
-		Long: `Avalanche-CLI is a command-line tool that gives developers access to
-everything Avalanche. This release specializes in helping developers
+		Use: "odyssey",
+		Long: `Odyssey-CLI is a command-line tool that gives developers access to
+everything Odyssey. This release specializes in helping developers
 build and test Subnets.
 
 To get started, look at the documentation for the subcommands or jump right
-in with avalanche subnet create myNewSubnet.`,
+in with odyssey subnet create myNewSubnet.`,
 		PersistentPreRunE: createApp,
 		Version:           Version,
 		PersistentPostRun: handleTracking,
@@ -64,7 +64,7 @@ in with avalanche subnet create myNewSubnet.`,
 	// Disable printing the completion command
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.avalanche-cli/config.json)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.odyssey-cli/config.json)")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "ERROR", "log level for the application")
 	rootCmd.PersistentFlags().BoolVar(&skipCheck, constants.SkipUpdateFlag, false, "skip check for new versions")
 
@@ -123,7 +123,7 @@ func createApp(cmd *cobra.Command, _ []string) error {
 
 // checkForUpdates evaluates first if the user is maybe wanting to skip the update check
 // if there's no skip, it runs the update check
-func checkForUpdates(cmd *cobra.Command, app *application.Avalanche) error {
+func checkForUpdates(cmd *cobra.Command, app *application.Odyssey) error {
 	var (
 		lastActs *application.LastActions
 		err      error
@@ -275,7 +275,7 @@ func setupLogging(baseDir string) (logging.Logger, error) {
 	config.MaxAge = constants.RetainOldFiles
 
 	factory := logging.NewFactory(config)
-	log, err := factory.Make("avalanche")
+	log, err := factory.Make("odyssey")
 	if err != nil {
 		factory.Close()
 		return nil, fmt.Errorf("failed setting up logging, exiting: %w", err)
@@ -292,7 +292,7 @@ func initConfig() {
 	if utils.FileExists(oldConfig) || utils.FileExists(oldMetricsConfig) {
 		ux.Logger.PrintToUser("-----------------------------------------------------------------------")
 		ux.Logger.PrintToUser("WARNING: Old configuration file was found in %s and/or %s", oldConfig, oldMetricsConfig)
-		ux.Logger.PrintToUser("Please run `avalanche config migrate` to migrate it to new default location %s", cfgFile)
+		ux.Logger.PrintToUser("Please run `odyssey config migrate` to migrate it to new default location %s", cfgFile)
 		ux.Logger.PrintToUser("-----------------------------------------------------------------------")
 	}
 	if cfgFile == "" {

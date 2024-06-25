@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ var (
 	customVMBuildScript string
 )
 
-// avalanche subnet list
+// odyssey subnet list
 func newExportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "export [subnetName]",
@@ -133,8 +133,8 @@ func exportSubnet(_ *cobra.Command, args []string) error {
 
 	var nodeConfig, chainConfig, subnetConfig, networkUpgrades []byte
 
-	if app.AvagoNodeConfigExists(subnetName) {
-		nodeConfig, err = app.LoadRawAvagoNodeConfig(subnetName)
+	if app.OdygoNodeConfigExists(subnetName) {
+		nodeConfig, err = app.LoadRawOdygoNodeConfig(subnetName)
 		if err != nil {
 			return err
 		}
@@ -145,8 +145,8 @@ func exportSubnet(_ *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	if app.AvagoSubnetConfigExists(subnetName) {
-		subnetConfig, err = app.LoadRawAvagoSubnetConfig(subnetName)
+	if app.OdygoSubnetConfigExists(subnetName) {
+		subnetConfig, err = app.LoadRawOdygoSubnetConfig(subnetName)
 		if err != nil {
 			return err
 		}

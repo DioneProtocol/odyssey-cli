@@ -18,18 +18,18 @@ import (
 )
 
 const (
-	avalanchegoBin = "avalanchego"
-	pluginDirName  = "plugins"
-	evmBin         = "evm"
-	buildDirName   = "build"
-	subnetEVMBin   = "subnet-evm"
-	readme         = "README.md"
-	license        = "LICENSE"
+	odysseygoBin  = "odysseygo"
+	pluginDirName = "plugins"
+	evmBin        = "evm"
+	buildDirName  = "build"
+	subnetEVMBin  = "subnet-evm"
+	readme        = "README.md"
+	license       = "LICENSE"
 
-	avalanchegoBinPrefix = "avalanchego-"
+	odysseygoBinPrefix = "odysseygo-"
 
-	avagoTar     = "/tmp/avago.tar.gz"
-	avagoZip     = "/tmp/avago.zip"
+	odygoTar     = "/tmp/odygo.tar.gz"
+	odygoZip     = "/tmp/odygo.zip"
 	subnetEVMTar = "/tmp/subevm.tar.gz"
 )
 
@@ -39,9 +39,9 @@ var (
 	licenseContents = []byte("LICENSE")
 )
 
-func verifyAvagoTarContents(require *require.Assertions, tarBytes []byte, version string) {
-	topDir := avalanchegoBinPrefix + version
-	bin := filepath.Join(topDir, avalanchegoBin)
+func verifyOdygoTarContents(require *require.Assertions, tarBytes []byte, version string) {
+	topDir := odysseygoBinPrefix + version
+	bin := filepath.Join(topDir, odysseygoBin)
 	plugins := filepath.Join(topDir, pluginDirName)
 	evm := filepath.Join(plugins, evmBin)
 
@@ -112,9 +112,9 @@ func verifySubnetEVMTarContents(require *require.Assertions, tarBytes []byte) {
 	require.True(licenseExists)
 }
 
-func verifyAvagoZipContents(require *require.Assertions, zipFile string) {
+func verifyOdygoZipContents(require *require.Assertions, zipFile string) {
 	topDir := buildDirName
-	bin := filepath.Join(topDir, avalanchegoBin)
+	bin := filepath.Join(topDir, odysseygoBin)
 	plugins := filepath.Join(topDir, pluginDirName)
 	evm := filepath.Join(plugins, evmBin)
 
@@ -147,7 +147,7 @@ func verifyAvagoZipContents(require *require.Assertions, zipFile string) {
 	require.True(evmExists)
 }
 
-func CreateDummyAvagoZip(require *require.Assertions, binary []byte) []byte {
+func CreateDummyOdygoZip(require *require.Assertions, binary []byte) []byte {
 	sourceDir, err := os.MkdirTemp(os.TempDir(), "binutils-source")
 	require.NoError(err)
 	defer os.RemoveAll(sourceDir)
@@ -156,7 +156,7 @@ func CreateDummyAvagoZip(require *require.Assertions, binary []byte) []byte {
 	err = os.Mkdir(topDir, 0o700)
 	require.NoError(err)
 
-	binPath := filepath.Join(topDir, avalanchegoBin)
+	binPath := filepath.Join(topDir, odysseygoBin)
 	err = os.WriteFile(binPath, binary, 0o600)
 	require.NoError(err)
 
@@ -169,26 +169,26 @@ func CreateDummyAvagoZip(require *require.Assertions, binary []byte) []byte {
 	require.NoError(err)
 
 	// Put into zip
-	CreateZip(require, topDir, avagoZip)
-	defer os.Remove(avagoZip)
+	CreateZip(require, topDir, odygoZip)
+	defer os.Remove(odygoZip)
 
-	verifyAvagoZipContents(require, avagoZip)
+	verifyOdygoZipContents(require, odygoZip)
 
-	zipBytes, err := os.ReadFile(avagoZip)
+	zipBytes, err := os.ReadFile(odygoZip)
 	require.NoError(err)
 	return zipBytes
 }
 
-func CreateDummyAvagoTar(require *require.Assertions, binary []byte, version string) []byte {
+func CreateDummyOdygoTar(require *require.Assertions, binary []byte, version string) []byte {
 	sourceDir, err := os.MkdirTemp(os.TempDir(), "binutils-source")
 	require.NoError(err)
 	defer os.RemoveAll(sourceDir)
 
-	topDir := filepath.Join(sourceDir, avalanchegoBinPrefix+version)
+	topDir := filepath.Join(sourceDir, odysseygoBinPrefix+version)
 	err = os.Mkdir(topDir, 0o700)
 	require.NoError(err)
 
-	binPath := filepath.Join(topDir, avalanchegoBin)
+	binPath := filepath.Join(topDir, odysseygoBin)
 	err = os.WriteFile(binPath, binary, 0o600)
 	require.NoError(err)
 
@@ -201,11 +201,11 @@ func CreateDummyAvagoTar(require *require.Assertions, binary []byte, version str
 	require.NoError(err)
 
 	// Put into tar
-	CreateTarGz(require, topDir, avagoTar, true)
-	defer os.Remove(avagoTar)
-	tarBytes, err := os.ReadFile(avagoTar)
+	CreateTarGz(require, topDir, odygoTar, true)
+	defer os.Remove(odygoTar)
+	tarBytes, err := os.ReadFile(odygoTar)
 	require.NoError(err)
-	verifyAvagoTarContents(require, tarBytes, version)
+	verifyOdygoTarContents(require, tarBytes, version)
 	return tarBytes
 }
 

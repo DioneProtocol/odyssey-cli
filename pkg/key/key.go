@@ -9,11 +9,11 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/vms/components/avax"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/constants"
+	"github.com/DioneProtocol/odysseygo/vms/components/dione"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 )
 
 var (
@@ -23,10 +23,10 @@ var (
 
 // Key defines methods for key manager interface.
 type Key interface {
-	// P returns all formatted P-Chain addresses.
-	P() []string
-	// C returns the C-Chain address in Ethereum format
-	C() string
+	// O returns all formatted O-Chain addresses.
+	O() []string
+	// D returns the D-Chain address in Ethereum format
+	D() string
 	// Addresses returns the all raw ids.ShortID address.
 	Addresses() []ids.ShortID
 	// Match attempts to match a list of addresses up to the provided threshold.
@@ -37,13 +37,13 @@ type Key interface {
 	// If target amount is specified, it only uses the
 	// outputs until the total spending is below the target
 	// amount.
-	Spends(outputs []*avax.UTXO, opts ...OpOption) (
+	Spends(outputs []*dione.UTXO, opts ...OpOption) (
 		totalBalanceToSpend uint64,
-		inputs []*avax.TransferableInput,
+		inputs []*dione.TransferableInput,
 		signers [][]ids.ShortID,
 	)
-	// Sign generates [numSigs] signatures and attaches them to [pTx].
-	Sign(pTx *txs.Tx, signers [][]ids.ShortID) error
+	// Sign generates [numSigs] signatures and attaches them to [oTx].
+	Sign(oTx *txs.Tx, signers [][]ids.ShortID) error
 }
 
 type Op struct {
@@ -73,7 +73,7 @@ func WithTargetAmount(ta uint64) OpOption {
 }
 
 // To deduct transfer fee from total spend (output).
-// e.g., "units.MilliAvax" for X/P-Chain transfer.
+// e.g., "units.MilliDione" for A/O-Chain transfer.
 func WithFeeDeduct(fee uint64) OpOption {
 	return func(op *Op) {
 		op.feeDeduct = fee
@@ -84,8 +84,8 @@ func GetHRP(networkID uint32) string {
 	switch networkID {
 	case constants.LocalID:
 		return constants.LocalHRP
-	case constants.FujiID:
-		return constants.FujiHRP
+	case constants.TestnetID:
+		return constants.TestnetHRP
 	case constants.MainnetID:
 		return constants.MainnetHRP
 	default:
@@ -94,7 +94,7 @@ func GetHRP(networkID uint32) string {
 }
 
 type innerSortTransferableInputsWithSigners struct {
-	ins     []*avax.TransferableInput
+	ins     []*dione.TransferableInput
 	signers [][]ids.ShortID
 }
 
@@ -123,8 +123,6 @@ func (ins *innerSortTransferableInputsWithSigners) Swap(i, j int) {
 
 // SortTransferableInputsWithSigners sorts the inputs and signers based on the
 // input's utxo ID.
-//
-// This is based off of (generics?): https://github.com/ava-labs/avalanchego/blob/224c9fd23d41839201dd0275ac864a845de6e93e/vms/components/avax/transferables.go#L202
-func SortTransferableInputsWithSigners(ins []*avax.TransferableInput, signers [][]ids.ShortID) {
+func SortTransferableInputsWithSigners(ins []*dione.TransferableInput, signers [][]ids.ShortID) {
 	sort.Sort(&innerSortTransferableInputsWithSigners{ins: ins, signers: signers})
 }

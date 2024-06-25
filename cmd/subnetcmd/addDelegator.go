@@ -8,34 +8,34 @@ import (
 	"os"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanchego/genesis"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet deploy
+// odyssey subnet deploy
 func newAddPermissionlessDelegatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "addPermissionlessDelegator [subnetName]",
 		Short: "Allow a node join an existing subnet validator as a delegator",
-		Long: `The subnet addDelegator enables a node (the delegator) to stake 
-AVAX and specify a validator (the delegatee) to validate on their behalf. The 
-delegatee has an increased probability of being sampled by other validators 
+		Long: `The subnet addDelegator enables a node (the delegator) to stake
+DIONE and specify a validator (the delegatee) to validate on their behalf. The
+delegatee has an increased probability of being sampled by other validators
 (weight) in proportion to the stake delegated to them.
 
-The delegatee charges a fee to the delegator; the former receives a percentage 
-of the delegator’s validation reward (if any.) A transaction that delegates 
+The delegatee charges a fee to the delegator; the former receives a percentage
+of the delegator’s validation reward (if any.) A transaction that delegates
 stake has no fee.
 
-The delegation period must be a subset of the period that the delegatee 
+The delegation period must be a subset of the period that the delegatee
 validates the Primary Network.
 
 To add a node as a delegator, you first need to provide
@@ -46,16 +46,15 @@ these prompts by providing the values with flags.`,
 		RunE:         addPermissionlessDelegator,
 		Args:         cobra.ExactArgs(1),
 	}
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji deploy only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet deploy only]")
 	cmd.Flags().StringVar(&nodeIDStr, "nodeID", "", "set the NodeID of the validator to delegate to")
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "join on `fuji` (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "join on `testnet` (alias for `fuji`)")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "join on `testnet`")
 	cmd.Flags().BoolVar(&deployMainnet, "mainnet", false, "join on `mainnet`")
 	cmd.Flags().BoolVar(&deployLocal, "local", false, "join on `local`")
 	cmd.Flags().Uint64Var(&stakeAmount, "stake-amount", 0, "amount of tokens to stake")
 	cmd.Flags().StringVar(&startTimeStr, "start-time", "", "start time that delegator starts delegating")
 	cmd.Flags().DurationVar(&duration, "staking-period", 0, "how long delegator should delegate for after start time")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji)")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 
 	return cmd
@@ -79,7 +78,7 @@ func addPermissionlessDelegator(_ *cobra.Command, args []string) error {
 		deployMainnet,
 		"",
 		true,
-		[]models.NetworkKind{models.Local, models.Fuji, models.Mainnet},
+		[]models.NetworkKind{models.Local, models.Testnet, models.Mainnet},
 	)
 	if err != nil {
 		return err
@@ -96,7 +95,7 @@ func addPermissionlessDelegator(_ *cobra.Command, args []string) error {
 	}
 
 	if useLedger && keyName != "" {
-		return ErrMutuallyExlusiveKeyLedger
+		return ErrMutuallyExclusiveKeyLedger
 	}
 	subnetID := sc.Networks[network.Name()].SubnetID
 	if os.Getenv(constants.SimulatePublicNetwork) != "" {
@@ -123,9 +122,9 @@ func addPermissionlessDelegator(_ *cobra.Command, args []string) error {
 	switch network.Kind {
 	case models.Local:
 		return handleAddPermissionlessDelegatorLocal(subnetName, network, nodeID, stakedTokenAmount, start, endTime)
-	case models.Fuji:
+	case models.Testnet:
 		if !useLedger && keyName == "" {
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
 			if err != nil {
 				return err
 			}

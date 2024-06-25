@@ -10,17 +10,17 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/config"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/version"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/config"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/version"
 	"github.com/go-git/go-git/v5"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -67,13 +67,13 @@ func TestInfoKnownVMs(t *testing.T) {
 			c.dl,
 		)
 		require.NoError(err)
-		require.ElementsMatch([]string{constants.AvaLabsMaintainers}, maintrs)
+		require.ElementsMatch([]string{constants.DioneProtocolMaintainers}, maintrs)
 		require.NoError(err)
 		_, err = url.Parse(resurl)
 		require.NoError(err)
 		// it's kinda useless to create the URL by building it via downloader -
 		// would defeat the purpose of the test
-		expectedURL := "https://github.com/ava-labs/" +
+		expectedURL := "https://github.com/dioneprotocol/" +
 			c.repoName + "/releases/download/" +
 			c.strVer + "/" + c.repoName + "_" + c.strVer[1:] + "_" +
 			runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
@@ -103,7 +103,7 @@ func TestNoRepoPath(t *testing.T) {
 		Name:      testSubnet,
 		Subnet:    testSubnet,
 		Networks: map[string]models.NetworkData{
-			models.Fuji.String(): {
+			models.Testnet.String(): {
 				SubnetID:     ids.GenerateTestID(),
 				BlockchainID: ids.GenerateTestID(),
 			},
@@ -126,7 +126,7 @@ func TestNoRepoPath(t *testing.T) {
 	err = os.MkdirAll(vmDir, constants.DefaultPerms755)
 	require.NoError(err)
 	expectedSubnetFile := filepath.Join(subnetDir, testSubnet+constants.YAMLSuffix)
-	expectedVMFile := filepath.Join(vmDir, sc.Networks["Fuji"].BlockchainID.String()+constants.YAMLSuffix)
+	expectedVMFile := filepath.Join(vmDir, sc.Networks["Testnet"].BlockchainID.String()+constants.YAMLSuffix)
 	_, err = os.Create(expectedSubnetFile)
 	require.NoError(err)
 
@@ -208,12 +208,12 @@ func TestCanPublish(t *testing.T) {
 		app = nil
 	}()
 
-	scCanPublishFuji := &models.Sidecar{
+	scCanPublishTestnet := &models.Sidecar{
 		VM:     models.SubnetEvm,
-		Name:   "fuji",
-		Subnet: "fuji",
+		Name:   "testnet",
+		Subnet: "testnet",
 		Networks: map[string]models.NetworkData{
-			models.Fuji.String(): {
+			models.Testnet.String(): {
 				SubnetID:     ids.GenerateTestID(),
 				BlockchainID: ids.GenerateTestID(),
 			},
@@ -237,7 +237,7 @@ func TestCanPublish(t *testing.T) {
 		Name:   "both",
 		Subnet: "both",
 		Networks: map[string]models.NetworkData{
-			models.Fuji.String(): {
+			models.Testnet.String(): {
 				SubnetID:     ids.GenerateTestID(),
 				BlockchainID: ids.GenerateTestID(),
 			},
@@ -289,7 +289,7 @@ func TestCanPublish(t *testing.T) {
 	}
 
 	sidecars := []*models.Sidecar{
-		scCanPublishFuji,
+		scCanPublishTestnet,
 		scCanPublishMain,
 		scCanPublishBoth,
 		scCanNotPublishLocal,
@@ -413,7 +413,7 @@ func setupTestEnv(t *testing.T) (*require.Assertions, *mocks.Prompter) {
 	err := os.Mkdir(filepath.Join(testDir, "repos"), 0o755)
 	require.NoError(err)
 	ux.NewUserLog(logging.NoLog{}, io.Discard)
-	app = &application.Avalanche{}
+	app = &application.Odyssey{}
 	mockPrompt := mocks.NewPrompter(t)
 	app.Setup(testDir, logging.NoLog{}, config.New(), mockPrompt, application.NewDownloader())
 

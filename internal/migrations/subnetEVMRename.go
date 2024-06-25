@@ -7,14 +7,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
 )
 
 const oldSubnetEVM = "SubnetEVM"
 
-func migrateSubnetEVMNames(app *application.Avalanche, runner *migrationRunner) error {
+func migrateSubnetEVMNames(app *application.Odyssey, runner *migrationRunner) error {
 	subnetDir := app.GetSubnetDir()
 	subnets, err := os.ReadDir(subnetDir)
 	if err != nil {

@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/local"
-	"github.com/ava-labs/avalanche-network-runner/server"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/local"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -62,7 +62,7 @@ func saveNetwork() error {
 		return err
 	}
 
-	ctx, cancel := utils.GetANRContext()
+	ctx, cancel := utils.GetONRContext()
 	defer cancel()
 
 	_, err = cli.RemoveSnapshot(ctx, snapshotName)

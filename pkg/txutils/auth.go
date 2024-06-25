@@ -5,14 +5,14 @@ package txutils
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/avalanchego/vms/components/verify"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/secp256k1"
+	"github.com/DioneProtocol/odysseygo/vms/components/verify"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 )
 
 // get all subnet auth addresses that are required to sign a given tx
-//   - get subnet control keys as string slice using P-Chain API (GetOwners)
+//   - get subnet control keys as string slice using O-Chain API (GetOwners)
 //   - get subnet auth indices from the tx, field tx.UnsignedTx.SubnetAuth
 //   - creates the string slice of required subnet auth addresses by applying
 //     the indices to the control keys slice

@@ -8,11 +8,11 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/commands"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
-	"github.com/ava-labs/avalanchego/genesis"
-	"github.com/ava-labs/avalanchego/utils/units"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/commands"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	"github.com/DioneProtocol/odysseygo/utils/units"
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -133,9 +133,9 @@ var _ = ginkgo.Describe("[Key]", func() {
 		// difficult to understand (go regexes don't support Perl regex
 		// Go RE2 library doesn't support lookahead and lookbehind
 		regex1 := `.*NAME.*CHAIN.*ADDRESS.*NETWORK`
-		regex2 := `.*e2eKey.*C-Chain.*0x[a-fA-F0-9]{40}`
-		regex3 := `.*P-Chain.*[(P-custom)(P-fuji)][a-zA-Z0-9]{39}`
-		regex4 := `.*P-avax[a-zA-Z0-9]{39}`
+		regex2 := `.*e2eKey.*D-Chain.*0x[a-fA-F0-9]{40}`
+		regex3 := `.*O-Chain.*[(O-custom)(O-testnet)][a-zA-Z0-9]{39}`
+		regex4 := `.*O-dione[a-zA-Z0-9]{39}`
 
 		// Create a key
 		output, err := commands.CreateKey(keyName)
@@ -269,8 +269,8 @@ var _ = ginkgo.Describe("[Key]", func() {
 
 		amount := 0.2
 		amountStr := fmt.Sprintf("%.2f", amount)
-		feeNAvax := genesis.LocalParams.TxFeeConfig.TxFee * 4
-		amountNAvax := uint64(amount * float64(units.Avax))
+		feeNDione := genesis.LocalParams.TxFeeConfig.TxFee * 4
+		amountNDione := uint64(amount * float64(units.Dione))
 
 		// send/receive without recovery
 
@@ -293,7 +293,7 @@ var _ = ginkgo.Describe("[Key]", func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		_, ewoqKeyBalance2, err := utils.ParseAddrBalanceFromKeyListOutput(output, ewoqKeyName)
 		gomega.Expect(err).Should(gomega.BeNil())
-		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance2).Should(gomega.Equal(feeNAvax + amountNAvax))
+		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance2).Should(gomega.Equal(feeNDione + amountNDione))
 		gomega.Expect(keyBalance2 - keyBalance1).Should(gomega.Equal(uint64(0)))
 
 		output, err = commands.KeyTransferReceive(keyName, amountStr, "0")
@@ -308,8 +308,8 @@ var _ = ginkgo.Describe("[Key]", func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		_, ewoqKeyBalance3, err := utils.ParseAddrBalanceFromKeyListOutput(output, ewoqKeyName)
 		gomega.Expect(err).Should(gomega.BeNil())
-		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance3).Should(gomega.Equal(feeNAvax + amountNAvax))
-		gomega.Expect(keyBalance3 - keyBalance1).Should(gomega.Equal(amountNAvax))
+		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance3).Should(gomega.Equal(feeNDione + amountNDione))
+		gomega.Expect(keyBalance3 - keyBalance1).Should(gomega.Equal(amountNDione))
 
 		// send/receive with recovery 1
 
@@ -332,7 +332,7 @@ var _ = ginkgo.Describe("[Key]", func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		_, ewoqKeyBalance2, err = utils.ParseAddrBalanceFromKeyListOutput(output, ewoqKeyName)
 		gomega.Expect(err).Should(gomega.BeNil())
-		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance2).Should(gomega.Equal(feeNAvax + amountNAvax))
+		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance2).Should(gomega.Equal(feeNDione + amountNDione))
 		gomega.Expect(keyBalance2 - keyBalance1).Should(gomega.Equal(uint64(0)))
 
 		output, err = commands.KeyTransferReceive(keyName, "0.3", "0") // make 2nd step to fail with bad amount
@@ -347,7 +347,7 @@ var _ = ginkgo.Describe("[Key]", func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		_, ewoqKeyBalance3, err = utils.ParseAddrBalanceFromKeyListOutput(output, ewoqKeyName)
 		gomega.Expect(err).Should(gomega.BeNil())
-		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance3).Should(gomega.Equal(feeNAvax + amountNAvax))
+		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance3).Should(gomega.Equal(feeNDione + amountNDione))
 		gomega.Expect(keyBalance3 - keyBalance1).Should(gomega.Equal(uint64(0)))
 
 		output, err = commands.KeyTransferReceive(keyName, amountStr, "1") // do recovery of 2nd step
@@ -362,8 +362,8 @@ var _ = ginkgo.Describe("[Key]", func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		_, ewoqKeyBalance3, err = utils.ParseAddrBalanceFromKeyListOutput(output, ewoqKeyName)
 		gomega.Expect(err).Should(gomega.BeNil())
-		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance3).Should(gomega.Equal(feeNAvax + amountNAvax))
-		gomega.Expect(keyBalance3 - keyBalance1).Should(gomega.Equal(amountNAvax))
+		gomega.Expect(ewoqKeyBalance1 - ewoqKeyBalance3).Should(gomega.Equal(feeNDione + amountNDione))
+		gomega.Expect(keyBalance3 - keyBalance1).Should(gomega.Equal(amountNDione))
 
 		err = utils.DeleteKey(keyName)
 		gomega.Expect(err).Should(gomega.BeNil())

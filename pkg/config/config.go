@@ -7,9 +7,9 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

@@ -8,21 +8,21 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
 
 type nodeUpgradeInfo struct {
-	AvalancheGoVersion    string   // avalanche go version to update to on cloud server
+	OdysseyGoVersion      string   // odyssey go version to update to on cloud server
 	SubnetEVMVersion      string   // subnet EVM version to update to on cloud server
 	SubnetEVMIDsToUpgrade []string // list of ID of Subnet EVM to be upgraded to subnet EVM version to update to
 }
@@ -30,13 +30,13 @@ type nodeUpgradeInfo struct {
 func newUpgradeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "upgrade",
-		Short: "(ALPHA Warning) Update avalanchego or VM version for all node in a cluster",
+		Short: "(ALPHA Warning) Update odysseygo or VM version for all node in a cluster",
 		Long: `(ALPHA Warning) This command is currently in experimental mode.
 
 The node update command suite provides a collection of commands for nodes to update
-their avalanchego or VM version.
+their odysseygo or VM version.
 
-You can check the status after upgrade by calling avalanche node status`,
+You can check the status after upgrade by calling odyssey node status`,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE:         upgrade,
@@ -60,8 +60,8 @@ func upgrade(_ *cobra.Command, args []string) error {
 		return err
 	}
 	for host, upgradeInfo := range toUpgradeNodesMap {
-		if upgradeInfo.AvalancheGoVersion != "" {
-			if err := upgradeAvalancheGo(host, upgradeInfo.AvalancheGoVersion); err != nil {
+		if upgradeInfo.OdysseyGoVersion != "" {
+			if err := upgradeOdysseyGo(host, upgradeInfo.OdysseyGoVersion); err != nil {
 				return err
 			}
 		}
@@ -90,19 +90,19 @@ func upgrade(_ *cobra.Command, args []string) error {
 }
 
 // getNodesUpgradeInfo gets the node versions of all given nodes and checks which
-// nodes needs to have Avalanche Go & SubnetEVM upgraded. It first checks the subnet EVM version -
-// it will install the newest subnet EVM version and install the latest avalanche Go that is still compatible with the Subnet EVM version
-// if the node is not tracking any subnet, it will just install latestAvagoVersion
+// nodes needs to have Odyssey Go & SubnetEVM upgraded. It first checks the subnet EVM version -
+// it will install the newest subnet EVM version and install the latest odyssey Go that is still compatible with the Subnet EVM version
+// if the node is not tracking any subnet, it will just install latestOdygoVersion
 func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo, error) {
-	latestAvagoVersion, err := app.Downloader.GetLatestReleaseVersion(binutils.GetGithubLatestReleaseURL(
-		constants.AvaLabsOrg,
-		constants.AvalancheGoRepoName,
+	latestOdygoVersion, err := app.Downloader.GetLatestReleaseVersion(binutils.GetGithubLatestReleaseURL(
+		constants.DioneProtocolOrg,
+		constants.OdysseyGoRepoName,
 	))
 	if err != nil {
 		return nil, err
 	}
 	latestSubnetEVMVersion, err := app.Downloader.GetLatestReleaseVersion(binutils.GetGithubLatestReleaseURL(
-		constants.AvaLabsOrg,
+		constants.DioneProtocolOrg,
 		constants.SubnetEVMRepoName,
 	))
 	if err != nil {
@@ -121,7 +121,7 @@ func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo
 		wg.Add(1)
 		go func(nodeResults *models.NodeResults, host *models.Host) {
 			defer wg.Done()
-			if resp, err := ssh.RunSSHCheckAvalancheGoVersion(host); err != nil {
+			if resp, err := ssh.RunSSHCheckOdysseyGoVersion(host); err != nil {
 				nodeResults.AddResult(host.NodeID, nil, err)
 				return
 			} else {
@@ -135,7 +135,7 @@ func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo
 	}
 	wg.Wait()
 	if wgResults.HasErrors() {
-		return nil, fmt.Errorf("failed to get avalanchego version for node(s) %s", wgResults.GetErrorHostMap())
+		return nil, fmt.Errorf("failed to get odysseygo version for node(s) %s", wgResults.GetErrorHostMap())
 	}
 
 	nodeIDToHost := map[string]*models.Host{}
@@ -148,13 +148,13 @@ func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo
 		if err != nil {
 			return nil, err
 		}
-		currentAvalancheGoVersion := vmVersions[constants.PlatformKeyName]
-		avalancheGoVersionToUpdateTo := latestAvagoVersion
+		currentOdysseyGoVersion := vmVersions[constants.PlatformKeyName]
+		odysseyGoVersionToUpdateTo := latestOdygoVersion
 		nodeUpgradeInfo := nodeUpgradeInfo{}
 		nodeUpgradeInfo.SubnetEVMIDsToUpgrade = []string{}
 		for vmName, vmVersion := range vmVersions {
 			// when calling info.getNodeVersion, this is what we get
-			// "vmVersions":{"avm":"v1.10.12","evm":"v0.12.5","n8Anw9kErmgk7KHviddYtecCmziLZTphDwfL1V2DfnFjWZXbE":"v0.5.6","platform":"v1.10.12"}},
+			// "vmVersions":{"alpha":"v1.10.12","evm":"v0.12.5","n8Anw9kErmgk7KHviddYtecCmziLZTphDwfL1V2DfnFjWZXbE":"v0.5.6","omega":"v1.10.12"}},
 			// we need to get the VM ID of the subnets that the node is currently validating, in the example above it is n8Anw9kErmgk7KHviddYtecCmziLZTphDwfL1V2DfnFjWZXbE
 			if !checkIfKeyIsStandardVMName(vmName) {
 				if vmVersion != latestSubnetEVMVersion {
@@ -163,8 +163,8 @@ func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo
 					nodeUpgradeInfo.SubnetEVMVersion = latestSubnetEVMVersion
 					nodeUpgradeInfo.SubnetEVMIDsToUpgrade = append(nodeUpgradeInfo.SubnetEVMIDsToUpgrade, vmName)
 				}
-				// find the highest version of avalanche go that is still compatible with current highest rpc
-				avalancheGoVersionToUpdateTo, err = GetLatestAvagoVersionForRPC(rpcVersion)
+				// find the highest version of odyssey go that is still compatible with current highest rpc
+				odysseyGoVersionToUpdateTo, err = GetLatestOdygoVersionForRPC(rpcVersion)
 				if err != nil {
 					nodeErrors[hostID] = err
 					continue
@@ -174,9 +174,9 @@ func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo
 		if _, hasFailed := nodeErrors[hostID]; hasFailed {
 			continue
 		}
-		if currentAvalancheGoVersion != avalancheGoVersionToUpdateTo {
-			ux.Logger.PrintToUser("Upgrading Avalanche Go version for node %s from version %s to version %s", hostID, currentAvalancheGoVersion, avalancheGoVersionToUpdateTo)
-			nodeUpgradeInfo.AvalancheGoVersion = avalancheGoVersionToUpdateTo
+		if currentOdysseyGoVersion != odysseyGoVersionToUpdateTo {
+			ux.Logger.PrintToUser("Upgrading Odyssey Go version for node %s from version %s to version %s", hostID, currentOdysseyGoVersion, odysseyGoVersionToUpdateTo)
+			nodeUpgradeInfo.OdysseyGoVersion = odysseyGoVersionToUpdateTo
 		}
 		nodesToUpgrade[nodeIDToHost[hostID]] = nodeUpgradeInfo
 	}
@@ -190,21 +190,21 @@ func getNodesUpgradeInfo(hosts []*models.Host) (map[*models.Host]nodeUpgradeInfo
 	return nodesToUpgrade, nil
 }
 
-// checks if vmName is "avm", "evm" or "platform"
+// checks if vmName is "alpha", "evm" or "omega"
 func checkIfKeyIsStandardVMName(vmName string) bool {
 	standardVMNames := []string{constants.PlatformKeyName, constants.EVMKeyName, constants.AVMKeyName}
 	return slices.Contains(standardVMNames, vmName)
 }
 
-func upgradeAvalancheGo(
+func upgradeOdysseyGo(
 	host *models.Host,
-	avaGoVersionToUpdateTo string,
+	odyGoVersionToUpdateTo string,
 ) error {
-	ux.Logger.PrintToUser("Upgrading Avalanche Go version of node %s to version %s ...", host.NodeID, avaGoVersionToUpdateTo)
-	if err := ssh.RunSSHUpgradeAvalanchego(host, avaGoVersionToUpdateTo); err != nil {
+	ux.Logger.PrintToUser("Upgrading Odyssey Go version of node %s to version %s ...", host.NodeID, odyGoVersionToUpdateTo)
+	if err := ssh.RunSSHUpgradeOdysseygo(host, odyGoVersionToUpdateTo); err != nil {
 		return err
 	}
-	ux.Logger.PrintToUser("Successfully upgraded Avalanche Go version of node %s!", host.NodeID)
+	ux.Logger.PrintToUser("Successfully upgraded Odyssey Go version of node %s!", host.NodeID)
 	ux.Logger.PrintToUser("======================================")
 	return nil
 }

@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 )
 
 //go:embed dashboards/*

@@ -8,17 +8,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/set"
-	"github.com/ava-labs/avalanchego/vms/platformvm/status"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/set"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/status"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
 )
@@ -88,13 +88,13 @@ The node wiz command creates a devnet and deploys, sync and validate a subnet in
 	cmd.Flags().StringVar(&customVMRepoURL, "custom-vm-repo-url", "", "custom vm repository url")
 	cmd.Flags().StringVar(&customVMBranch, "custom-vm-branch", "", "custom vm branch")
 	cmd.Flags().StringVar(&customVMBuildScript, "custom-vm-build-script", "", "custom vm build-script")
-	cmd.Flags().StringVar(&nodeConf, "node-config", "", "path to avalanchego node configuration for subnet")
+	cmd.Flags().StringVar(&nodeConf, "node-config", "", "path to odysseygo node configuration for subnet")
 	cmd.Flags().StringVar(&subnetConf, "subnet-config", "", "path to the subnet configuration for subnet")
 	cmd.Flags().StringVar(&chainConf, "chain-config", "", "path to the chain configuration for subnet")
 	cmd.Flags().BoolVar(&useSSHAgent, "use-ssh-agent", false, "use ssh agent for ssh")
 	cmd.Flags().StringVar(&sshIdentity, "ssh-agent-identity", "", "use given ssh identity(only for ssh agent). If not set, default will be used.")
-	cmd.Flags().BoolVar(&useLatestAvalanchegoVersion, "latest-avalanchego", false, "install latest avalanchego version on node/s")
-	cmd.Flags().StringVar(&useCustomAvalanchegoVersion, "avalanchego-version", "", "install given avalanchego version on node/s")
+	cmd.Flags().BoolVar(&useLatestOdysseygoVersion, "latest-odysseygo", false, "install latest odysseygo version on node/s")
+	cmd.Flags().StringVar(&useCustomOdysseygoVersion, "odysseygo-version", "", "install given odysseygo version on node/s")
 	cmd.Flags().StringSliceVar(&validators, "validators", []string{}, "deploy subnet into given comma separated list of validators. defaults to all cluster nodes")
 	cmd.Flags().BoolVar(&sameMonitoringInstance, "same-monitoring-instance", false, "host monitoring for a cloud servers on the same instance")
 	cmd.Flags().BoolVar(&separateMonitoringInstance, "separate-monitoring-instance", false, "host monitoring for all cloud servers on a separate instance")
@@ -157,7 +157,7 @@ func wiz(cmd *cobra.Command, args []string) error {
 
 	if !clusterAlreadyExists {
 		createDevnet = true
-		useAvalanchegoVersionFromSubnet = subnetName
+		useOdysseygoVersionFromSubnet = subnetName
 		ux.Logger.PrintToUser("")
 		ux.Logger.PrintToUser(logging.Green.Wrap("Creating the devnet..."))
 		ux.Logger.PrintToUser("")

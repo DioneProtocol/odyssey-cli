@@ -7,18 +7,18 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/statemachine"
-	"github.com/ava-labs/subnet-evm/params"
-	"github.com/ava-labs/subnet-evm/precompile/allowlist"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/deployerallowlist"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/feemanager"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/nativeminter"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/rewardmanager"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/txallowlist"
-	"github.com/ava-labs/subnet-evm/precompile/precompileconfig"
-	"github.com/ava-labs/subnet-evm/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/statemachine"
+	"github.com/DioneProtocol/subnet-evm/params"
+	"github.com/DioneProtocol/subnet-evm/precompile/allowlist"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/deployerallowlist"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/feemanager"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/nativeminter"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/rewardmanager"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/txallowlist"
+	"github.com/DioneProtocol/subnet-evm/precompile/precompileconfig"
+	"github.com/DioneProtocol/subnet-evm/utils"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -49,13 +49,13 @@ func PrecompileToUpgradeString(p Precompile) string {
 	}
 }
 
-func configureRewardManager(app *application.Avalanche) (rewardmanager.Config, bool, error) {
+func configureRewardManager(app *application.Odyssey) (rewardmanager.Config, bool, error) {
 	config := rewardmanager.Config{}
 	adminPrompt := "Configure reward manager admins"
 	enabledPrompt := "Configure reward manager enabled addresses"
 	info := "\nThis precompile allows to configure the fee reward mechanism " +
 		"on your subnet, including burning or sending fees.\nFor more information visit " +
-		"https://docs.avax.network/subnets/customize-a-subnet#changing-fee-reward-mechanisms\n\n"
+		"https://docs.dione.network/subnets/customize-a-subnet#changing-fee-reward-mechanisms\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -77,7 +77,7 @@ func configureRewardManager(app *application.Avalanche) (rewardmanager.Config, b
 	return config, cancelled, nil
 }
 
-func ConfigureInitialRewardConfig(app *application.Avalanche) (*rewardmanager.InitialRewardConfig, error) {
+func ConfigureInitialRewardConfig(app *application.Odyssey) (*rewardmanager.InitialRewardConfig, error) {
 	config := &rewardmanager.InitialRewardConfig{}
 
 	burnPrompt := "Should fees be burnt?"
@@ -108,7 +108,7 @@ func ConfigureInitialRewardConfig(app *application.Avalanche) (*rewardmanager.In
 	return config, nil
 }
 
-func getAddressList(initialPrompt string, info string, app *application.Avalanche) ([]common.Address, bool, error) {
+func getAddressList(initialPrompt string, info string, app *application.Odyssey) ([]common.Address, bool, error) {
 	label := "Address"
 
 	return prompts.CaptureListDecision(
@@ -121,13 +121,13 @@ func getAddressList(initialPrompt string, info string, app *application.Avalanch
 	)
 }
 
-func configureContractAllowList(app *application.Avalanche) (deployerallowlist.Config, bool, error) {
+func configureContractAllowList(app *application.Odyssey) (deployerallowlist.Config, bool, error) {
 	config := deployerallowlist.Config{}
 	adminPrompt := "Configure contract deployment admin allow list"
 	enabledPrompt := "Configure contract deployment enabled addresses list"
 	info := "\nThis precompile restricts who has the ability to deploy contracts " +
 		"on your subnet.\nFor more information visit " +
-		"https://docs.avax.network/subnets/customize-a-subnet/#restricting-smart-contract-deployers\n\n"
+		"https://docs.dione.network/subnets/customize-a-subnet/#restricting-smart-contract-deployers\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -145,13 +145,13 @@ func configureContractAllowList(app *application.Avalanche) (deployerallowlist.C
 	return config, cancelled, nil
 }
 
-func configureTransactionAllowList(app *application.Avalanche) (txallowlist.Config, bool, error) {
+func configureTransactionAllowList(app *application.Odyssey) (txallowlist.Config, bool, error) {
 	config := txallowlist.Config{}
 	adminPrompt := "Configure transaction allow list admin addresses"
 	enabledPrompt := "Configure transaction allow list enabled addresses"
 	info := "\nThis precompile restricts who has the ability to issue transactions " +
 		"on your subnet.\nFor more information visit " +
-		"https://docs.avax.network/subnets/customize-a-subnet/#restricting-who-can-submit-transactions\n\n"
+		"https://docs.dione.network/subnets/customize-a-subnet/#restricting-who-can-submit-transactions\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -169,7 +169,7 @@ func configureTransactionAllowList(app *application.Avalanche) (txallowlist.Conf
 	return config, cancelled, nil
 }
 
-func getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info string, app *application.Avalanche) ([]common.Address, []common.Address, bool, error) {
+func getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info string, app *application.Odyssey) ([]common.Address, []common.Address, bool, error) {
 	admins, cancelled, err := getAddressList(adminPrompt, info, app)
 	if err != nil || cancelled {
 		return nil, nil, false, err
@@ -190,13 +190,13 @@ func getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info string, app *a
 	return admins, enabled, cancelled, nil
 }
 
-func configureMinterList(app *application.Avalanche) (nativeminter.Config, bool, error) {
+func configureMinterList(app *application.Odyssey) (nativeminter.Config, bool, error) {
 	config := nativeminter.Config{}
 	adminPrompt := "Configure native minting allow list"
 	enabledPrompt := "Configure native minting enabled addresses"
 	info := "\nThis precompile allows admins to permit designated contracts to mint the native token " +
 		"on your subnet.\nFor more information visit " +
-		"https://docs.avax.network/subnets/customize-a-subnet#minting-native-coins\n\n"
+		"https://docs.dione.network/subnets/customize-a-subnet#minting-native-coins\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -213,13 +213,13 @@ func configureMinterList(app *application.Avalanche) (nativeminter.Config, bool,
 	return config, cancelled, nil
 }
 
-func configureFeeConfigAllowList(app *application.Avalanche) (feemanager.Config, bool, error) {
+func configureFeeConfigAllowList(app *application.Odyssey) (feemanager.Config, bool, error) {
 	config := feemanager.Config{}
 	adminPrompt := "Configure fee manager allow list"
 	enabledPrompt := "Configure native minting enabled addresses"
 	info := "\nThis precompile allows admins to adjust chain gas and fee parameters without " +
 		"performing a hardfork.\nFor more information visit " +
-		"https://docs.avax.network/subnets/customize-a-subnet#configuring-dynamic-fees\n\n"
+		"https://docs.dione.network/subnets/customize-a-subnet#configuring-dynamic-fees\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -246,7 +246,7 @@ func removePrecompile(arr []string, s string) ([]string, error) {
 	return arr, errors.New("string not in array")
 }
 
-func getPrecompiles(config params.ChainConfig, app *application.Avalanche, useDefaults bool) (
+func getPrecompiles(config params.ChainConfig, app *application.Odyssey, useDefaults bool) (
 	params.ChainConfig,
 	statemachine.StateDirection,
 	error,

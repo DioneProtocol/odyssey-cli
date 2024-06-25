@@ -11,18 +11,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/api/info"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/platformvm/api"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/api/info"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet stats
+// odyssey subnet stats
 func newStatsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "stats [subnetName]",
@@ -32,8 +32,7 @@ func newStatsCmd() *cobra.Command {
 		RunE:         stats,
 		SilenceUsage: true,
 	}
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "print stats on `fuji` (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "print stats on `testnet` (alias for `fuji`)")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "print stats on `testnet`")
 	cmd.Flags().BoolVar(&deployMainnet, "mainnet", false, "print stats on `mainnet`")
 	return cmd
 }
@@ -42,7 +41,7 @@ func stats(_ *cobra.Command, args []string) error {
 	network := models.UndefinedNetwork
 	switch {
 	case deployTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case deployMainnet:
 		network = models.MainnetNetwork
 	}
@@ -50,7 +49,7 @@ func stats(_ *cobra.Command, args []string) error {
 	if network.Kind == models.Undefined {
 		networkStr, err := app.Prompt.CaptureList(
 			"Choose a network from which you want to get the statistics (this command only supports public networks)",
-			[]string{models.Fuji.String(), models.Mainnet.String()},
+			[]string{models.Testnet.String(), models.Mainnet.String()},
 		)
 		if err != nil {
 			return err
@@ -58,7 +57,7 @@ func stats(_ *cobra.Command, args []string) error {
 		// flag provided
 		networkStr = strings.Title(networkStr)
 		// as we are allowing a flag, we need to check if a supported network has been provided
-		if !(networkStr == models.Fuji.String() || networkStr == models.Mainnet.String()) {
+		if !(networkStr == models.Testnet.String() || networkStr == models.Mainnet.String()) {
 			return errors.New("unsupported network")
 		}
 		network = models.NetworkFromString(networkStr)
@@ -80,13 +79,13 @@ func stats(_ *cobra.Command, args []string) error {
 		return errors.New("no subnetID found for the provided subnet name; has this subnet actually been deployed to this network?")
 	}
 
-	pClient, infoClient := findAPIEndpoint(network)
-	if pClient == nil {
+	oClient, infoClient := findAPIEndpoint(network)
+	if oClient == nil {
 		return errors.New("failed to create a client to an API endpoint")
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	rows, err := buildCurrentValidatorStats(pClient, infoClient, table, subnetID)
+	rows, err := buildCurrentValidatorStats(oClient, infoClient, table, subnetID)
 	if err != nil {
 		return err
 	}
@@ -96,7 +95,7 @@ func stats(_ *cobra.Command, args []string) error {
 	table.Render()
 
 	table = tablewriter.NewWriter(os.Stdout)
-	rows, err = buildPendingValidatorStats(pClient, infoClient, table, subnetID)
+	rows, err = buildPendingValidatorStats(oClient, infoClient, table, subnetID)
 	if err != nil {
 		return err
 	}
@@ -111,11 +110,11 @@ func stats(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func buildPendingValidatorStats(pClient platformvm.Client, infoClient info.Client, table *tablewriter.Table, subnetID ids.ID) ([][]string, error) {
+func buildPendingValidatorStats(oClient omegavm.Client, infoClient info.Client, table *tablewriter.Table, subnetID ids.ID) ([][]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	pendingValidatorsIface, pendingDelegatorsIface, err := pClient.GetPendingValidators(ctx, subnetID, []ids.NodeID{})
+	pendingValidatorsIface, pendingDelegatorsIface, err := oClient.GetPendingValidators(ctx, subnetID, []ids.NodeID{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query the API endpoint for the pending validators: %w", err)
 	}
@@ -198,11 +197,11 @@ func buildPendingValidatorStats(pClient platformvm.Client, infoClient info.Clien
 	return rows, nil
 }
 
-func buildCurrentValidatorStats(pClient platformvm.Client, infoClient info.Client, table *tablewriter.Table, subnetID ids.ID) ([][]string, error) {
+func buildCurrentValidatorStats(oClient omegavm.Client, infoClient info.Client, table *tablewriter.Table, subnetID ids.ID) ([][]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	currValidators, err := pClient.GetCurrentValidators(ctx, subnetID, []ids.NodeID{})
+	currValidators, err := oClient.GetCurrentValidators(ctx, subnetID, []ids.NodeID{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to query the API endpoint for the current validators: %w", err)
 	}
@@ -274,12 +273,12 @@ func buildCurrentValidatorStats(pClient platformvm.Client, infoClient info.Clien
 
 // findAPIEndpoint tries first to create a client to a local node
 // if it doesn't find one, it tries public APIs
-func findAPIEndpoint(network models.Network) (platformvm.Client, info.Client) {
+func findAPIEndpoint(network models.Network) (omegavm.Client, info.Client) {
 	var i info.Client
 
 	// first try local node
 	ctx := context.Background()
-	c := platformvm.NewClient(constants.LocalAPIEndpoint)
+	c := omegavm.NewClient(constants.LocalAPIEndpoint)
 	_, err := c.GetHeight(ctx)
 	if err == nil {
 		i = info.NewClient(constants.LocalAPIEndpoint)
@@ -291,7 +290,7 @@ func findAPIEndpoint(network models.Network) (platformvm.Client, info.Client) {
 	}
 
 	// create client to public API
-	c = platformvm.NewClient(network.Endpoint)
+	c = omegavm.NewClient(network.Endpoint)
 	// try calling it to make sure it actually worked
 	_, err = c.GetHeight(ctx)
 	if err == nil {

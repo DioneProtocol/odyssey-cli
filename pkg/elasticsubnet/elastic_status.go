@@ -6,12 +6,12 @@ package elasticsubnet
 import (
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
-func GetLocalElasticSubnetsFromFile(app *application.Avalanche) ([]string, error) {
+func GetLocalElasticSubnetsFromFile(app *application.Odyssey) ([]string, error) {
 	allSubnetDirs, err := os.ReadDir(app.GetSubnetDir())
 	if err != nil {
 		return nil, err

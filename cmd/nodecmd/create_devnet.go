@@ -12,48 +12,48 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/config"
-	"github.com/ava-labs/avalanchego/utils/crypto/bls"
-	"github.com/ava-labs/avalanchego/utils/formatting"
-	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
-	coreth_params "github.com/ava-labs/coreth/params"
+	coreth_params "github.com/DioneProtocol/coreth/params"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/config"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/bls"
+	"github.com/DioneProtocol/odysseygo/utils/formatting"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/signer"
 )
 
 // difference between unlock schedule locktime and startime in original genesis
 const (
 	genesisLocktimeStartimeDelta    = 2836800
 	hexa0Str                        = "0x0"
-	defaultLocalCChainFundedAddress = "8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
-	defaultLocalCChainFundedBalance = "0x295BE96E64066972000000"
+	defaultLocalDChainFundedAddress = "8db97C7cEcE249c2b98bDC0226Cc4C2A57BF52FC"
+	defaultLocalDChainFundedBalance = "0x295BE96E64066972000000"
 	allocationCommonEthAddress      = "0xb3d82b1367d362de99ab59a658165aff520cbd4d"
 )
 
-func generateCustomCchainGenesis() ([]byte, error) {
-	cChainGenesisMap := map[string]interface{}{}
-	cChainGenesisMap["config"] = coreth_params.AvalancheLocalChainConfig
-	cChainGenesisMap["nonce"] = hexa0Str
-	cChainGenesisMap["timestamp"] = hexa0Str
-	cChainGenesisMap["extraData"] = "0x00"
-	cChainGenesisMap["gasLimit"] = "0x5f5e100"
-	cChainGenesisMap["difficulty"] = hexa0Str
-	cChainGenesisMap["mixHash"] = "0x0000000000000000000000000000000000000000000000000000000000000000"
-	cChainGenesisMap["coinbase"] = "0x0000000000000000000000000000000000000000"
-	cChainGenesisMap["alloc"] = map[string]interface{}{
-		defaultLocalCChainFundedAddress: map[string]interface{}{
-			"balance": defaultLocalCChainFundedBalance,
+func generateCustomDchainGenesis() ([]byte, error) {
+	dChainGenesisMap := map[string]interface{}{}
+	dChainGenesisMap["config"] = coreth_params.OdysseyLocalChainConfig
+	dChainGenesisMap["nonce"] = hexa0Str
+	dChainGenesisMap["timestamp"] = hexa0Str
+	dChainGenesisMap["extraData"] = "0x00"
+	dChainGenesisMap["gasLimit"] = "0x5f5e100"
+	dChainGenesisMap["difficulty"] = hexa0Str
+	dChainGenesisMap["mixHash"] = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	dChainGenesisMap["coinbase"] = "0x0000000000000000000000000000000000000000"
+	dChainGenesisMap["alloc"] = map[string]interface{}{
+		defaultLocalDChainFundedAddress: map[string]interface{}{
+			"balance": defaultLocalDChainFundedBalance,
 		},
 	}
-	cChainGenesisMap["number"] = hexa0Str
-	cChainGenesisMap["gasUsed"] = hexa0Str
-	cChainGenesisMap["parentHash"] = "0x0000000000000000000000000000000000000000000000000000000000000000"
-	return json.Marshal(cChainGenesisMap)
+	dChainGenesisMap["number"] = hexa0Str
+	dChainGenesisMap["gasUsed"] = hexa0Str
+	dChainGenesisMap["parentHash"] = "0x0000000000000000000000000000000000000000000000000000000000000000"
+	return json.Marshal(dChainGenesisMap)
 }
 
 func generateCustomGenesis(
@@ -64,14 +64,14 @@ func generateCustomGenesis(
 ) ([]byte, error) {
 	genesisMap := map[string]interface{}{}
 
-	// cchain
-	cChainGenesisBytes, err := generateCustomCchainGenesis()
+	// dchain
+	dChainGenesisBytes, err := generateCustomDchainGenesis()
 	if err != nil {
 		return nil, err
 	}
-	genesisMap["cChainGenesis"] = string(cChainGenesisBytes)
+	genesisMap["dChainGenesis"] = string(dChainGenesisBytes)
 
-	// pchain genesis
+	// ochain genesis
 	genesisMap["networkID"] = networkID
 	startTime := time.Now().Unix()
 	genesisMap["startTime"] = startTime
@@ -117,7 +117,7 @@ func generateCustomGenesis(
 	lockTime := startTime + genesisLocktimeStartimeDelta
 	allocations := []interface{}{}
 	alloc := map[string]interface{}{
-		"avaxAddr":      walletAddr,
+		"dioneAddr":     walletAddr,
 		"ethAddr":       allocationCommonEthAddress,
 		"initialAmount": 300000000000000000,
 		"unlockSchedule": []interface{}{
@@ -127,7 +127,7 @@ func generateCustomGenesis(
 	}
 	allocations = append(allocations, alloc)
 	alloc = map[string]interface{}{
-		"avaxAddr":      stakingAddr,
+		"dioneAddr":     stakingAddr,
 		"ethAddr":       allocationCommonEthAddress,
 		"initialAmount": 0,
 		"unlockSchedule": []interface{}{
@@ -179,14 +179,14 @@ func setupDevnet(clusterName string, hosts []*models.Host) error {
 	if err != nil {
 		return err
 	}
-	stakingAddrStr := k.X()[0]
+	stakingAddrStr := k.A()[0]
 
 	// get ewoq key as funded key for devnet genesis
 	k, err = key.LoadEwoq(network.ID)
 	if err != nil {
 		return err
 	}
-	walletAddrStr := k.X()[0]
+	walletAddrStr := k.A()[0]
 
 	// create genesis file at each node dir
 	genesisBytes, err := generateCustomGenesis(network.ID, walletAddrStr, stakingAddrStr, hosts)
@@ -200,7 +200,7 @@ func setupDevnet(clusterName string, hosts []*models.Host) error {
 		}
 	}
 
-	// create avalanchego conf node.json at each node dir
+	// create odysseygo conf node.json at each node dir
 	bootstrapIPs := []string{}
 	bootstrapIDs := []string{}
 	for i, ansibleHostID := range ansibleHostIDs {
@@ -211,7 +211,7 @@ func setupDevnet(clusterName string, hosts []*models.Host) error {
 		confMap[config.NetworkNameKey] = fmt.Sprintf("network-%d", network.ID)
 		confMap[config.BootstrapIDsKey] = strings.Join(bootstrapIDs, ",")
 		confMap[config.BootstrapIPsKey] = strings.Join(bootstrapIPs, ",")
-		confMap[config.GenesisFileKey] = "/home/ubuntu/.avalanchego/configs/genesis.json"
+		confMap[config.GenesisFileKey] = "/home/ubuntu/.odysseygo/configs/genesis.json"
 		bootstrapIDs = append(bootstrapIDs, nodeIDs[i])
 		bootstrapIPs = append(bootstrapIPs, ansibleHosts[ansibleHostID].IP+":9651")
 		confBytes, err := json.MarshalIndent(confMap, "", " ")

@@ -15,14 +15,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanchego/genesis"
+	"github.com/DioneProtocol/odysseygo/genesis"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	avagoconstants "github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	odygoconstants "github.com/DioneProtocol/odysseygo/utils/constants"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -159,61 +159,61 @@ func validateURLFormat(input string) error {
 	return nil
 }
 
-func validatePChainAddress(input string) (string, error) {
+func validateOChainAddress(input string) (string, error) {
 	chainID, hrp, _, err := address.Parse(input)
 	if err != nil {
 		return "", err
 	}
 
-	if chainID != "P" {
-		return "", errors.New("this is not a PChain address")
+	if chainID != "O" {
+		return "", errors.New("this is not a OChain address")
 	}
 	return hrp, nil
 }
 
-func validatePChainFujiAddress(input string) error {
-	hrp, err := validatePChainAddress(input)
+func validateOChainTestnetAddress(input string) error {
+	hrp, err := validateOChainAddress(input)
 	if err != nil {
 		return err
 	}
-	if hrp != avagoconstants.FujiHRP {
-		return errors.New("this is not a fuji address")
+	if hrp != odygoconstants.TestnetHRP {
+		return errors.New("this is not a testnet address")
 	}
 	return nil
 }
 
-func validatePChainMainAddress(input string) error {
-	hrp, err := validatePChainAddress(input)
+func validateOChainMainAddress(input string) error {
+	hrp, err := validateOChainAddress(input)
 	if err != nil {
 		return err
 	}
-	if hrp != avagoconstants.MainnetHRP {
+	if hrp != odygoconstants.MainnetHRP {
 		return errors.New("this is not a mainnet address")
 	}
 	return nil
 }
 
-func validatePChainLocalAddress(input string) error {
-	hrp, err := validatePChainAddress(input)
+func validateOChainLocalAddress(input string) error {
+	hrp, err := validateOChainAddress(input)
 	if err != nil {
 		return err
 	}
-	// ANR uses the `custom` HRP for local networks,
+	// ONR uses the `custom` HRP for local networks,
 	// but the `local` HRP also exists...
-	if hrp != avagoconstants.LocalHRP && hrp != avagoconstants.FallbackHRP {
+	if hrp != odygoconstants.LocalHRP && hrp != odygoconstants.FallbackHRP {
 		return errors.New("this is not a local nor custom address")
 	}
 	return nil
 }
 
-func getPChainValidationFunc(network models.Network) func(string) error {
+func getOChainValidationFunc(network models.Network) func(string) error {
 	switch network.Kind {
-	case models.Fuji:
-		return validatePChainFujiAddress
+	case models.Testnet:
+		return validateOChainTestnetAddress
 	case models.Mainnet:
-		return validatePChainMainAddress
+		return validateOChainMainAddress
 	case models.Local:
-		return validatePChainLocalAddress
+		return validateOChainLocalAddress
 	default:
 		return func(string) error {
 			return errors.New("unsupported network")

@@ -1,20 +1,20 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apmintegration
+package opmintegration
 
 import (
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/ava-labs/apm/types"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/opm/types"
 	"gopkg.in/yaml.v3"
 )
 
-func GetRepos(app *application.Avalanche) ([]string, error) {
-	repositoryDir := filepath.Join(app.ApmDir, "repositories")
+func GetRepos(app *application.Odyssey) ([]string, error) {
+	repositoryDir := filepath.Join(app.OpmDir, "repositories")
 	orgs, err := os.ReadDir(repositoryDir)
 	if err != nil {
 		return []string{}, err
@@ -36,8 +36,8 @@ func GetRepos(app *application.Avalanche) ([]string, error) {
 	return output, nil
 }
 
-func GetSubnets(app *application.Avalanche, repoAlias string) ([]string, error) {
-	subnetDir := filepath.Join(app.ApmDir, "repositories", repoAlias, "subnets")
+func GetSubnets(app *application.Odyssey, repoAlias string) ([]string, error) {
+	subnetDir := filepath.Join(app.OpmDir, "repositories", repoAlias, "subnets")
 	subnets, err := os.ReadDir(subnetDir)
 	if err != nil {
 		return []string{}, err
@@ -59,13 +59,13 @@ type VMWrapper struct {
 	VM types.VM `yaml:"vm"`
 }
 
-func LoadSubnetFile(app *application.Avalanche, subnetKey string) (types.Subnet, error) {
+func LoadSubnetFile(app *application.Odyssey, subnetKey string) (types.Subnet, error) {
 	repoAlias, subnetName, err := splitKey(subnetKey)
 	if err != nil {
 		return types.Subnet{}, err
 	}
 
-	subnetYamlPath := filepath.Join(app.ApmDir, "repositories", repoAlias, "subnets", subnetName+".yaml")
+	subnetYamlPath := filepath.Join(app.OpmDir, "repositories", repoAlias, "subnets", subnetName+".yaml")
 	var subnetWrapper SubnetWrapper
 
 	subnetYamlBytes, err := os.ReadFile(subnetYamlPath)
@@ -81,7 +81,7 @@ func LoadSubnetFile(app *application.Avalanche, subnetKey string) (types.Subnet,
 	return subnetWrapper.Subnet, nil
 }
 
-func getVMsInSubnet(app *application.Avalanche, subnetKey string) ([]string, error) {
+func getVMsInSubnet(app *application.Odyssey, subnetKey string) ([]string, error) {
 	subnet, err := LoadSubnetFile(app, subnetKey)
 	if err != nil {
 		return []string{}, err
@@ -90,8 +90,8 @@ func getVMsInSubnet(app *application.Avalanche, subnetKey string) ([]string, err
 	return subnet.VMs, nil
 }
 
-func LoadVMFile(app *application.Avalanche, repo, vm string) (types.VM, error) {
-	vmYamlPath := filepath.Join(app.ApmDir, "repositories", repo, "vms", vm+".yaml")
+func LoadVMFile(app *application.Odyssey, repo, vm string) (types.VM, error) {
+	vmYamlPath := filepath.Join(app.OpmDir, "repositories", repo, "vms", vm+".yaml")
 	var vmWrapper VMWrapper
 
 	vmYamlBytes, err := os.ReadFile(vmYamlPath)

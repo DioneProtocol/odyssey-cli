@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/api/info"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/json"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/platformvm/api"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/api/info"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/json"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/api"
 	"github.com/olekukonko/tablewriter"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,7 @@ func TestStats(t *testing.T) {
 
 	ux.NewUserLog(logging.NoLog{}, io.Discard)
 
-	pClient := &mocks.PClient{}
+	oClient := &mocks.OClient{}
 	iClient := &mocks.InfoClient{}
 
 	localNodeID := ids.GenerateTestNodeID()
@@ -38,9 +38,9 @@ func TestStats(t *testing.T) {
 
 	remaining := ux.FormatDuration(endTime.Sub(startTime))
 
-	reply := []platformvm.ClientPermissionlessValidator{
+	reply := []omegavm.ClientPermissionlessValidator{
 		{
-			ClientStaker: platformvm.ClientStaker{
+			ClientStaker: omegavm.ClientStaker{
 				StartTime: uint64(startTime.Unix()),
 				EndTime:   uint64(endTime.Unix()),
 				NodeID:    localNodeID,
@@ -50,7 +50,7 @@ func TestStats(t *testing.T) {
 		},
 	}
 
-	pClient.On("GetCurrentValidators", mock.Anything, mock.Anything, mock.Anything).Return(reply, nil)
+	oClient.On("GetCurrentValidators", mock.Anything, mock.Anything, mock.Anything).Return(reply, nil)
 	iClient.On("GetNodeID", mock.Anything).Return(localNodeID, nil, nil)
 	iClient.On("GetNodeVersion", mock.Anything).Return(&info.GetNodeVersionReply{
 		VMVersions: map[string]string{
@@ -62,7 +62,7 @@ func TestStats(t *testing.T) {
 
 	expectedVerStr := subnetID.String() + ": 0.1.23\n"
 
-	rows, err := buildCurrentValidatorStats(pClient, iClient, table, subnetID)
+	rows, err := buildCurrentValidatorStats(oClient, iClient, table, subnetID)
 	table.Append(rows[0])
 
 	require.NoError(err)
@@ -86,10 +86,10 @@ func TestStats(t *testing.T) {
 		},
 	}
 
-	pClient.On("GetPendingValidators", mock.Anything, mock.Anything, mock.Anything).Return(pendingV, nil, nil)
+	oClient.On("GetPendingValidators", mock.Anything, mock.Anything, mock.Anything).Return(pendingV, nil, nil)
 
 	table = tablewriter.NewWriter(io.Discard)
-	rows, err = buildPendingValidatorStats(pClient, iClient, table, subnetID)
+	rows, err = buildPendingValidatorStats(oClient, iClient, table, subnetID)
 	table.Append(rows[0])
 
 	// we can't use `startTime` resp. `endTime` for controlling the end string:

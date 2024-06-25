@@ -5,15 +5,15 @@ package subnetcmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd/upgradecmd"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd/upgradecmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
 	"github.com/spf13/cobra"
 )
 
-var app *application.Avalanche
+var app *application.Odyssey
 
-// avalanche subnet
-func NewCmd(injectedApp *application.Avalanche) *cobra.Command {
+// odyssey subnet
+func NewCmd(injectedApp *application.Odyssey) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "subnet",
 		Short: "Create and deploy subnets",

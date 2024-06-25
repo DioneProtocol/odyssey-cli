@@ -14,15 +14,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanche-network-runner/server"
-	anrutils "github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/perms"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/client"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
+	onrutils "github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/perms"
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/shirou/gopsutil/process"
 	"go.uber.org/zap"
@@ -35,7 +35,7 @@ var ErrGRPCTimeout = errors.New("timed out trying to contact backend controller,
 type ProcessChecker interface {
 	// IsServerProcessRunning returns true if the gRPC server is running,
 	// or false if not
-	IsServerProcessRunning(app *application.Avalanche) (bool, error)
+	IsServerProcessRunning(app *application.Odyssey) (bool, error)
 }
 
 type realProcessRunner struct{}
@@ -104,7 +104,7 @@ func NewGRPCClient(opts ...GRPCClientOpOption) (client.Client, error) {
 		}
 		// obtained using server API
 		serverVersion := rpcVersion.Version
-		// obtained from ANR source code
+		// obtained from ONR source code
 		clientVersion := server.RPCVersion
 		if serverVersion != clientVersion {
 			return nil, fmt.Errorf("trying to connect to a backend controller that uses a different RPC version (%d) than the CLI client (%d). Use 'network stop' to stop the controller and then restart the operation",
@@ -137,7 +137,7 @@ func NewGRPCServer(snapshotsDir string) (server.Server, error) {
 
 // IsServerProcessRunning returns true if the gRPC server is running,
 // or false if not
-func (*realProcessRunner) IsServerProcessRunning(app *application.Avalanche) (bool, error) {
+func (*realProcessRunner) IsServerProcessRunning(app *application.Odyssey) (bool, error) {
 	pid, err := GetServerPID(app)
 	if err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
@@ -167,7 +167,7 @@ type runFile struct {
 	GRPCserverFileName string `json:"gRPCserverFileName"`
 }
 
-func GetBackendLogFile(app *application.Avalanche) (string, error) {
+func GetBackendLogFile(app *application.Odyssey) (string, error) {
 	var rf runFile
 	serverRunFilePath := app.GetRunFile()
 	run, err := os.ReadFile(serverRunFilePath)
@@ -181,7 +181,7 @@ func GetBackendLogFile(app *application.Avalanche) (string, error) {
 	return rf.GRPCserverFileName, nil
 }
 
-func GetServerPID(app *application.Avalanche) (int, error) {
+func GetServerPID(app *application.Odyssey) (int, error) {
 	var rf runFile
 	serverRunFilePath := app.GetRunFile()
 	run, err := os.ReadFile(serverRunFilePath)
@@ -199,20 +199,20 @@ func GetServerPID(app *application.Avalanche) (int, error) {
 }
 
 // StartServerProcess starts the gRPC server as a reentrant process of this binary
-// it just executes `avalanche-cli backend start`
-func StartServerProcess(app *application.Avalanche) error {
+// it just executes `odyssey-cli backend start`
+func StartServerProcess(app *application.Odyssey) error {
 	thisBin := reexec.Self()
 
 	args := []string{constants.BackendCmd}
 	cmd := exec.Command(thisBin, args...)
 
 	outputDirPrefix := path.Join(app.GetRunDir(), "server")
-	outputDir, err := anrutils.MkDirWithTimestamp(outputDirPrefix)
+	outputDir, err := onrutils.MkDirWithTimestamp(outputDirPrefix)
 	if err != nil {
 		return err
 	}
 
-	outputFile, err := os.Create(path.Join(outputDir, "avalanche-cli-backend.log"))
+	outputFile, err := os.Create(path.Join(outputDir, "odyssey-cli-backend.log"))
 	if err != nil {
 		return err
 	}
@@ -242,7 +242,7 @@ func StartServerProcess(app *application.Avalanche) error {
 	return nil
 }
 
-func KillgRPCServerProcess(app *application.Avalanche) error {
+func KillgRPCServerProcess(app *application.Odyssey) error {
 	cli, err := NewGRPCClient(
 		WithAvoidRPCVersionCheck(true),
 		WithDialTimeout(constants.FastGRPCDialTimeout),

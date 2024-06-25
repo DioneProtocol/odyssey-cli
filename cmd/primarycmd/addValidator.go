@@ -9,36 +9,36 @@ import (
 	"math"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanchego/ids"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odysseygo/ids"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
 
-	"github.com/ava-labs/avalanche-cli/cmd/nodecmd"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/cmd/nodecmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
 var (
-	validateTestnet              bool
-	validateMainnet              bool
-	keyName                      string
-	useLedger                    bool
-	ledgerAddresses              []string
-	nodeIDStr                    string
-	weight                       uint64
-	delegationFee                uint32
-	startTimeStr                 string
-	duration                     time.Duration
-	publicKey                    string
-	pop                          string
-	ErrMutuallyExlusiveKeyLedger = errors.New("--key and --ledger,--ledger-addrs are mutually exclusive")
-	ErrStoredKeyOnMainnet        = errors.New("--key is not available for mainnet operations")
+	validateTestnet               bool
+	validateMainnet               bool
+	keyName                       string
+	useLedger                     bool
+	ledgerAddresses               []string
+	nodeIDStr                     string
+	weight                        uint64
+	delegationFee                 uint32
+	startTimeStr                  string
+	duration                      time.Duration
+	publicKey                     string
+	pop                           string
+	ErrMutuallyExclusiveKeyLedger = errors.New("--key and --ledger,--ledger-addrs are mutually exclusive")
+	ErrStoredKeyOnMainnet         = errors.New("--key is not available for mainnet operations")
 )
 
 type jsonProofOfPossession struct {
@@ -46,26 +46,25 @@ type jsonProofOfPossession struct {
 	ProofOfPossession string `json:"proofOfPossession"`
 }
 
-// avalanche subnet deploy
+// odyssey subnet deploy
 func newAddValidatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "addValidator",
 		Short: "Add a validator to Primary Network",
-		Long: `The primary addValidator command adds a node as a validator 
+		Long: `The primary addValidator command adds a node as a validator
 in the Primary Network`,
 		SilenceUsage: true,
 		RunE:         addValidator,
 		Args:         cobra.ExactArgs(0),
 	}
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet only]")
 	cmd.Flags().StringVar(&nodeIDStr, "nodeID", "", "set the NodeID of the validator to add")
 	cmd.Flags().Uint64Var(&weight, "weight", 0, "set the staking weight of the validator to add")
 	cmd.Flags().StringVar(&startTimeStr, "start-time", "", "UTC start time when this validator starts validating, in 'YYYY-MM-DD HH:MM:SS' format")
 	cmd.Flags().DurationVar(&duration, "staking-period", 0, "how long this validator will be staking")
-	cmd.Flags().BoolVar(&validateTestnet, "fuji", false, "join on `fuji` (alias for `testnet`)")
-	cmd.Flags().BoolVar(&validateTestnet, "testnet", false, "join on `testnet` (alias for `fuji`)")
+	cmd.Flags().BoolVar(&validateTestnet, "testnet", false, "join on `testnet`")
 	cmd.Flags().BoolVar(&validateMainnet, "mainnet", false, "join on `mainnet`")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji)")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 	cmd.Flags().StringVar(&publicKey, "public-key", "", "set the BLS public key of the validator to add")
 	cmd.Flags().StringVar(&pop, "proof-of-possession", "", "set the BLS proof of possession of the validator to add")
@@ -91,7 +90,7 @@ func promptProofOfPossession() (jsonProofOfPossession, error) {
 	if publicKey == "" || pop == "" {
 		ux.Logger.PrintToUser("Next, we need the public key and proof of possession of the node's BLS")
 		ux.Logger.PrintToUser("SSH into the node and call info.getNodeID API to get the node's BLS info")
-		ux.Logger.PrintToUser("Check https://docs.avax.network/apis/avalanchego/apis/info#infogetnodeid for instructions on calling info.getNodeID API")
+		ux.Logger.PrintToUser("Check https://docs.dione.network/apis/odysseygo/apis/info#infogetnodeid for instructions on calling info.getNodeID API")
 	}
 	var err error
 	if publicKey == "" {
@@ -121,13 +120,13 @@ func addValidator(_ *cobra.Command, _ []string) error {
 	var network models.Network
 	switch {
 	case validateTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case validateMainnet:
 		network = models.MainnetNetwork
 	default:
 		networkStr, err := app.Prompt.CaptureList(
 			"Choose a network to add validator to.",
-			[]string{models.Fuji.String(), models.Mainnet.String()},
+			[]string{models.Testnet.String(), models.Mainnet.String()},
 		)
 		if err != nil {
 			return err
@@ -140,13 +139,13 @@ func addValidator(_ *cobra.Command, _ []string) error {
 	}
 
 	if useLedger && keyName != "" {
-		return ErrMutuallyExlusiveKeyLedger
+		return ErrMutuallyExclusiveKeyLedger
 	}
 
 	switch network.Kind {
-	case models.Fuji:
+	case models.Testnet:
 		if !useLedger && keyName == "" {
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
 			if err != nil {
 				return err
 			}
@@ -224,7 +223,7 @@ func addValidator(_ *cobra.Command, _ []string) error {
 	return err
 }
 
-func getDelegationFeeOption(app *application.Avalanche, network models.Network) (uint32, error) {
+func getDelegationFeeOption(app *application.Odyssey, network models.Network) (uint32, error) {
 	ux.Logger.PrintToUser("What would you like to set the delegation fee to?")
 	defaultFee := network.GenesisParams().MinDelegationFee
 	defaultOption := fmt.Sprintf("Default Delegation Fee (%d%%)", defaultFee/10000)

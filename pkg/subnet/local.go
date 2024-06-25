@@ -19,36 +19,36 @@ import (
 	"golang.org/x/exp/maps"
 	"golang.org/x/mod/semver"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/localnetworkinterface"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	"github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanche-network-runner/rpcpb"
-	"github.com/ava-labs/avalanche-network-runner/server"
-	anrutils "github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/config"
-	"github.com/ava-labs/avalanchego/genesis"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/keychain"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/set"
-	"github.com/ava-labs/avalanchego/utils/storage"
-	"github.com/ava-labs/avalanchego/vms/components/avax"
-	"github.com/ava-labs/avalanchego/vms/components/verify"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/platformvm/reward"
-	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
-	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
-	"github.com/ava-labs/avalanchego/wallet/subnet/primary/common"
-	"github.com/ava-labs/coreth/params"
-	"github.com/ava-labs/subnet-evm/core"
+	"github.com/DioneProtocol/coreth/params"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/localnetworkinterface"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	"github.com/DioneProtocol/odyssey-network-runner/client"
+	"github.com/DioneProtocol/odyssey-network-runner/rpcpb"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
+	onrutils "github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/config"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/keychain"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/set"
+	"github.com/DioneProtocol/odysseygo/utils/storage"
+	"github.com/DioneProtocol/odysseygo/vms/components/dione"
+	"github.com/DioneProtocol/odysseygo/vms/components/verify"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/reward"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/signer"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
+	"github.com/DioneProtocol/odysseygo/wallet/subnet/primary"
+	"github.com/DioneProtocol/odysseygo/wallet/subnet/primary/common"
+	"github.com/DioneProtocol/subnet-evm/core"
 	"go.uber.org/zap"
 )
 
@@ -57,19 +57,19 @@ type LocalDeployer struct {
 	binChecker         binutils.BinaryChecker
 	getClientFunc      getGRPCClientFunc
 	binaryDownloader   binutils.PluginBinaryDownloader
-	app                *application.Avalanche
+	app                *application.Odyssey
 	backendStartedHere bool
 	setDefaultSnapshot setDefaultSnapshotFunc
-	avagoVersion       string
-	avagoBinaryPath    string
+	odygoVersion       string
+	odygoBinaryPath    string
 	vmBin              string
 }
 
-// uses either avagoVersion or avagoBinaryPath
+// uses either odygoVersion or odygoBinaryPath
 func NewLocalDeployer(
-	app *application.Avalanche,
-	avagoVersion string,
-	avagoBinaryPath string,
+	app *application.Odyssey,
+	odygoVersion string,
+	odygoBinaryPath string,
 	vmBin string,
 ) *LocalDeployer {
 	return &LocalDeployer{
@@ -79,8 +79,8 @@ func NewLocalDeployer(
 		binaryDownloader:   binutils.NewPluginBinaryDownloader(app),
 		app:                app,
 		setDefaultSnapshot: SetDefaultSnapshot,
-		avagoVersion:       avagoVersion,
-		avagoBinaryPath:    avagoBinaryPath,
+		odygoVersion:       odygoVersion,
+		odygoBinaryPath:    odygoBinaryPath,
 		vmBin:              vmBin,
 	}
 }
@@ -100,7 +100,7 @@ func (d *LocalDeployer) DeployToLocalNetwork(chain string, chainGenesis []byte, 
 }
 
 func getAssetID(wallet primary.Wallet, tokenName string, tokenSymbol string, maxSupply uint64) (ids.ID, error) {
-	xWallet := wallet.X()
+	aWallet := wallet.A()
 	owner := &secp256k1fx.OutputOwners{
 		Threshold: 1,
 		Addrs: []ids.ShortID{
@@ -108,7 +108,7 @@ func getAssetID(wallet primary.Wallet, tokenName string, tokenSymbol string, max
 		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultWalletCreationTimeout)
-	subnetAssetTx, err := xWallet.IssueCreateAssetTx(
+	subnetAssetTx, err := aWallet.IssueCreateAssetTx(
 		tokenName,
 		tokenSymbol,
 		9, // denomination for UI purposes only in explorer
@@ -129,15 +129,15 @@ func getAssetID(wallet primary.Wallet, tokenName string, tokenSymbol string, max
 	return subnetAssetTx.ID(), nil
 }
 
-func exportToPChain(wallet primary.Wallet, owner *secp256k1fx.OutputOwners, subnetAssetID ids.ID, maxSupply uint64) error {
-	xWallet := wallet.X()
+func exportToOChain(wallet primary.Wallet, owner *secp256k1fx.OutputOwners, subnetAssetID ids.ID, maxSupply uint64) error {
+	aWallet := wallet.A()
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultWalletCreationTimeout)
 
-	_, err := xWallet.IssueExportTx(
+	_, err := aWallet.IssueExportTx(
 		ids.Empty,
-		[]*avax.TransferableOutput{
+		[]*dione.TransferableOutput{
 			{
-				Asset: avax.Asset{
+				Asset: dione.Asset{
 					ID: subnetAssetID,
 				},
 				Out: &secp256k1fx.TransferOutput{
@@ -152,13 +152,13 @@ func exportToPChain(wallet primary.Wallet, owner *secp256k1fx.OutputOwners, subn
 	return err
 }
 
-func importFromXChain(wallet primary.Wallet, owner *secp256k1fx.OutputOwners) error {
-	xWallet := wallet.X()
-	pWallet := wallet.P()
-	xChainID := xWallet.BlockchainID()
+func importFromAChain(wallet primary.Wallet, owner *secp256k1fx.OutputOwners) error {
+	aWallet := wallet.A()
+	oWallet := wallet.O()
+	aChainID := aWallet.BlockchainID()
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultWalletCreationTimeout)
-	_, err := pWallet.IssueImportTx(
-		xChainID,
+	_, err := oWallet.IssueImportTx(
+		aChainID,
 		owner,
 		common.WithContext(ctx),
 	)
@@ -180,9 +180,9 @@ func IssueTransformSubnetTx(
 		ctx,
 		&primary.WalletConfig{
 			URI:              api,
-			AVAXKeychain:     kc,
+			DIONEKeychain:    kc,
 			EthKeychain:      secp256k1fx.NewKeychain(),
-			PChainTxsToFetch: set.Of(subnetID),
+			OChainTxsToFetch: set.Of(subnetID),
 		},
 	)
 	if err != nil {
@@ -198,17 +198,17 @@ func IssueTransformSubnetTx(
 			genesis.EWOQKey.PublicKey().Address(),
 		},
 	}
-	err = exportToPChain(wallet, owner, subnetAssetID, maxSupply)
+	err = exportToOChain(wallet, owner, subnetAssetID, maxSupply)
 	if err != nil {
 		return ids.Empty, ids.Empty, err
 	}
-	err = importFromXChain(wallet, owner)
+	err = importFromAChain(wallet, owner)
 	if err != nil {
 		return ids.Empty, ids.Empty, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultConfirmTxTimeout)
-	transformSubnetTx, err := wallet.P().IssueTransformSubnetTx(elasticSubnetConfig.SubnetID, subnetAssetID,
+	transformSubnetTx, err := wallet.O().IssueTransformSubnetTx(elasticSubnetConfig.SubnetID, subnetAssetID,
 		elasticSubnetConfig.InitialSupply, elasticSubnetConfig.MaxSupply, elasticSubnetConfig.MinConsumptionRate,
 		elasticSubnetConfig.MaxConsumptionRate, elasticSubnetConfig.MinValidatorStake, elasticSubnetConfig.MaxValidatorStake,
 		elasticSubnetConfig.MinValidatorStakeDuration, elasticSubnetConfig.MaxValidatorStakeDuration,
@@ -239,9 +239,9 @@ func IssueAddPermissionlessValidatorTx(
 		ctx,
 		&primary.WalletConfig{
 			URI:              api,
-			AVAXKeychain:     kc,
+			DIONEKeychain:    kc,
 			EthKeychain:      secp256k1fx.NewKeychain(),
-			PChainTxsToFetch: set.Of(subnetID),
+			OChainTxsToFetch: set.Of(subnetID),
 		},
 	)
 	if err != nil {
@@ -254,7 +254,7 @@ func IssueAddPermissionlessValidatorTx(
 		},
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultConfirmTxTimeout)
-	tx, err := wallet.P().IssueAddPermissionlessValidatorTx(
+	tx, err := wallet.O().IssueAddPermissionlessValidatorTx(
 		&txs.SubnetValidator{
 			Validator: txs.Validator{
 				NodeID: nodeID,
@@ -293,16 +293,16 @@ func IssueAddPermissionlessDelegatorTx(
 		ctx,
 		&primary.WalletConfig{
 			URI:              api,
-			AVAXKeychain:     kc,
+			DIONEKeychain:    kc,
 			EthKeychain:      secp256k1fx.NewKeychain(),
-			PChainTxsToFetch: set.Of(subnetID),
+			OChainTxsToFetch: set.Of(subnetID),
 		},
 	)
 	if err != nil {
 		return ids.Empty, err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), constants.DefaultConfirmTxTimeout)
-	tx, err := wallet.P().IssueAddPermissionlessDelegatorTx(
+	tx, err := wallet.O().IssueAddPermissionlessDelegatorTx(
 		&txs.SubnetValidator{
 			Validator: txs.Validator{
 				NodeID: nodeID,
@@ -340,10 +340,10 @@ func (d *LocalDeployer) StartServer() error {
 
 func GetCurrentSupply(subnetID ids.ID) error {
 	api := constants.LocalAPIEndpoint
-	pClient := platformvm.NewClient(api)
+	oClient := omegavm.NewClient(api)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
-	_, _, err := pClient.GetCurrentSupply(ctx, subnetID)
+	_, _, err := oClient.GetCurrentSupply(ctx, subnetID)
 	return err
 }
 
@@ -365,7 +365,7 @@ func (d *LocalDeployer) BackendStartedHere() bool {
 //   - waits completion of operation
 //   - show status
 func (d *LocalDeployer) doDeploy(chain string, chainGenesis []byte, genesisPath string) (ids.ID, ids.ID, error) {
-	needsRestart, avalancheGoBinPath, err := d.SetupLocalEnv()
+	needsRestart, odysseyGoBinPath, err := d.SetupLocalEnv()
 	if err != nil {
 		return ids.Empty, ids.Empty, err
 	}
@@ -385,7 +385,7 @@ func (d *LocalDeployer) doDeploy(chain string, chainGenesis []byte, genesisPath 
 
 	runDir := d.app.GetRunDir()
 
-	ctx, cancel := utils.GetANRContext()
+	ctx, cancel := utils.GetONRContext()
 	defer cancel()
 
 	// loading sidecar before it's needed so we catch any error early
@@ -407,7 +407,7 @@ func (d *LocalDeployer) doDeploy(chain string, chainGenesis []byte, genesisPath 
 		}
 	}
 
-	chainVMID, err := anrutils.VMID(chain)
+	chainVMID, err := onrutils.VMID(chain)
 	if err != nil {
 		return ids.Empty, ids.Empty, fmt.Errorf("failed to create VM ID from %s: %w", chain, err)
 	}
@@ -425,7 +425,7 @@ func (d *LocalDeployer) doDeploy(chain string, chainGenesis []byte, genesisPath 
 	}
 
 	if !networkBooted {
-		if err := d.startNetwork(ctx, cli, avalancheGoBinPath, runDir); err != nil {
+		if err := d.startNetwork(ctx, cli, odysseyGoBinPath, runDir); err != nil {
 			utils.FindErrorLogs(rootDir, backendLogDir)
 			return ids.Empty, ids.Empty, err
 		}
@@ -433,17 +433,17 @@ func (d *LocalDeployer) doDeploy(chain string, chainGenesis []byte, genesisPath 
 
 	// latest check for rpc compatibility
 	statusChecker := localnetworkinterface.NewStatusChecker()
-	_, avagoRPCVersion, _, err := statusChecker.GetCurrentNetworkVersion()
+	_, odygoRPCVersion, _, err := statusChecker.GetCurrentNetworkVersion()
 	if err != nil {
 		return ids.Empty, ids.Empty, err
 	}
-	if avagoRPCVersion != sc.RPCVersion {
+	if odygoRPCVersion != sc.RPCVersion {
 		if !networkBooted {
 			_, _ = cli.Stop(ctx)
 		}
 		return ids.Empty, ids.Empty, fmt.Errorf(
-			"the avalanchego deployment uses rpc version %d but your subnet has version %d and is not compatible",
-			avagoRPCVersion,
+			"the odysseygo deployment uses rpc version %d but your subnet has version %d and is not compatible",
+			odygoRPCVersion,
 			sc.RPCVersion,
 		)
 	}
@@ -486,7 +486,7 @@ func (d *LocalDeployer) doDeploy(chain string, chainGenesis []byte, genesisPath 
 		subnetConfigFile       = filepath.Join(d.app.GetSubnetDir(), chain, constants.SubnetConfigFileName)
 	)
 	if _, err := os.Stat(chainConfigFile); err == nil {
-		// currently the ANR only accepts the file as a path, not its content
+		// currently the ONR only accepts the file as a path, not its content
 		chainConfig = chainConfigFile
 	}
 	if _, err := os.Stat(perNodeChainConfigFile); err == nil {
@@ -595,44 +595,44 @@ func (d *LocalDeployer) printExtraEvmInfo(chain string, chainGenesis []byte) err
 
 // SetupLocalEnv also does some heavy lifting:
 // * sets up default snapshot if not installed
-// * checks if avalanchego is installed in the local binary path
+// * checks if odysseygo is installed in the local binary path
 // * if not, it downloads it and installs it (os - and archive dependent)
-// * returns the location of the avalanchego path
+// * returns the location of the odysseygo path
 func (d *LocalDeployer) SetupLocalEnv() (bool, string, error) {
-	avagoVersion := ""
-	avalancheGoBinPath := ""
-	if d.avagoBinaryPath != "" {
-		avalancheGoBinPath = d.avagoBinaryPath
-		// get avago version from binary
-		out, err := exec.Command(avalancheGoBinPath, "--"+config.VersionKey).Output() //nolint
+	odygoVersion := ""
+	odysseyGoBinPath := ""
+	if d.odygoBinaryPath != "" {
+		odysseyGoBinPath = d.odygoBinaryPath
+		// get odygo version from binary
+		out, err := exec.Command(odysseyGoBinPath, "--"+config.VersionKey).Output() //nolint
 		if err != nil {
 			return false, "", err
 		}
 		fullVersion := string(out)
-		splittedFullVersion := strings.Split(fullVersion, " ")
-		if len(splittedFullVersion) == 0 {
-			return false, "", fmt.Errorf("invalid avalanchego version: %q", fullVersion)
+		splitFullVersion := strings.Split(fullVersion, " ")
+		if len(splitFullVersion) == 0 {
+			return false, "", fmt.Errorf("invalid odysseygo version: %q", fullVersion)
 		}
-		version := splittedFullVersion[0]
-		splittedVersion := strings.Split(version, "/")
-		if len(splittedVersion) != 2 {
-			return false, "", fmt.Errorf("invalid avalanchego version: %q", fullVersion)
+		version := splitFullVersion[0]
+		splitVersion := strings.Split(version, "/")
+		if len(splitVersion) != 2 {
+			return false, "", fmt.Errorf("invalid odysseygo version: %q", fullVersion)
 		}
-		avagoVersion = "v" + splittedVersion[1]
+		odygoVersion = "v" + splitVersion[1]
 	} else {
 		var (
-			avagoDir string
+			odygoDir string
 			err      error
 		)
-		avagoVersion, avagoDir, err = d.setupLocalEnv()
+		odygoVersion, odygoDir, err = d.setupLocalEnv()
 		if err != nil {
 			return false, "", fmt.Errorf("failed setting up local environment: %w", err)
 		}
-		avalancheGoBinPath = filepath.Join(avagoDir, "avalanchego")
+		odysseyGoBinPath = filepath.Join(odygoDir, "odysseygo")
 	}
 
 	configSingleNodeEnabled := d.app.Conf.GetConfigBoolValue(constants.ConfigSingleNodeEnabledKey)
-	needsRestart, err := d.setDefaultSnapshot(d.app.GetSnapshotsDir(), false, avagoVersion, configSingleNodeEnabled)
+	needsRestart, err := d.setDefaultSnapshot(d.app.GetSnapshotsDir(), false, odygoVersion, configSingleNodeEnabled)
 	if err != nil {
 		return false, "", fmt.Errorf("failed setting up snapshots: %w", err)
 	}
@@ -651,17 +651,17 @@ func (d *LocalDeployer) SetupLocalEnv() (bool, string, error) {
 	// TODO: we need some better version management here
 	// * compare latest to local version
 	// * decide if force update or give user choice
-	exists, err = storage.FileExists(avalancheGoBinPath)
+	exists, err = storage.FileExists(odysseyGoBinPath)
 	if !exists || err != nil {
 		return false, "", fmt.Errorf(
-			"evaluated avalancheGoBinPath to be %s but it does not exist", avalancheGoBinPath)
+			"evaluated odysseyGoBinPath to be %s but it does not exist", odysseyGoBinPath)
 	}
 
-	return needsRestart, avalancheGoBinPath, nil
+	return needsRestart, odysseyGoBinPath, nil
 }
 
 func (d *LocalDeployer) setupLocalEnv() (string, string, error) {
-	return binutils.SetupAvalanchego(d.app, d.avagoVersion)
+	return binutils.SetupOdysseygo(d.app, d.odygoVersion)
 }
 
 // WaitForHealthy polls continuously until the network is ready to be used
@@ -780,10 +780,10 @@ func getExpectedDefaultSnapshotSHA256Sum(isSingleNode bool, isPreCortina17 bool)
 
 // Initialize default snapshot with bootstrap snapshot archive
 // If force flag is set to true, overwrite the default snapshot if it exists
-func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, avagoVersion string, isSingleNode bool) (bool, error) {
+func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, odygoVersion string, isSingleNode bool) (bool, error) {
 	var isPreCortina17 bool
-	if avagoVersion != "" {
-		isPreCortina17 = semver.Compare(avagoVersion, constants.Cortina17Version) < 0
+	if odygoVersion != "" {
+		isPreCortina17 = semver.Compare(odygoVersion, constants.Cortina17Version) < 0
 	}
 	bootstrapSnapshotArchiveName, url, _, _ := getSnapshotLocs(isSingleNode, isPreCortina17)
 	currentBootstrapNamePath := filepath.Join(snapshotsDir, constants.CurrentBootstrapNamePath)
@@ -806,7 +806,7 @@ func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, avagoVer
 		resetCurrentSnapshot = true
 	}
 	bootstrapSnapshotArchivePath := filepath.Join(snapshotsDir, bootstrapSnapshotArchiveName)
-	defaultSnapshotPath := filepath.Join(snapshotsDir, "anr-snapshot-"+constants.DefaultSnapshotName)
+	defaultSnapshotPath := filepath.Join(snapshotsDir, "onr-snapshot-"+constants.DefaultSnapshotName)
 	defaultSnapshotInUse := false
 	if _, err := os.Stat(defaultSnapshotPath); err == nil {
 		defaultSnapshotInUse = true
@@ -870,11 +870,11 @@ func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, avagoVer
 func (d *LocalDeployer) startNetwork(
 	ctx context.Context,
 	cli client.Client,
-	avalancheGoBinPath string,
+	odysseyGoBinPath string,
 	runDir string,
 ) error {
 	loadSnapshotOpts := []client.OpOption{
-		client.WithExecPath(avalancheGoBinPath),
+		client.WithExecPath(odysseyGoBinPath),
 		client.WithRootDataDir(runDir),
 		client.WithReassignPortsIfUsed(true),
 		client.WithPluginDir(d.app.GetPluginsDir()),
@@ -935,39 +935,39 @@ func IssueRemoveSubnetValidatorTx(kc keychain.Keychain, subnetID ids.ID, nodeID 
 		ctx,
 		&primary.WalletConfig{
 			URI:              api,
-			AVAXKeychain:     kc,
+			DIONEKeychain:    kc,
 			EthKeychain:      secp256k1fx.NewKeychain(),
-			PChainTxsToFetch: set.Of(subnetID),
+			OChainTxsToFetch: set.Of(subnetID),
 		},
 	)
 	if err != nil {
 		return ids.Empty, err
 	}
 
-	tx, err := wallet.P().IssueRemoveSubnetValidatorTx(nodeID, subnetID)
+	tx, err := wallet.O().IssueRemoveSubnetValidatorTx(nodeID, subnetID)
 	return tx.ID(), err
 }
 
-func GetSubnetValidators(subnetID ids.ID) ([]platformvm.ClientPermissionlessValidator, error) {
+func GetSubnetValidators(subnetID ids.ID) ([]omegavm.ClientPermissionlessValidator, error) {
 	api := constants.LocalAPIEndpoint
-	pClient := platformvm.NewClient(api)
+	oClient := omegavm.NewClient(api)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
 
-	return pClient.GetCurrentValidators(ctx, subnetID, nil)
+	return oClient.GetCurrentValidators(ctx, subnetID, nil)
 }
 
 func CheckNodeIsInSubnetPendingValidators(subnetID ids.ID, nodeID string) (bool, error) {
 	api := constants.LocalAPIEndpoint
-	pClient := platformvm.NewClient(api)
+	oClient := omegavm.NewClient(api)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
 
-	pVals, _, err := pClient.GetPendingValidators(ctx, subnetID, nil)
+	oVals, _, err := oClient.GetPendingValidators(ctx, subnetID, nil)
 	if err != nil {
 		return false, err
 	}
-	for _, iv := range pVals {
+	for _, iv := range oVals {
 		if v, ok := iv.(map[string]interface{}); ok {
 			// strictly this is not needed, as we are providing the nodeID as param
 			// just a double check

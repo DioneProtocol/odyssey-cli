@@ -8,12 +8,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet
+// odyssey subnet
 func newImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import",
-		Short: "Import subnets into avalanche-cli",
-		Long: `Import subnet configurations into avalanche-cli.
+		Short: "Import subnets into odyssey-cli",
+		Long: `Import subnet configurations into odyssey-cli.
 
 This command supports importing from a file created on another computer,
 or importing from subnets running public networks

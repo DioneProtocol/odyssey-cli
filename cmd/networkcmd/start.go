@@ -7,23 +7,23 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	"github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanche-network-runner/server"
-	anrutils "github.com/ava-labs/avalanche-network-runner/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	"github.com/DioneProtocol/odyssey-network-runner/client"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
+	onrutils "github.com/DioneProtocol/odyssey-network-runner/utils"
 	"github.com/spf13/cobra"
 )
 
 var (
-	userProvidedAvagoVersion string
+	userProvidedOdygoVersion string
 	snapshotName             string
-	avagoBinaryPath          string
+	odygoBinaryPath          string
 )
 
 const latest = "latest"
@@ -32,7 +32,7 @@ func newStartCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "start",
 		Short: "Starts a local network",
-		Long: `The network start command starts a local, multi-node Avalanche network on your machine.
+		Long: `The network start command starts a local, multi-node Odyssey network on your machine.
 
 By default, the command loads the default snapshot. If you provide the --snapshot-name
 flag, the network loads that snapshot instead. The command fails if the local network is
@@ -43,8 +43,8 @@ already running.`,
 		SilenceUsage: true,
 	}
 
-	cmd.Flags().StringVar(&userProvidedAvagoVersion, "avalanchego-version", latest, "use this version of avalanchego (ex: v1.17.12)")
-	cmd.Flags().StringVar(&avagoBinaryPath, "avalanchego-path", "", "use this avalanchego binary path")
+	cmd.Flags().StringVar(&userProvidedOdygoVersion, "odysseygo-version", latest, "use this version of odysseygo (ex: v1.10.10)")
+	cmd.Flags().StringVar(&odygoBinaryPath, "odysseygo-path", "", "use this odysseygo binary path")
 	cmd.Flags().StringVar(&snapshotName, "snapshot-name", constants.DefaultSnapshotName, "name of snapshot to use to start the network from")
 
 	return cmd
@@ -53,21 +53,21 @@ already running.`,
 func StartNetwork(*cobra.Command, []string) error {
 	var (
 		err          error
-		avagoVersion string
+		odygoVersion string
 	)
-	if avagoBinaryPath == "" {
-		avagoVersion, err = determineAvagoVersion(userProvidedAvagoVersion)
+	if odygoBinaryPath == "" {
+		odygoVersion, err = determineOdygoVersion(userProvidedOdygoVersion)
 		if err != nil {
 			return err
 		}
 	}
-	sd := subnet.NewLocalDeployer(app, avagoVersion, avagoBinaryPath, "")
+	sd := subnet.NewLocalDeployer(app, odygoVersion, odygoBinaryPath, "")
 
 	if err := sd.StartServer(); err != nil {
 		return err
 	}
 
-	needsRestart, avalancheGoBinPath, err := sd.SetupLocalEnv()
+	needsRestart, odysseyGoBinPath, err := sd.SetupLocalEnv()
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func StartNetwork(*cobra.Command, []string) error {
 		return err
 	}
 
-	ctx, cancel := utils.GetANRContext()
+	ctx, cancel := utils.GetONRContext()
 	defer cancel()
 
 	bootstrapped, err := checkNetworkIsAlreadyBootstrapped(ctx, cli)
@@ -107,7 +107,7 @@ func StartNetwork(*cobra.Command, []string) error {
 	ux.Logger.PrintToUser(startMsg)
 
 	outputDirPrefix := path.Join(app.GetRunDir(), "network")
-	outputDir, err := anrutils.MkDirWithTimestamp(outputDirPrefix)
+	outputDir, err := onrutils.MkDirWithTimestamp(outputDirPrefix)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func StartNetwork(*cobra.Command, []string) error {
 	pluginDir := app.GetPluginsDir()
 
 	loadSnapshotOpts := []client.OpOption{
-		client.WithExecPath(avalancheGoBinPath),
+		client.WithExecPath(odysseyGoBinPath),
 		client.WithRootDataDir(outputDir),
 		client.WithReassignPortsIfUsed(true),
 		client.WithPluginDir(pluginDir),
@@ -152,10 +152,10 @@ func StartNetwork(*cobra.Command, []string) error {
 	return nil
 }
 
-func determineAvagoVersion(userProvidedAvagoVersion string) (string, error) {
+func determineOdygoVersion(userProvidedOdygoVersion string) (string, error) {
 	// a specific user provided version should override this calculation, so just return
-	if userProvidedAvagoVersion != latest {
-		return userProvidedAvagoVersion, nil
+	if userProvidedOdygoVersion != latest {
+		return userProvidedOdygoVersion, nil
 	}
 
 	// Need to determine which subnets have been deployed
@@ -200,14 +200,14 @@ func determineAvagoVersion(userProvidedAvagoVersion string) (string, error) {
 
 	// If currentRPCVersion == -1, then only custom subnets have been deployed, the user must provide the version explicitly if not latest
 	if currentRPCVersion == -1 {
-		ux.Logger.PrintToUser("No Subnet RPC version found. Using latest AvalancheGo version")
+		ux.Logger.PrintToUser("No Subnet RPC version found. Using latest OdysseyGo version")
 		return latest, nil
 	}
 
-	return vm.GetLatestAvalancheGoByProtocolVersion(
+	return vm.GetLatestOdysseyGoByProtocolVersion(
 		app,
 		currentRPCVersion,
-		constants.AvalancheGoCompatibilityURL,
+		constants.OdysseyGoCompatibilityURL,
 	)
 }
 

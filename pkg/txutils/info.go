@@ -6,13 +6,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 )
 
 // get network model associated to tx
@@ -79,9 +79,9 @@ func IsCreateChainTx(tx *txs.Tx) bool {
 }
 
 func GetOwners(network models.Network, subnetID ids.ID) ([]string, uint32, error) {
-	pClient := platformvm.NewClient(network.Endpoint)
+	oClient := omegavm.NewClient(network.Endpoint)
 	ctx := context.Background()
-	txBytes, err := pClient.GetTx(ctx, subnetID)
+	txBytes, err := oClient.GetTx(ctx, subnetID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("subnet tx %s query error: %w", subnetID, err)
 	}
@@ -102,7 +102,7 @@ func GetOwners(network models.Network, subnetID ids.ID) ([]string, uint32, error
 	hrp := key.GetHRP(network.ID)
 	controlKeysStrs := []string{}
 	for _, addr := range controlKeys {
-		addrStr, err := address.Format("P", hrp, addr[:])
+		addrStr, err := address.Format("O", hrp, addr[:])
 		if err != nil {
 			return nil, 0, err
 		}

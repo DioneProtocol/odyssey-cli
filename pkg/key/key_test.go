@@ -9,12 +9,12 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanchego/utils/cb58"
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
+	"github.com/DioneProtocol/odysseygo/utils/cb58"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/secp256k1"
 )
 
 const (
-	ewoqPChainAddr    = "P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
+	ewoqOChainAddr    = "O-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
 	fallbackNetworkID = 999999 // unaffiliated networkID should trigger HRP Fallback
 )
 
@@ -29,8 +29,8 @@ func TestNewKeyEwoq(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if m.P()[0] != ewoqPChainAddr {
-		t.Fatalf("unexpected P-Chain address %q, expected %q", m.P(), ewoqPChainAddr)
+	if m.O()[0] != ewoqOChainAddr {
+		t.Fatalf("unexpected O-Chain address %q, expected %q", m.O(), ewoqOChainAddr)
 	}
 
 	keyPath := filepath.Join(t.TempDir(), "key.pk")

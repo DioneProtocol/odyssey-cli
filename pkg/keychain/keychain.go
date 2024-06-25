@@ -6,21 +6,21 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/cmd/flags"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/crypto/keychain"
-	"github.com/ava-labs/avalanchego/utils/crypto/ledger"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/set"
-	"github.com/ava-labs/avalanchego/utils/units"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
+	"github.com/DioneProtocol/odyssey-cli/cmd/flags"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/keychain"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/ledger"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/set"
+	"github.com/DioneProtocol/odysseygo/utils/units"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 )
 
 const (
@@ -29,10 +29,10 @@ const (
 )
 
 var (
-	ErrMutuallyExlusiveKeySource = errors.New("key source flags --key, --ewoq, --ledger/--ledger-addrs are mutually exclusive")
-	ErrStoredKeyOrEwoqOnMainnet  = errors.New("key sources --key, --ewoq are not available for mainnet operations")
-	ErrNonEwoqKeyOnDevnet        = errors.New("key source --ewoq is the only one available for devnet operations")
-	ErrEwoqKeyOnFuji             = errors.New("key source --ewoq is not available for fuji operations")
+	ErrMutuallyExclusiveKeySource = errors.New("key source flags --key, --ewoq, --ledger/--ledger-addrs are mutually exclusive")
+	ErrStoredKeyOrEwoqOnMainnet   = errors.New("key sources --key, --ewoq are not available for mainnet operations")
+	ErrNonEwoqKeyOnDevnet         = errors.New("key source --ewoq is the only one available for devnet operations")
+	ErrEwoqKeyOnTestnet           = errors.New("key source --ewoq is not available for testnet operations")
 )
 
 type Keychain struct {
@@ -62,7 +62,7 @@ func (kc *Keychain) Addresses() set.Set[ids.ShortID] {
 	return kc.Keychain.Addresses()
 }
 
-func (kc *Keychain) PChainFormattedStrAddresses() ([]string, error) {
+func (kc *Keychain) OChainFormattedStrAddresses() ([]string, error) {
 	addrs := kc.Addresses().List()
 	if len(addrs) == 0 {
 		return nil, fmt.Errorf("no addresses in keychain")
@@ -70,7 +70,7 @@ func (kc *Keychain) PChainFormattedStrAddresses() ([]string, error) {
 	hrp := key.GetHRP(kc.Network.ID)
 	addrsStr := []string{}
 	for _, addr := range addrs {
-		addrStr, err := address.Format("P", hrp, addr[:])
+		addrStr, err := address.Format("O", hrp, addr[:])
 		if err != nil {
 			return nil, err
 		}
@@ -97,17 +97,17 @@ func (kc *Keychain) AddAddresses(addresses []string) error {
 				return err
 			}
 		}
-		avagoKc, err := keychain.NewLedgerKeychainFromIndices(kc.Ledger, kc.LedgerIndices)
+		odygoKc, err := keychain.NewLedgerKeychainFromIndices(kc.Ledger, kc.LedgerIndices)
 		if err != nil {
 			return err
 		}
-		kc.Keychain = avagoKc
+		kc.Keychain = odygoKc
 	}
 	return nil
 }
 
 func GetKeychainFromCmdLineFlags(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	keychainGoal string,
 	network models.Network,
 	keyName string,
@@ -123,7 +123,7 @@ func GetKeychainFromCmdLineFlags(
 
 	// check mutually exclusive flags
 	if !flags.EnsureMutuallyExclusive([]bool{useLedger, useEwoq, keyName != ""}) {
-		return nil, ErrMutuallyExlusiveKeySource
+		return nil, ErrMutuallyExclusiveKeySource
 	}
 
 	switch {
@@ -133,14 +133,14 @@ func GetKeychainFromCmdLineFlags(
 		if keyName != "" || useLedger {
 			return nil, ErrNonEwoqKeyOnDevnet
 		}
-	case network.Kind == models.Fuji:
+	case network.Kind == models.Testnet:
 		if useEwoq {
-			return nil, ErrEwoqKeyOnFuji
+			return nil, ErrEwoqKeyOnTestnet
 		}
 		// prompt the user if no key source was provided
 		if !useLedger && keyName == "" {
 			var err error
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, keychainGoal, app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, keychainGoal, app.GetKeyDir())
 			if err != nil {
 				return nil, err
 			}
@@ -160,7 +160,7 @@ func GetKeychainFromCmdLineFlags(
 }
 
 func GetKeychain(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	useEwoq bool,
 	useLedger bool,
 	ledgerAddresses []string,
@@ -258,8 +258,8 @@ func getLedgerIndices(ledgerDevice keychain.Ledger, addressesStr []string) ([]ui
 
 // search for a set of indices that pay a given amount
 func searchForFundedLedgerIndices(network models.Network, ledgerDevice keychain.Ledger, amount uint64) ([]uint32, error) {
-	ux.Logger.PrintToUser("Looking for ledger indices to pay for %.9f AVAX...", float64(amount)/float64(units.Avax))
-	pClient := platformvm.NewClient(network.Endpoint)
+	ux.Logger.PrintToUser("Looking for ledger indices to pay for %.9f DIONE...", float64(amount)/float64(units.Dione))
+	oClient := omegavm.NewClient(network.Endpoint)
 	totalBalance := uint64(0)
 	ledgerIndices := []uint32{}
 	for ledgerIndex := uint32(0); ledgerIndex < numLedgerIndicesToSearchForBalance; ledgerIndex++ {
@@ -268,13 +268,13 @@ func searchForFundedLedgerIndices(network models.Network, ledgerDevice keychain.
 			return []uint32{}, err
 		}
 		ctx, cancel := utils.GetAPIContext()
-		resp, err := pClient.GetBalance(ctx, ledgerAddress)
+		resp, err := oClient.GetBalance(ctx, ledgerAddress)
 		cancel()
 		if err != nil {
 			return nil, err
 		}
 		if resp.Balance > 0 {
-			ux.Logger.PrintToUser("  Found index %d with %.9f AVAX", ledgerIndex, float64(resp.Balance)/float64(units.Avax))
+			ux.Logger.PrintToUser("  Found index %d with %.9f DIONE", ledgerIndex, float64(resp.Balance)/float64(units.Dione))
 			totalBalance += uint64(resp.Balance)
 			ledgerIndices = append(ledgerIndices, ledgerIndex)
 		}
@@ -297,7 +297,7 @@ func showLedgerAddresses(network models.Network, ledgerDevice keychain.Ledger, l
 	}
 	addrStrs := []string{}
 	for _, addr := range addresses {
-		addrStr, err := address.Format("P", key.GetHRP(network.ID), addr[:])
+		addrStr, err := address.Format("O", key.GetHRP(network.ID), addr[:])
 		if err != nil {
 			return err
 		}

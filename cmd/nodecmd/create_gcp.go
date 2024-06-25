@@ -12,19 +12,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/rand"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
 
-	gcpAPI "github.com/ava-labs/avalanche-cli/pkg/cloud/gcp"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	gcpAPI "github.com/DioneProtocol/odyssey-cli/pkg/cloud/gcp"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
 func getServiceAccountKeyFilepath() (string, error) {
@@ -196,9 +196,9 @@ func createGCEInstances(gcpClient *gcpAPI.GcpCloud,
 				networkName,
 				[]string{
 					strconv.Itoa(constants.SSHTCPPort),
-					strconv.Itoa(constants.AvalanchegoAPIPort),
-					strconv.Itoa(constants.AvalanchegoMonitoringPort),
-					strconv.Itoa(constants.AvalanchegoGrafanaPort),
+					strconv.Itoa(constants.OdysseygoAPIPort),
+					strconv.Itoa(constants.OdysseygoMonitoringPort),
+					strconv.Itoa(constants.OdysseygoGrafanaPort),
 				},
 			)
 			if err != nil {
@@ -217,7 +217,7 @@ func createGCEInstances(gcpClient *gcpAPI.GcpCloud,
 				return nil, nil, "", "", err
 			}
 			if !firewallContainsMonitoringPorts && !firewallExists {
-				_, err := gcpClient.SetFirewallRule(userIPAddress, firewallName, networkName, []string{strconv.Itoa(constants.AvalanchegoMonitoringPort), strconv.Itoa(constants.AvalanchegoGrafanaPort)})
+				_, err := gcpClient.SetFirewallRule(userIPAddress, firewallName, networkName, []string{strconv.Itoa(constants.OdysseygoMonitoringPort), strconv.Itoa(constants.OdysseygoGrafanaPort)})
 				if err != nil {
 					return nil, nil, "", "", err
 				}
@@ -293,14 +293,14 @@ func createGCPInstance(
 	clusterName string,
 	forMonitoring bool,
 ) (models.CloudConfig, error) {
-	defaultAvalancheCLIPrefix := usr.Username + constants.AvalancheCLISuffix
+	defaultOdysseyCLIPrefix := usr.Username + constants.OdysseyCLISuffix
 	instanceIDs, elasticIPs, certFilePath, keyPairName, err := createGCEInstances(
 		gcpClient,
 		instanceType,
 		numNodes,
 		zones,
 		imageID,
-		defaultAvalancheCLIPrefix,
+		defaultOdysseyCLIPrefix,
 		forMonitoring,
 	)
 	if err != nil {
@@ -337,7 +337,7 @@ func createGCPInstance(
 			InstanceIDs:   instanceIDs[zone],
 			PublicIPs:     elasticIPs[zone],
 			KeyPair:       keyPairName,
-			SecurityGroup: fmt.Sprintf("%s-network", defaultAvalancheCLIPrefix),
+			SecurityGroup: fmt.Sprintf("%s-network", defaultOdysseyCLIPrefix),
 			CertFilePath:  certFilePath,
 			ImageID:       imageID,
 		}

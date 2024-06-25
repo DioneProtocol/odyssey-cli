@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -25,8 +25,8 @@ func newSyncCmd() *cobra.Command {
 		Short: "(ALPHA Warning) Sync nodes in a cluster with a subnet",
 		Long: `(ALPHA Warning) This command is currently in experimental mode.
 
-The node sync command enables all nodes in a cluster to be bootstrapped to a Subnet. 
-You can check the subnet bootstrap status by calling avalanche node status <clusterName> --subnet <subnetName>`,
+The node sync command enables all nodes in a cluster to be bootstrapped to a Subnet.
+You can check the subnet bootstrap status by calling odyssey node status <clusterName> --subnet <subnetName>`,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(2),
 		RunE:         syncSubnet,
@@ -71,7 +71,7 @@ func syncSubnet(_ *cobra.Command, args []string) error {
 	if len(notHealthyNodes) > 0 {
 		return fmt.Errorf("node(s) %s are not healthy, please fix the issue and again", notHealthyNodes)
 	}
-	incompatibleNodes, err := checkAvalancheGoVersionCompatible(hosts, subnetName)
+	incompatibleNodes, err := checkOdysseyGoVersionCompatible(hosts, subnetName)
 	if err != nil {
 		return err
 	}
@@ -80,15 +80,15 @@ func syncSubnet(_ *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		ux.Logger.PrintToUser("Either modify your Avalanche Go version or modify your VM version")
-		ux.Logger.PrintToUser("To modify your Avalanche Go version: https://docs.avax.network/nodes/maintain/upgrade-your-avalanchego-node")
+		ux.Logger.PrintToUser("Either modify your Odyssey Go version or modify your VM version")
+		ux.Logger.PrintToUser("To modify your Odyssey Go version: https://docs.dione.network/nodes/maintain/upgrade-your-odysseygo-node")
 		switch sc.VM {
 		case models.SubnetEvm:
-			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.avax.network/build/subnet/upgrade/upgrade-subnet-vm")
+			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.dione.network/build/subnet/upgrade/upgrade-subnet-vm")
 		case models.CustomVM:
-			ux.Logger.PrintToUser("To modify your Custom VM binary: avalanche subnet upgrade vm %s --config", subnetName)
+			ux.Logger.PrintToUser("To modify your Custom VM binary: odyssey subnet upgrade vm %s --config", subnetName)
 		}
-		return fmt.Errorf("the Avalanche Go version of node(s) %s is incompatible with VM RPC version of %s", incompatibleNodes, subnetName)
+		return fmt.Errorf("the Odyssey Go version of node(s) %s is incompatible with VM RPC version of %s", incompatibleNodes, subnetName)
 	}
 	clustersConfig, err := app.LoadClustersConfig()
 	if err != nil {
@@ -103,12 +103,12 @@ func syncSubnet(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("node(s) %s failed to sync with subnet %s", untrackedNodes, subnetName)
 	}
 	ux.Logger.PrintToUser("Node(s) successfully started syncing with Subnet!")
-	ux.Logger.PrintToUser(fmt.Sprintf("Check node subnet syncing status with avalanche node status %s --subnet %s", clusterName, subnetName))
+	ux.Logger.PrintToUser(fmt.Sprintf("Check node subnet syncing status with odyssey node status %s --subnet %s", clusterName, subnetName))
 	return nil
 }
 
 // trackSubnet exports deployed subnet in user's local machine to cloud server and calls node to
-// start tracking the specified subnet (similar to avalanche subnet join <subnetName> command)
+// start tracking the specified subnet (similar to odyssey subnet join <subnetName> command)
 func trackSubnet(
 	hosts []*models.Host,
 	subnetName string,
@@ -121,8 +121,8 @@ func trackSubnet(
 		networkFlag = "--local"
 	case models.Devnet:
 		networkFlag = "--devnet"
-	case models.Fuji:
-		networkFlag = "--fuji"
+	case models.Testnet:
+		networkFlag = "--testnet"
 	case models.Mainnet:
 		networkFlag = "--mainnet"
 	}

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
 	"github.com/onsi/gomega"
 )
 
@@ -53,7 +53,7 @@ func StartNetwork() string {
 	mapping, err := utils.GetVersionMapping(mapper)
 	gomega.Expect(err).Should(gomega.BeNil())
 
-	return StartNetworkWithVersion(mapping[utils.OnlyAvagoKey])
+	return StartNetworkWithVersion(mapping[utils.OnlyOdygoKey])
 }
 
 /* #nosec G204 */
@@ -63,7 +63,7 @@ func StartNetworkWithVersion(version string) string {
 	if version != "" {
 		cmdArgs = append(
 			cmdArgs,
-			"--avalanchego-version",
+			"--odysseygo-version",
 			version,
 		)
 	}

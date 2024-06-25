@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/cmd/flags"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/cmd/flags"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
 	"golang.org/x/exp/slices"
 )
 
@@ -26,7 +26,7 @@ func fillNetworkDetails(network *models.Network) error {
 func GetNetworkFromCmdLineFlags(
 	useLocal bool,
 	useDevnet bool,
-	useFuji bool,
+	useTestnet bool,
 	useMainnet bool,
 	endpoint string,
 	askForDevnetEndpoint bool,
@@ -39,8 +39,8 @@ func GetNetworkFromCmdLineFlags(
 		network = models.LocalNetwork
 	case useDevnet:
 		network = models.DevnetNetwork
-	case useFuji:
-		network = models.FujiNetwork
+	case useTestnet:
+		network = models.TestnetNetwork
 	case useMainnet:
 		network = models.MainnetNetwork
 	}
@@ -71,7 +71,7 @@ func GetNetworkFromCmdLineFlags(
 	networkFlags := map[models.NetworkKind]string{
 		models.Local:   "--local",
 		models.Devnet:  "--devnet",
-		models.Fuji:    "--fuji/--testnet",
+		models.Testnet: "--testnet",
 		models.Mainnet: "--mainnet",
 	}
 	supportedNetworksFlags := strings.Join(utils.Map(supportedNetworkKinds, func(n models.NetworkKind) string { return networkFlags[n] }), ", ")
@@ -82,7 +82,7 @@ func GetNetworkFromCmdLineFlags(
 	}
 
 	// not mutually exclusive flag selection
-	if !flags.EnsureMutuallyExclusive([]bool{useLocal, useDevnet, useFuji, useMainnet}) {
+	if !flags.EnsureMutuallyExclusive([]bool{useLocal, useDevnet, useTestnet, useMainnet}) {
 		return models.UndefinedNetwork, fmt.Errorf("network flags %s are mutually exclusive", supportedNetworksFlags)
 	}
 	if askForDevnetEndpoint {

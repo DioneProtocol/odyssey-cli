@@ -5,22 +5,22 @@ package transactioncmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/txutils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/txutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 	"github.com/spf13/cobra"
 )
 
-// avalanche transaction commit
+// odyssey transaction commit
 func newTransactionCommitCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "commit [subnetName]",
 		Short:        "commit a transaction",
-		Long:         "The transaction commit command commits a transaction by submitting it to the P-Chain.",
+		Long:         "The transaction commit command commits a transaction by submitting it to the O-Chain.",
 		RunE:         commitTx,
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,

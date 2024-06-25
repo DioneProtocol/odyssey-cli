@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"golang.org/x/mod/semver"
@@ -22,15 +22,15 @@ import (
 var (
 	ErrUserAbortedInstallation = errors.New("user canceled installation")
 	ErrNoVersion               = errors.New("failed to find current version - did you install following official instructions?")
-	app                        *application.Avalanche
+	app                        *application.Odyssey
 	yes                        bool
 )
 
-func NewCmd(injectedApp *application.Avalanche, version string) *cobra.Command {
+func NewCmd(injectedApp *application.Odyssey, version string) *cobra.Command {
 	app = injectedApp
 	cmd := &cobra.Command{
 		Use:          "update",
-		Short:        "Check for latest updates of Avalanche-CLI",
+		Short:        "Check for latest updates of Odyssey-CLI",
 		Long:         `Check if an update is available, and prompt the user to install it`,
 		RunE:         runUpdate,
 		Args:         cobra.ExactArgs(0),
@@ -49,7 +49,7 @@ func runUpdate(cmd *cobra.Command, _ []string) error {
 
 func Update(cmd *cobra.Command, isUserCalled bool, version string, lastActs *application.LastActions) error {
 	// first check if there is a new version exists
-	url := binutils.GetGithubLatestReleaseURL(constants.AvaLabsOrg, constants.CliRepoName)
+	url := binutils.GetGithubLatestReleaseURL(constants.DioneProtocolOrg, constants.CliRepoName)
 	latest, err := app.Downloader.GetLatestReleaseVersion(url)
 	if err != nil {
 		app.Log.Warn("failed to get latest version for cli from repo", zap.Error(err))
@@ -94,7 +94,7 @@ func Update(cmd *cobra.Command, isUserCalled bool, version string, lastActs *app
 
 	// flag not provided
 	if !yes {
-		ux.Logger.PrintToUser("We found a new version of Avalanche-CLI %s upstream. You are running %s", latest, thisVFmt)
+		ux.Logger.PrintToUser("We found a new version of Odyssey-CLI %s upstream. You are running %s", latest, thisVFmt)
 		y, err := app.Prompt.CaptureYesNo("Do you want to update?")
 		if err != nil {
 			return nil

@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -21,21 +21,21 @@ var (
 	perNodeChainConf string
 )
 
-// avalanche subnet configure
+// odyssey subnet configure
 func newConfigureCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "configure [subnetName]",
-		Short: "Adds additional config files for the avalanchego nodes",
-		Long: `AvalancheGo nodes support several different configuration files. Subnets have their own
+		Short: "Adds additional config files for the odysseygo nodes",
+		Long: `OdysseyGo nodes support several different configuration files. Subnets have their own
 Subnet config which applies to all chains/VMs in the Subnet. Each chain within the Subnet
-can have its own chain config. A chain can also have special requirements for the AvalancheGo node 
+can have its own chain config. A chain can also have special requirements for the OdysseyGo node
 configuration itself. This command allows you to set all those files.`,
 		SilenceUsage: true,
 		RunE:         configure,
 		Args:         cobra.ExactArgs(1),
 	}
 
-	cmd.Flags().StringVar(&nodeConf, "node-config", "", "path to avalanchego node configuration")
+	cmd.Flags().StringVar(&nodeConf, "node-config", "", "path to odysseygo node configuration")
 	cmd.Flags().StringVar(&subnetConf, "subnet-config", "", "path to the subnet configuration")
 	cmd.Flags().StringVar(&chainConf, "chain-config", "", "path to the chain configuration")
 	cmd.Flags().StringVar(&perNodeChainConf, "per-node-chain-config", "", "path to per node chain configuration for local network")

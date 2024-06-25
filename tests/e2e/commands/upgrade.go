@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
 	"github.com/onsi/gomega"
 )
 
@@ -88,7 +88,7 @@ func UpgradeVMPublic(subnetName string, targetVersion string, pluginDir string) 
 		UpgradeCmd,
 		"vm",
 		subnetName,
-		"--fuji",
+		"--testnet",
 		"--version",
 		targetVersion,
 		"--plugin-dir",
@@ -176,16 +176,16 @@ func ApplyUpgradeLocal(subnetName string) (string, error) {
 }
 
 /* #nosec G204 */
-func ApplyUpgradeToPublicNode(subnetName, avagoChainConfDir string) (string, error) {
+func ApplyUpgradeToPublicNode(subnetName, odygoChainConfDir string) (string, error) {
 	cmd := exec.Command(
 		CLIBinary,
 		SubnetCmd,
 		UpgradeCmd,
 		"apply",
 		subnetName,
-		"--fuji",
-		"--avalanchego-chain-config-dir",
-		avagoChainConfDir,
+		"--testnet",
+		"--odysseygo-chain-config-dir",
+		odygoChainConfDir,
 		"--"+constants.SkipUpdateFlag,
 	)
 

@@ -11,22 +11,22 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/localnetworkinterface"
-	"github.com/ava-labs/avalanche-cli/pkg/metrics"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/txutils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	anrutils "github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/localnetworkinterface"
+	"github.com/DioneProtocol/odyssey-cli/pkg/metrics"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/txutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	onrutils "github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -44,7 +44,7 @@ var (
 	threshold                uint32
 	controlKeys              []string
 	subnetAuthKeys           []string
-	userProvidedAvagoVersion string
+	userProvidedOdygoVersion string
 	outputTxPath             string
 	useLedger                bool
 	useEwoq                  bool
@@ -52,31 +52,31 @@ var (
 	subnetIDStr              string
 	mainnetChainID           uint32
 	skipCreatePrompt         bool
-	avagoBinaryPath          string
+	odygoBinaryPath          string
 
-	errMutuallyExlusiveNetworks = errors.New("--local, --fuji/--testnet, --mainnet are mutually exclusive")
+	errMutuallyExclusiveNetworks = errors.New("--local, --testnet, --mainnet are mutually exclusive")
 
-	errMutuallyExlusiveControlKeys = errors.New("--control-keys and --same-control-key are mutually exclusive")
+	errMutuallyExclusiveControlKeys = errors.New("--control-keys and --same-control-key are mutually exclusive")
 
-	ErrMutuallyExlusiveKeyLedger = errors.New("key source flags --key, --ledger/--ledger-addrs are mutually exclusive")
-	ErrStoredKeyOnMainnet        = errors.New("key --key is not available for mainnet operations")
+	ErrMutuallyExclusiveKeyLedger = errors.New("key source flags --key, --ledger/--ledger-addrs are mutually exclusive")
+	ErrStoredKeyOnMainnet         = errors.New("key --key is not available for mainnet operations")
 )
 
-// avalanche subnet deploy
+// odyssey subnet deploy
 func newDeployCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deploy [subnetName]",
 		Short: "Deploys a subnet configuration",
-		Long: `The subnet deploy command deploys your Subnet configuration locally, to Fuji Testnet, or to Mainnet.
+		Long: `The subnet deploy command deploys your Subnet configuration locally, to Testnet, or to Mainnet.
 
 At the end of the call, the command prints the RPC URL you can use to interact with the Subnet.
 
-Avalanche-CLI only supports deploying an individual Subnet once per network. Subsequent
-attempts to deploy the same Subnet to the same network (local, Fuji, Mainnet) aren't
+Odyssey-CLI only supports deploying an individual Subnet once per network. Subsequent
+attempts to deploy the same Subnet to the same network (local, Testnet, Mainnet) aren't
 allowed. If you'd like to redeploy a Subnet locally for testing, you must first call
-avalanche network clean to reset all deployed chain state. Subsequent local deploys
+odyssey network clean to reset all deployed chain state. Subsequent local deploys
 redeploy the chain with fresh state. You can deploy the same Subnet to multiple networks,
-so you can take your locally tested Subnet and deploy it on Fuji or Mainnet.`,
+so you can take your locally tested Subnet and deploy it on Testnet or Mainnet.`,
 		SilenceUsage:      true,
 		RunE:              deploySubnet,
 		PersistentPostRun: handlePostRun,
@@ -85,22 +85,21 @@ so you can take your locally tested Subnet and deploy it on Fuji or Mainnet.`,
 	cmd.Flags().StringVar(&endpoint, "endpoint", "", "use the given endpoint for network operations")
 	cmd.Flags().BoolVarP(&deployLocal, "local", "l", false, "deploy to a local network")
 	cmd.Flags().BoolVar(&deployDevnet, "devnet", false, "deploy to a devnet network")
-	cmd.Flags().BoolVarP(&deployTestnet, "testnet", "t", false, "deploy to testnet (alias to `fuji`)")
-	cmd.Flags().BoolVarP(&deployTestnet, "fuji", "f", false, "deploy to fuji (alias to `testnet`")
+	cmd.Flags().BoolVarP(&deployTestnet, "testnet", "t", false, "deploy to testnet")
 	cmd.Flags().BoolVarP(&deployMainnet, "mainnet", "m", false, "deploy to mainnet")
-	cmd.Flags().StringVar(&userProvidedAvagoVersion, "avalanchego-version", "latest", "use this version of avalanchego (ex: v1.17.12)")
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji/devnet deploy only]")
+	cmd.Flags().StringVar(&userProvidedOdygoVersion, "odysseygo-version", "latest", "use this version of odysseygo (ex: v1.17.12)")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet/devnet deploy only]")
 	cmd.Flags().BoolVarP(&sameControlKey, "same-control-key", "s", false, "use the fee-paying key as control key")
 	cmd.Flags().Uint32Var(&threshold, "threshold", 0, "required number of control key signatures to make subnet changes")
 	cmd.Flags().StringSliceVar(&controlKeys, "control-keys", nil, "addresses that may make subnet changes")
 	cmd.Flags().StringSliceVar(&subnetAuthKeys, "subnet-auth-keys", nil, "control keys that will be used to authenticate chain creation")
 	cmd.Flags().StringVar(&outputTxPath, "output-tx-path", "", "file path of the blockchain creation tx")
-	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [fuji/devnet deploy only]")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji/devnet)")
+	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [testnet/devnet deploy only]")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet/devnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 	cmd.Flags().StringVarP(&subnetIDStr, "subnet-id", "u", "", "deploy into given subnet id")
 	cmd.Flags().Uint32Var(&mainnetChainID, "mainnet-chain-id", 0, "use different ChainID for mainnet deployment")
-	cmd.Flags().StringVar(&avagoBinaryPath, "avalanchego-path", "", "use this avalanchego binary path")
+	cmd.Flags().StringVar(&odygoBinaryPath, "odysseygo-path", "", "use this odysseygo binary path")
 	return cmd
 }
 
@@ -152,7 +151,7 @@ func getChainsInSubnet(subnetName string) ([]string, error) {
 			var sc models.Sidecar
 			err = json.Unmarshal(jsonBytes, &sc)
 			if err != nil {
-				return nil, fmt.Errorf("failed unmarshaling file %s: %w", sidecarFile, err)
+				return nil, fmt.Errorf("failed unmarshalling file %s: %w", sidecarFile, err)
 			}
 			if sc.Subnet == subnetName {
 				chains = append(chains, sc.Name)
@@ -171,7 +170,7 @@ func checkSubnetEVMDefaultAddressNotInAlloc(network models.Network, chain string
 		allocAddressMap := genesis.Alloc
 		for address := range allocAddressMap {
 			if address.String() == vm.PrefundedEwoqAddress.String() {
-				return fmt.Errorf("can't airdrop to default address on public networks, please edit the genesis by calling `avalanche subnet create %s --force`", chain)
+				return fmt.Errorf("can't airdrop to default address on public networks, please edit the genesis by calling `odyssey subnet create %s --force`", chain)
 			}
 		}
 	}
@@ -224,7 +223,7 @@ func getSubnetEVMMainnetChainID(sc *models.Sidecar, subnetName string) error {
 		useSameChainID := "Use same ChainID"
 		useNewChainID := "Use new ChainID"
 		listOptions := []string{useNewChainID, useSameChainID}
-		newChainIDPrompt := "Using the same ChainID for both Fuji and Mainnet could lead to a replay attack. Do you want to use a different ChainID?"
+		newChainIDPrompt := "Using the same ChainID for both Testnet and Mainnet could lead to a replay attack. Do you want to use a different ChainID?"
 		var (
 			err      error
 			decision string
@@ -295,7 +294,7 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load sidecar for later update: %w", err)
 	}
 
-	if sidecar.ImportedFromAPM {
+	if sidecar.ImportedFromOPM {
 		return errors.New("unable to deploy subnets imported from a repo")
 	}
 
@@ -312,7 +311,7 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 		deployMainnet,
 		endpoint,
 		true,
-		[]models.NetworkKind{models.Local, models.Devnet, models.Fuji, models.Mainnet},
+		[]models.NetworkKind{models.Local, models.Devnet, models.Testnet, models.Mainnet},
 	)
 	if err != nil {
 		return err
@@ -372,15 +371,15 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 
 		// check if selected version matches what is currently running
 		nc := localnetworkinterface.NewStatusChecker()
-		avagoVersion, err := CheckForInvalidDeployAndGetAvagoVersion(nc, sidecar.RPCVersion)
+		odygoVersion, err := CheckForInvalidDeployAndGetOdygoVersion(nc, sidecar.RPCVersion)
 		if err != nil {
 			return err
 		}
-		if avagoBinaryPath == "" {
-			userProvidedAvagoVersion = avagoVersion
+		if odygoBinaryPath == "" {
+			userProvidedOdygoVersion = odygoVersion
 		}
 
-		deployer := subnet.NewLocalDeployer(app, userProvidedAvagoVersion, avagoBinaryPath, vmBin)
+		deployer := subnet.NewLocalDeployer(app, userProvidedOdygoVersion, odygoBinaryPath, vmBin)
 		subnetID, blockchainID, err := deployer.DeployToLocalNetwork(chain, chainGenesis, genesisPath)
 		if err != nil {
 			if deployer.BackendStartedHere() {
@@ -439,11 +438,11 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 	if createSubnet {
 		// accept only one control keys specification
 		if len(controlKeys) > 0 && sameControlKey {
-			return errMutuallyExlusiveControlKeys
+			return errMutuallyExclusiveControlKeys
 		}
 		// use first fee-paying key as control key
 		if sameControlKey {
-			kcKeys, err := kc.PChainFormattedStrAddresses()
+			kcKeys, err := kc.OChainFormattedStrAddresses()
 			if err != nil {
 				return err
 			}
@@ -493,7 +492,7 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	kcKeys, err := kc.PChainFormattedStrAddresses()
+	kcKeys, err := kc.OChainFormattedStrAddresses()
 	if err != nil {
 		return err
 	}
@@ -601,7 +600,7 @@ func getControlKeys(kc *keychain.Keychain) ([]string, bool, error) {
 	switch listDecision {
 	case feePaying:
 		var kcKeys []string
-		kcKeys, err = kc.PChainFormattedStrAddresses()
+		kcKeys, err = kc.OChainFormattedStrAddresses()
 		if err != nil {
 			return nil, false, err
 		}
@@ -645,7 +644,7 @@ func useAllKeys(network models.Network) ([]string, error) {
 			return nil, err
 		}
 
-		existing = append(existing, k.P()...)
+		existing = append(existing, k.O()...)
 	}
 
 	return existing, nil
@@ -672,16 +671,16 @@ func enterCustomKeys(network models.Network) ([]string, bool, error) {
 // controlKeysLoop asks as many controlkeys the user requires, until Done or Cancel is selected
 func controlKeysLoop(controlKeysPrompt string, network models.Network) ([]string, bool, error) {
 	label := "Control key"
-	info := "Control keys are P-Chain addresses which have admin rights on the subnet.\n" +
+	info := "Control keys are O-Chain addresses which have admin rights on the subnet.\n" +
 		"Only private keys which control such addresses are allowed to make changes on the subnet"
-	addressPrompt := "Enter P-Chain address (Example: P-...)"
+	addressPrompt := "Enter O-Chain address (Example: O-...)"
 	return prompts.CaptureListDecision(
 		// we need this to be able to mock test
 		app.Prompt,
 		// the main prompt for entering address keys
 		controlKeysPrompt,
 		// the Capture function to use
-		func(s string) (string, error) { return app.Prompt.CapturePChainAddress(s, network) },
+		func(s string) (string, error) { return app.Prompt.CaptureOChainAddress(s, network) },
 		// the prompt for each address
 		addressPrompt,
 		// label describes the entity we are prompting for (e.g. address, control key, etc.)
@@ -790,7 +789,7 @@ func PrintReadyToSignMsg(
 	ux.Logger.PrintToUser("Tx is fully signed, and ready to be committed")
 	ux.Logger.PrintToUser("")
 	ux.Logger.PrintToUser("Commit command:")
-	ux.Logger.PrintToUser("  avalanche transaction commit %s --input-tx-filepath %s", chain, outputTxPath)
+	ux.Logger.PrintToUser("  odyssey transaction commit %s --input-tx-filepath %s", chain, outputTxPath)
 }
 
 func PrintRemainingToSignMsg(
@@ -808,12 +807,12 @@ func PrintRemainingToSignMsg(
 		"and run the signing command, or send %q to another user for signing.", outputTxPath)
 	ux.Logger.PrintToUser("")
 	ux.Logger.PrintToUser("Signing command:")
-	ux.Logger.PrintToUser("  avalanche transaction sign %s --input-tx-filepath %s", chain, outputTxPath)
+	ux.Logger.PrintToUser("  odyssey transaction sign %s --input-tx-filepath %s", chain, outputTxPath)
 	ux.Logger.PrintToUser("")
 }
 
 func PrintDeployResults(chain string, subnetID ids.ID, blockchainID ids.ID) error {
-	vmID, err := anrutils.VMID(chain)
+	vmID, err := onrutils.VMID(chain)
 	if err != nil {
 		return fmt.Errorf("failed to create VM ID from %s: %w", chain, err)
 	}
@@ -827,53 +826,53 @@ func PrintDeployResults(chain string, subnetID ids.ID, blockchainID ids.ID) erro
 	table.Append([]string{"VM ID", vmID.String()})
 	if blockchainID != ids.Empty {
 		table.Append([]string{"Blockchain ID", blockchainID.String()})
-		table.Append([]string{"P-Chain TXID", blockchainID.String()})
+		table.Append([]string{"O-Chain TXID", blockchainID.String()})
 	}
 	table.Render()
 	return nil
 }
 
-// Determines the appropriate version of avalanchego to run with. Returns an error if
+// Determines the appropriate version of odysseygo to run with. Returns an error if
 // that version conflicts with the current deployment.
-func CheckForInvalidDeployAndGetAvagoVersion(network localnetworkinterface.StatusChecker, configuredRPCVersion int) (string, error) {
+func CheckForInvalidDeployAndGetOdygoVersion(network localnetworkinterface.StatusChecker, configuredRPCVersion int) (string, error) {
 	// get current network
-	runningAvagoVersion, runningRPCVersion, networkRunning, err := network.GetCurrentNetworkVersion()
+	runningOdygoVersion, runningRPCVersion, networkRunning, err := network.GetCurrentNetworkVersion()
 	if err != nil {
 		return "", err
 	}
 
-	desiredAvagoVersion := userProvidedAvagoVersion
+	desiredOdygoVersion := userProvidedOdygoVersion
 
-	// RPC Version was made available in the info API in avalanchego version v1.9.2. For prior versions,
+	// RPC Version was made available in the info API in odysseygo version v1.9.2. For prior versions,
 	// we will need to skip this check.
 	skipRPCCheck := false
-	if semver.Compare(runningAvagoVersion, constants.AvalancheGoCompatibilityVersionAdded) == -1 {
+	if semver.Compare(runningOdygoVersion, constants.OdysseyGoCompatibilityVersionAdded) == -1 {
 		skipRPCCheck = true
 	}
 
 	if networkRunning {
-		if userProvidedAvagoVersion == "latest" {
+		if userProvidedOdygoVersion == "latest" {
 			if runningRPCVersion != configuredRPCVersion && !skipRPCCheck {
 				return "", fmt.Errorf(
-					"the current avalanchego deployment uses rpc version %d but your subnet has version %d and is not compatible",
+					"the current odysseygo deployment uses rpc version %d but your subnet has version %d and is not compatible",
 					runningRPCVersion,
 					configuredRPCVersion,
 				)
 			}
-			desiredAvagoVersion = runningAvagoVersion
-		} else if runningAvagoVersion != userProvidedAvagoVersion {
+			desiredOdygoVersion = runningOdygoVersion
+		} else if runningOdygoVersion != userProvidedOdygoVersion {
 			// user wants a specific version
-			return "", errors.New("incompatible avalanchego version selected")
+			return "", errors.New("incompatible odysseygo version selected")
 		}
-	} else if userProvidedAvagoVersion == "latest" {
-		// find latest avago version for this rpc version
-		desiredAvagoVersion, err = vm.GetLatestAvalancheGoByProtocolVersion(
-			app, configuredRPCVersion, constants.AvalancheGoCompatibilityURL)
+	} else if userProvidedOdygoVersion == "latest" {
+		// find latest odygo version for this rpc version
+		desiredOdygoVersion, err = vm.GetLatestOdysseyGoByProtocolVersion(
+			app, configuredRPCVersion, constants.OdysseyGoCompatibilityURL)
 		if err != nil {
 			return "", err
 		}
 	}
-	return desiredAvagoVersion, nil
+	return desiredOdygoVersion, nil
 }
 
 func hasSubnetEVMGenesis(subnetName string) (bool, error) {

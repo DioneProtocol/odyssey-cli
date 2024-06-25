@@ -5,7 +5,7 @@ package commands
 import (
 	"os/exec"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 )
 
 /* #nosec G204 */
@@ -56,13 +56,13 @@ func CreateKeyForce(keyName string) (string, error) {
 }
 
 /* #nosec G204 */
-func ListKeys(network string, omitCChain bool, useNanoAvax bool) (string, error) {
+func ListKeys(network string, omitDChain bool, useNanoDione bool) (string, error) {
 	args := []string{KeyCmd, "list", "--" + network, "--" + constants.SkipUpdateFlag}
-	if omitCChain {
-		args = append(args, "--cchain=false")
+	if omitDChain {
+		args = append(args, "--dchain=false")
 	}
-	if useNanoAvax {
-		args = append(args, "--use-nano-avax=true")
+	if useNanoDione {
+		args = append(args, "--use-nano-dione=true")
 	}
 	cmd := exec.Command(CLIBinary, args...)
 	out, err := cmd.Output()

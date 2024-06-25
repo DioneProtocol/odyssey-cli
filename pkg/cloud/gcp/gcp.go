@@ -16,9 +16,9 @@ import (
 
 	"google.golang.org/api/compute/v1"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
 const (
@@ -147,15 +147,15 @@ func (c *GcpCloud) SetupNetwork(ipAddress, networkName string) (*compute.Network
 	if _, err := c.SetFirewallRule("0.0.0.0/0",
 		fmt.Sprintf("%s-%s", networkName, "default"),
 		networkName,
-		[]string{strconv.Itoa(constants.AvalanchegoP2PPort)}); err != nil {
+		[]string{strconv.Itoa(constants.OdysseygoP2PPort)}); err != nil {
 		return nil, err
 	}
 	if _, err := c.SetFirewallRule(ipAddress,
 		fmt.Sprintf("%s-%s", networkName, strings.ReplaceAll(ipAddress, ".", "")),
 		networkName,
 		[]string{
-			strconv.Itoa(constants.SSHTCPPort), strconv.Itoa(constants.AvalanchegoAPIPort),
-			strconv.Itoa(constants.AvalanchegoMonitoringPort), strconv.Itoa(constants.AvalanchegoGrafanaPort),
+			strconv.Itoa(constants.SSHTCPPort), strconv.Itoa(constants.OdysseygoAPIPort),
+			strconv.Itoa(constants.OdysseygoMonitoringPort), strconv.Itoa(constants.OdysseygoGrafanaPort),
 		}); err != nil {
 		return nil, err
 	}
@@ -322,9 +322,6 @@ func (c *GcpCloud) SetupInstances(
 	return instances, nil
 }
 
-// // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
-// // See the file LICENSE for licensing terms.
-
 func (c *GcpCloud) GetUbuntuImageID() (string, error) {
 	imageListCall := c.gcpClient.Images.List(constants.GCPDefaultImageProvider).Filter(constants.GCPImageFilter)
 	imageList, err := imageListCall.Do()
@@ -352,7 +349,7 @@ func (c *GcpCloud) CheckFirewallExists(firewallName string, checkMonitoring bool
 		if firewall.Name == firewallName {
 			if checkMonitoring {
 				for _, allowed := range firewall.Allowed {
-					if !(slices.Contains(allowed.Ports, strconv.Itoa(constants.AvalanchegoGrafanaPort)) && slices.Contains(allowed.Ports, strconv.Itoa(constants.AvalanchegoMonitoringPort))) {
+					if !(slices.Contains(allowed.Ports, strconv.Itoa(constants.OdysseygoGrafanaPort)) && slices.Contains(allowed.Ports, strconv.Itoa(constants.OdysseygoMonitoringPort))) {
 						return false, nil
 					}
 				}

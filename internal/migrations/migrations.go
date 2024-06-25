@@ -5,11 +5,11 @@ package migrations
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
-type migrationFunc func(*application.Avalanche, *migrationRunner) error
+type migrationFunc func(*application.Odyssey, *migrationRunner) error
 
 type migrationRunner struct {
 	showMsg    bool
@@ -24,7 +24,7 @@ var (
 )
 
 // poor-man's migrations: there are no rollbacks (for now)
-func RunMigrations(app *application.Avalanche) error {
+func RunMigrations(app *application.Odyssey) error {
 	runner := &migrationRunner{
 		showMsg: true,
 		migrations: map[int]migrationFunc{
@@ -37,7 +37,7 @@ func RunMigrations(app *application.Avalanche) error {
 	return runner.run(app)
 }
 
-func (m *migrationRunner) run(app *application.Avalanche) error {
+func (m *migrationRunner) run(app *application.Odyssey) error {
 	// by using an int index we can sort of "enforce" an order
 	// with just an array it could easily happen that someone
 	// prepends a new migration at the front instead of the bottom

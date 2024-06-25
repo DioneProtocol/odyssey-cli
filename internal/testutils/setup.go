@@ -7,10 +7,10 @@ import (
 	"io"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/config"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/config"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +20,7 @@ func SetupTest(t *testing.T) *require.Assertions {
 	return require.New(t)
 }
 
-func SetupTestInTempDir(t *testing.T) *application.Avalanche {
+func SetupTestInTempDir(t *testing.T) *application.Odyssey {
 	testDir := t.TempDir()
 
 	app := application.New()

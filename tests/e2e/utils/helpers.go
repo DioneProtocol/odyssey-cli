@@ -20,25 +20,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanchego/api/info"
-	"github.com/ava-labs/avalanchego/ids"
-	avagoconstants "github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/utils/crypto/keychain"
-	ledger "github.com/ava-labs/avalanchego/utils/crypto/ledger"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/vms/components/avax"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
-	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
-	"github.com/ava-labs/subnet-evm/ethclient"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-network-runner/client"
+	"github.com/DioneProtocol/odysseygo/api/info"
+	"github.com/DioneProtocol/odysseygo/ids"
+	odygoconstants "github.com/DioneProtocol/odysseygo/utils/constants"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/keychain"
+	ledger "github.com/DioneProtocol/odysseygo/utils/crypto/ledger"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/vms/components/dione"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
+	"github.com/DioneProtocol/odysseygo/wallet/subnet/primary"
+	"github.com/DioneProtocol/subnet-evm/ethclient"
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -67,12 +67,12 @@ func GetSubnetDir() string {
 	return path.Join(GetBaseDir(), constants.SubnetDir)
 }
 
-func GetAPMDir() string {
+func GetOPMDir() string {
 	usr, err := user.Current()
 	if err != nil {
 		panic(err)
 	}
-	return path.Join(usr.HomeDir, constants.APMDir)
+	return path.Join(usr.HomeDir, constants.OPMDir)
 }
 
 func ChainConfigExists(subnetName string) (bool, error) {
@@ -206,7 +206,7 @@ func AddSubnetIDToSidecar(subnetName string, network models.Network, subnetID st
 	return os.WriteFile(sidecar, fileBytes, constants.DefaultPerms755)
 }
 
-func APMConfigExists(subnetName string) (bool, error) {
+func OPMConfigExists(subnetName string) (bool, error) {
 	return sidecarExists(subnetName)
 }
 
@@ -223,7 +223,7 @@ func SubnetCustomVMExists(subnetName string) (bool, error) {
 	return vmExists, nil
 }
 
-func SubnetAPMVMExists(subnetName string) (bool, error) {
+func SubnetOPMVMExists(subnetName string) (bool, error) {
 	sidecarPath := filepath.Join(GetBaseDir(), constants.SubnetDir, subnetName, constants.SidecarFileName)
 	jsonBytes, err := os.ReadFile(sidecarPath)
 	if err != nil {
@@ -238,7 +238,7 @@ func SubnetAPMVMExists(subnetName string) (bool, error) {
 
 	vmid := sc.ImportedVMID
 
-	vm := path.Join(GetBaseDir(), constants.APMPluginDir, vmid)
+	vm := path.Join(GetBaseDir(), constants.OPMPluginDir, vmid)
 	vmExists := true
 	if _, err := os.Stat(vm); errors.Is(err, os.ErrNotExist) {
 		// does *not* exist
@@ -276,8 +276,8 @@ func DeleteConfigs(subnetName string) error {
 	return nil
 }
 
-func RemoveAPMRepo() {
-	_ = os.RemoveAll(GetAPMDir())
+func RemoveOPMRepo() {
+	_ = os.RemoveAll(GetOPMDir())
 }
 
 func DeleteKey(keyName string) error {
@@ -294,16 +294,16 @@ func DeleteKey(keyName string) error {
 }
 
 func DeleteBins() error {
-	avagoPath := path.Join(GetBaseDir(), constants.AvalancheCliBinDir, constants.AvalancheGoInstallDir)
-	if _, err := os.Stat(avagoPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+	odygoPath := path.Join(GetBaseDir(), constants.OdysseyCliBinDir, constants.OdysseyGoInstallDir)
+	if _, err := os.Stat(odygoPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		// Schrodinger: file may or may not exist. See err for details.
 		return err
 	}
 
 	// ignore error, file may not exist
-	_ = os.RemoveAll(avagoPath)
+	_ = os.RemoveAll(odygoPath)
 
-	subevmPath := path.Join(GetBaseDir(), constants.AvalancheCliBinDir, constants.SubnetEVMInstallDir)
+	subevmPath := path.Join(GetBaseDir(), constants.OdysseyCliBinDir, constants.SubnetEVMInstallDir)
 	if _, err := os.Stat(subevmPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		// Schrodinger: file may or may not exist. See err for details.
 		return err
@@ -321,8 +321,8 @@ func DeleteCustomBinary(vmName string) {
 	_ = os.RemoveAll(vmPath)
 }
 
-func DeleteAPMBin(vmid string) {
-	vmPath := path.Join(GetBaseDir(), constants.AvalancheCliBinDir, constants.APMPluginDir, vmid)
+func DeleteOPMBin(vmid string) {
+	vmPath := path.Join(GetBaseDir(), constants.OdysseyCliBinDir, constants.OPMPluginDir, vmid)
 
 	// ignore error, file may not exist
 	_ = os.RemoveAll(vmPath)
@@ -593,14 +593,14 @@ func CheckKeyEquality(keyPath1, keyPath2 string) (bool, error) {
 }
 
 func CheckSubnetEVMExists(version string) bool {
-	subevmPath := path.Join(GetBaseDir(), constants.AvalancheCliBinDir, constants.SubnetEVMInstallDir, "subnet-evm-"+version)
+	subevmPath := path.Join(GetBaseDir(), constants.OdysseyCliBinDir, constants.SubnetEVMInstallDir, "subnet-evm-"+version)
 	_, err := os.Stat(subevmPath)
 	return err == nil
 }
 
-func CheckAvalancheGoExists(version string) bool {
-	avagoPath := path.Join(GetBaseDir(), constants.AvalancheCliBinDir, constants.AvalancheGoInstallDir, "avalanchego-"+version)
-	_, err := os.Stat(avagoPath)
+func CheckOdysseyGoExists(version string) bool {
+	odygoPath := path.Join(GetBaseDir(), constants.OdysseyCliBinDir, constants.OdysseyGoInstallDir, "odysseygo-"+version)
+	_, err := os.Stat(odygoPath)
 	return err == nil
 }
 
@@ -722,13 +722,13 @@ func GetNodesInfo() (map[string]NodeInfo, error) {
 func GetWhitelistedSubnetsFromConfigFile(configFile string) (string, error) {
 	fileBytes, err := os.ReadFile(configFile)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return "", fmt.Errorf("failed to load avalanchego config file %s: %w", configFile, err)
+		return "", fmt.Errorf("failed to load odysseygo config file %s: %w", configFile, err)
 	}
-	var avagoConfig map[string]interface{}
-	if err := json.Unmarshal(fileBytes, &avagoConfig); err != nil {
+	var odygoConfig map[string]interface{}
+	if err := json.Unmarshal(fileBytes, &odygoConfig); err != nil {
 		return "", fmt.Errorf("failed to unpack the config file %s to JSON: %w", configFile, err)
 	}
-	whitelistedSubnetsIntf := avagoConfig["track-subnets"]
+	whitelistedSubnetsIntf := odygoConfig["track-subnets"]
 	whitelistedSubnets, ok := whitelistedSubnetsIntf.(string)
 	if !ok {
 		return "", fmt.Errorf("expected a string value, but got %T", whitelistedSubnetsIntf)
@@ -742,7 +742,7 @@ func WaitSubnetValidators(subnetIDStr string, nodeInfos map[string]NodeInfo) err
 		uri = nodeInfo.URI
 		break
 	}
-	pClient := platformvm.NewClient(uri)
+	oClient := omegavm.NewClient(uri)
 	subnetID, err := ids.FromString(subnetIDStr)
 	if err != nil {
 		return err
@@ -752,7 +752,7 @@ func WaitSubnetValidators(subnetIDStr string, nodeInfos map[string]NodeInfo) err
 	for {
 		ready := true
 		ctx, ctxCancel := utils.GetAPIContext()
-		vs, err := pClient.GetCurrentValidators(ctx, subnetID, nil)
+		vs, err := oClient.GetCurrentValidators(ctx, subnetID, nil)
 		ctxCancel()
 		if err != nil {
 			return err
@@ -808,7 +808,7 @@ func GetLedgerAddress(network models.Network, index uint32) (string, error) {
 	}
 	ledgerAddr := ledgerAddrs[0]
 	hrp := key.GetHRP(network.ID)
-	ledgerAddrStr, err := address.Format("P", hrp, ledgerAddr[:])
+	ledgerAddrStr, err := address.Format("O", hrp, ledgerAddr[:])
 	if err != nil {
 		return "", err
 	}
@@ -842,29 +842,29 @@ func FundLedgerAddress(amount uint64) error {
 	wallet, err := primary.MakeWallet(
 		context.Background(),
 		&primary.WalletConfig{
-			URI:          constants.LocalAPIEndpoint,
-			AVAXKeychain: kc,
-			EthKeychain:  secp256k1fx.NewKeychain(),
+			URI:           constants.LocalAPIEndpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
 		},
 	)
 	if err != nil {
 		return err
 	}
 
-	// export X-Chain genesis addr to P-Chain ledger addr
+	// export A-Chain genesis addr to O-Chain ledger addr
 	to := secp256k1fx.OutputOwners{
 		Threshold: 1,
 		Addrs:     []ids.ShortID{ledgerAddr},
 	}
-	output := &avax.TransferableOutput{
-		Asset: avax.Asset{ID: wallet.X().AVAXAssetID()},
+	output := &dione.TransferableOutput{
+		Asset: dione.Asset{ID: wallet.A().DIONEAssetID()},
 		Out: &secp256k1fx.TransferOutput{
 			Amt:          amount,
 			OutputOwners: to,
 		},
 	}
-	outputs := []*avax.TransferableOutput{output}
-	if _, err := wallet.X().IssueExportTx(avagoconstants.PlatformChainID, outputs); err != nil {
+	outputs := []*dione.TransferableOutput{output}
+	if _, err := wallet.A().IssueExportTx(odygoconstants.OmegaChainID, outputs); err != nil {
 		return err
 	}
 
@@ -876,18 +876,18 @@ func FundLedgerAddress(amount uint64) error {
 	wallet, err = primary.MakeWallet(
 		context.Background(),
 		&primary.WalletConfig{
-			URI:          constants.LocalAPIEndpoint,
-			AVAXKeychain: kc,
-			EthKeychain:  secp256k1fx.NewKeychain(),
+			URI:           constants.LocalAPIEndpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
 		},
 	)
 	if err != nil {
 		return err
 	}
 
-	// import X-Chain genesis addr to P-Chain ledger addr
+	// import A-Chain genesis addr to O-Chain ledger addr
 	fmt.Println("*** Please sign import hash on the ledger device *** ")
-	if _, err = wallet.P().IssueImportTx(wallet.X().BlockchainID(), &to); err != nil {
+	if _, err = wallet.O().IssueImportTx(wallet.A().BlockchainID(), &to); err != nil {
 		return err
 	}
 
@@ -1004,11 +1004,11 @@ func CheckAllNodesAreCurrentValidators(subnetName string) (bool, error) {
 	subnetID := sc.Networks[models.Local.String()].SubnetID
 
 	api := constants.LocalAPIEndpoint
-	pClient := platformvm.NewClient(api)
+	oClient := omegavm.NewClient(api)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
 
-	validators, err := pClient.GetCurrentValidators(ctx, subnetID, nil)
+	validators, err := oClient.GetCurrentValidators(ctx, subnetID, nil)
 	if err != nil {
 		return false, err
 	}

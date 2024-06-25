@@ -5,14 +5,14 @@ package upgradecmd
 import (
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
 var force bool
 
-// avalanche subnet upgrade import
+// odyssey subnet upgrade import
 func newUpgradeExportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "export [subnetName]",

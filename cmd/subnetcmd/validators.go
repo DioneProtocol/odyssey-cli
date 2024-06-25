@@ -9,11 +9,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/cmd/flags"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
+	"github.com/DioneProtocol/odyssey-cli/cmd/flags"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ var (
 	validatorsMainnet bool
 )
 
-// avalanche subnet validators
+// odyssey subnet validators
 func newValidatorsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "validators [subnetName]",
@@ -36,15 +36,14 @@ severarl statistics about them.`,
 		SilenceUsage: true,
 	}
 	cmd.Flags().BoolVarP(&validatorsLocal, "local", "l", false, "deploy to a local network")
-	cmd.Flags().BoolVarP(&validatorsTestnet, "testnet", "t", false, "deploy to testnet (alias to `fuji`)")
-	cmd.Flags().BoolVarP(&validatorsTestnet, "fuji", "f", false, "deploy to fuji (alias to `testnet`")
+	cmd.Flags().BoolVarP(&validatorsTestnet, "testnet", "t", false, "deploy to testnet")
 	cmd.Flags().BoolVarP(&validatorsMainnet, "mainnet", "m", false, "deploy to mainnet")
 	return cmd
 }
 
 func printValidators(_ *cobra.Command, args []string) error {
 	if !flags.EnsureMutuallyExclusive([]bool{validatorsLocal, validatorsTestnet, validatorsMainnet}) {
-		return errMutuallyExlusiveNetworks
+		return errMutuallyExclusiveNetworks
 	}
 
 	network := models.UndefinedNetwork
@@ -52,7 +51,7 @@ func printValidators(_ *cobra.Command, args []string) error {
 	case validatorsLocal:
 		network = models.LocalNetwork
 	case validatorsTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case validatorsMainnet:
 		network = models.MainnetNetwork
 	}
@@ -61,7 +60,7 @@ func printValidators(_ *cobra.Command, args []string) error {
 		// no flag was set, prompt user
 		networkStr, err := app.Prompt.CaptureList(
 			"Choose a network to list validators from",
-			[]string{models.Local.String(), models.Fuji.String(), models.Mainnet.String()},
+			[]string{models.Local.String(), models.Testnet.String(), models.Mainnet.String()},
 		)
 		if err != nil {
 			return err
@@ -107,7 +106,7 @@ func printPublicValidators(subnetID ids.ID, network models.Network) error {
 	return printValidatorsFromList(validators)
 }
 
-func printValidatorsFromList(validators []platformvm.ClientPermissionlessValidator) error {
+func printValidatorsFromList(validators []omegavm.ClientPermissionlessValidator) error {
 	header := []string{"NodeID", "Stake Amount", "Delegator Weight", "Start Time", "End Time", "Type"}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(header)

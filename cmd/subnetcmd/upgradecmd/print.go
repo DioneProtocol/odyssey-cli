@@ -6,11 +6,11 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet upgrade import
+// odyssey subnet upgrade import
 func newUpgradePrintCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "print [subnetName]",

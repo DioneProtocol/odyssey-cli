@@ -5,22 +5,22 @@ package nodecmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
 	"github.com/spf13/cobra"
 )
 
-var app *application.Avalanche
+var app *application.Odyssey
 
-// avalanche subnet
-func NewCmd(injectedApp *application.Avalanche) *cobra.Command {
+// odyssey subnet
+func NewCmd(injectedApp *application.Odyssey) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "node",
-		Short: "Set up fuji and mainnet validator on cloud service",
-		Long: `The node command suite provides a collection of tools for creating and maintaining 
-validators on Avalanche Network.
+		Short: "Set up testnet and mainnet validator on cloud service",
+		Long: `The node command suite provides a collection of tools for creating and maintaining
+validators on Odyssey Network.
 
 To get started, use the node create command wizard to walk through the
-configuration to make your node a primary validator on Avalanche public network. You can use the 
+configuration to make your node a primary validator on Odyssey public network. You can use the
 rest of the commands to maintain your node and make your node a Subnet Validator.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()

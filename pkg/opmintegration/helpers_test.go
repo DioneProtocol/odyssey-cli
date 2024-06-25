@@ -1,7 +1,7 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apmintegration
+package opmintegration
 
 import (
 	"net/url"
@@ -21,19 +21,19 @@ func TestGetGithubOrg(t *testing.T) {
 	tests := []test{
 		{
 			name:        "Success",
-			url:         "https://github.com/ava-labs/avalanche-plugins-core.git",
-			expectedOrg: "ava-labs",
+			url:         "https://github.com/dioneprotocol/odyssey-plugins-core.git",
+			expectedOrg: "dioneprotocol",
 			expectedErr: false,
 		},
 		{
 			name:        "Success",
-			url:         "https://github.com/ava-labs/avalanche-plugins-core",
-			expectedOrg: "ava-labs",
+			url:         "https://github.com/dioneprotocol/odyssey-plugins-core",
+			expectedOrg: "dioneprotocol",
 			expectedErr: false,
 		},
 		{
 			name:        "No org",
-			url:         "https://github.com/avalanche-plugins-core",
+			url:         "https://github.com/odyssey-plugins-core",
 			expectedOrg: "",
 			expectedErr: true,
 		},
@@ -72,19 +72,19 @@ func TestGetGithubRepo(t *testing.T) {
 	tests := []test{
 		{
 			name:         "Success",
-			url:          "https://github.com/ava-labs/avalanche-plugins-core.git",
-			expectedRepo: "avalanche-plugins-core",
+			url:          "https://github.com/dioneprotocol/odyssey-plugins-core.git",
+			expectedRepo: "odyssey-plugins-core",
 			expectedErr:  false,
 		},
 		{
 			name:         "Success",
-			url:          "https://github.com/ava-labs/avalanche-plugins-core",
-			expectedRepo: "avalanche-plugins-core",
+			url:          "https://github.com/dioneprotocol/odyssey-plugins-core",
+			expectedRepo: "odyssey-plugins-core",
 			expectedErr:  false,
 		},
 		{
 			name:         "No org",
-			url:          "https://github.com/avalanche-plugins-core",
+			url:          "https://github.com/odyssey-plugins-core",
 			expectedRepo: "",
 			expectedErr:  true,
 		},
@@ -123,19 +123,19 @@ func TestGetAlias(t *testing.T) {
 	tests := []test{
 		{
 			name:          "Success",
-			url:           "https://github.com/ava-labs/avalanche-plugins-core.git",
-			expectedAlias: "ava-labs/avalanche-plugins-core",
+			url:           "https://github.com/dioneprotocol/odyssey-plugins-core.git",
+			expectedAlias: "dioneprotocol/odyssey-plugins-core",
 			expectedErr:   false,
 		},
 		{
 			name:          "Success",
-			url:           "https://github.com/ava-labs/avalanche-plugins-core",
-			expectedAlias: "ava-labs/avalanche-plugins-core",
+			url:           "https://github.com/dioneprotocol/odyssey-plugins-core",
+			expectedAlias: "dioneprotocol/odyssey-plugins-core",
 			expectedErr:   false,
 		},
 		{
 			name:          "No org",
-			url:           "https://github.com/avalanche-plugins-core",
+			url:           "https://github.com/odyssey-plugins-core",
 			expectedAlias: "",
 			expectedErr:   true,
 		},
@@ -166,8 +166,8 @@ func TestGetAlias(t *testing.T) {
 func TestSplitKey(t *testing.T) {
 	require := require.New(t)
 
-	key := "ava-labs/avalanche-plugins-core:wagmi"
-	expectedAlias := "ava-labs/avalanche-plugins-core"
+	key := "dioneprotocol/odyssey-plugins-core:wagmi"
+	expectedAlias := "dioneprotocol/odyssey-plugins-core"
 	expectedSubnet := "wagmi"
 
 	alias, subnet, err := splitKey(key)
@@ -179,7 +179,7 @@ func TestSplitKey(t *testing.T) {
 func TestSplitKey_Errpr(t *testing.T) {
 	require := require.New(t)
 
-	key := "ava-labs/avalanche-plugins-core_wagmi"
+	key := "dioneprotocol/odyssey-plugins-core_wagmi"
 
 	_, _, err := splitKey(key)
 	require.ErrorContains(err, "invalid subnet key:")

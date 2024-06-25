@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ func newUpdateSubnetCmd() *cobra.Command {
 		Long: `(ALPHA Warning) This command is currently in experimental mode.
 
 The node update subnet command updates all nodes in a cluster with latest Subnet configuration and VM for custom VM.
-You can check the updated subnet bootstrap status by calling avalanche node status <clusterName> --subnet <subnetName>`,
+You can check the updated subnet bootstrap status by calling odyssey node status <clusterName> --subnet <subnetName>`,
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(2),
 		RunE:         updateSubnet,
@@ -62,7 +62,7 @@ func updateSubnet(_ *cobra.Command, args []string) error {
 	if len(notHealthyNodes) > 0 {
 		return fmt.Errorf("node(s) %s are not healthy, please fix the issue and again", notHealthyNodes)
 	}
-	incompatibleNodes, err := checkAvalancheGoVersionCompatible(hosts, subnetName)
+	incompatibleNodes, err := checkOdysseyGoVersionCompatible(hosts, subnetName)
 	if err != nil {
 		return err
 	}
@@ -71,15 +71,15 @@ func updateSubnet(_ *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		ux.Logger.PrintToUser("Either modify your Avalanche Go version or modify your VM version")
-		ux.Logger.PrintToUser("To modify your Avalanche Go version: https://docs.avax.network/nodes/maintain/upgrade-your-avalanchego-node")
+		ux.Logger.PrintToUser("Either modify your Odyssey Go version or modify your VM version")
+		ux.Logger.PrintToUser("To modify your Odyssey Go version: https://docs.dione.network/nodes/maintain/upgrade-your-odysseygo-node")
 		switch sc.VM {
 		case models.SubnetEvm:
-			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.avax.network/build/subnet/upgrade/upgrade-subnet-vm")
+			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.dione.network/build/subnet/upgrade/upgrade-subnet-vm")
 		case models.CustomVM:
-			ux.Logger.PrintToUser("To modify your Custom VM binary: avalanche subnet upgrade vm %s --config", subnetName)
+			ux.Logger.PrintToUser("To modify your Custom VM binary: odyssey subnet upgrade vm %s --config", subnetName)
 		}
-		return fmt.Errorf("the Avalanche Go version of node(s) %s is incompatible with VM RPC version of %s", incompatibleNodes, subnetName)
+		return fmt.Errorf("the Odyssey Go version of node(s) %s is incompatible with VM RPC version of %s", incompatibleNodes, subnetName)
 	}
 	nonUpdatedNodes, err := doUpdateSubnet(hosts, subnetName)
 	if err != nil {
@@ -89,12 +89,12 @@ func updateSubnet(_ *cobra.Command, args []string) error {
 		return fmt.Errorf("node(s) %s failed to be updated for subnet %s", nonUpdatedNodes, subnetName)
 	}
 	ux.Logger.PrintToUser("Node(s) successfully updated for Subnet!")
-	ux.Logger.PrintToUser(fmt.Sprintf("Check node subnet status with avalanche node status %s --subnet %s", clusterName, subnetName))
+	ux.Logger.PrintToUser(fmt.Sprintf("Check node subnet status with odyssey node status %s --subnet %s", clusterName, subnetName))
 	return nil
 }
 
 // doUpdateSubnet exports deployed subnet in user's local machine to cloud server and calls node to
-// restart tracking the specified subnet (similar to avalanche subnet join <subnetName> command)
+// restart tracking the specified subnet (similar to odyssey subnet join <subnetName> command)
 func doUpdateSubnet(
 	hosts []*models.Host,
 	subnetName string,

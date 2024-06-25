@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 )
 
 func SetupRealtimeCLIOutput(cmd *exec.Cmd, redirectStdout bool, redirectStderr bool) (*bytes.Buffer, *bytes.Buffer) {
@@ -64,9 +64,9 @@ func SplitStringWithQuotes(str string, r rune) []string {
 	})
 }
 
-// Context for ANR network operations
-func GetANRContext() (context.Context, context.CancelFunc) {
-	return context.WithTimeout(context.Background(), constants.ANRRequestTimeout)
+// Context for ONR network operations
+func GetONRContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), constants.ONRRequestTimeout)
 }
 
 // Context for API requests

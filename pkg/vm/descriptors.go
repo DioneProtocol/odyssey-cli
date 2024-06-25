@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/statemachine"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/statemachine"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
-func getChainID(app *application.Avalanche, subnetEVMChainID uint64) (*big.Int, error) {
+func getChainID(app *application.Odyssey, subnetEVMChainID uint64) (*big.Int, error) {
 	if subnetEVMChainID != 0 {
 		return new(big.Int).SetUint64(subnetEVMChainID), nil
 	}
@@ -22,7 +22,7 @@ func getChainID(app *application.Avalanche, subnetEVMChainID uint64) (*big.Int, 
 	return app.Prompt.CapturePositiveBigInt("ChainId")
 }
 
-func getTokenName(app *application.Avalanche, subnetEVMTokenName string) (string, error) {
+func getTokenName(app *application.Odyssey, subnetEVMTokenName string) (string, error) {
 	if subnetEVMTokenName != "" {
 		return subnetEVMTokenName, nil
 	}
@@ -36,7 +36,7 @@ func getTokenName(app *application.Avalanche, subnetEVMTokenName string) (string
 }
 
 func getVMVersion(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	vmName string,
 	repoName string,
 	vmVersion string,
@@ -45,7 +45,7 @@ func getVMVersion(
 	var err error
 	if vmVersion == "latest" {
 		vmVersion, err = app.Downloader.GetLatestReleaseVersion(binutils.GetGithubLatestReleaseURL(
-			constants.AvaLabsOrg,
+			constants.DioneProtocolOrg,
 			repoName,
 		))
 		if err != nil {
@@ -61,7 +61,7 @@ func getVMVersion(
 }
 
 func askForVMVersion(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	vmName string,
 	repoName string,
 	addGoBackOption bool,
@@ -92,14 +92,14 @@ func askForVMVersion(
 	if versionOption == useLatest {
 		// Get and return latest version
 		version, err := app.Downloader.GetLatestReleaseVersion(binutils.GetGithubLatestReleaseURL(
-			constants.AvaLabsOrg,
+			constants.DioneProtocolOrg,
 			repoName,
 		))
 		return version, statemachine.Forward, err
 	}
 
 	// prompt for version
-	versions, err := app.Downloader.GetAllReleasesForRepo(constants.AvaLabsOrg, constants.SubnetEVMRepoName)
+	versions, err := app.Downloader.GetAllReleasesForRepo(constants.DioneProtocolOrg, constants.SubnetEVMRepoName)
 	if err != nil {
 		return "", statemachine.Stop, err
 	}
@@ -112,7 +112,7 @@ func askForVMVersion(
 }
 
 func getDescriptors(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	subnetEVMVersion string,
 	subnetEVMChainID uint64,
 	subnetEVMTokenName string,

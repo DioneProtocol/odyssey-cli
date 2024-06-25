@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"golang.org/x/mod/semver"
 )
 
@@ -96,8 +96,8 @@ func (downloader) doAPIRequest(url, token string) (io.ReadCloser, error) {
 
 // GetLatestReleaseVersion returns the latest available version from github
 func (d downloader) GetLatestReleaseVersion(releaseURL string) (string, error) {
-	// TODO: Question if there is a less error prone (= simpler) way to install latest avalanchego
-	// Maybe the binary package manager should also allow the actual avalanchego binary for download
+	// TODO: Question if there is a less error prone (= simpler) way to install latest odysseygo
+	// Maybe the binary package manager should also allow the actual odysseygo binary for download
 	token := os.Getenv(constants.GithubAPITokenEnvVarName)
 	body, err := d.doAPIRequest(releaseURL, token)
 	if err != nil {

@@ -7,9 +7,9 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/statemachine"
-	"github.com/ava-labs/subnet-evm/core"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/statemachine"
+	"github.com/DioneProtocol/subnet-evm/core"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -33,7 +33,7 @@ func getDefaultAllocation(defaultAirdropAmount string) (core.GenesisAlloc, error
 }
 
 func getAllocation(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	defaultAirdropAmount string,
 	multiplier *big.Int,
 	captureAmountLabel string,

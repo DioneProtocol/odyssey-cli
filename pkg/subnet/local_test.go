@@ -11,18 +11,18 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/config"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanche-network-runner/rpcpb"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/perms"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/config"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/client"
+	"github.com/DioneProtocol/odyssey-network-runner/rpcpb"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/perms"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
@@ -76,7 +76,7 @@ func setupTest(t *testing.T) *require.Assertions {
 
 func TestDeployToLocal(t *testing.T) {
 	require := setupTest(t)
-	avagoVersion := "v1.18.0"
+	odygoVersion := "v1.18.0"
 
 	// fake-return true simulating the process is running
 	procChecker := &mocks.ProcessChecker{}
@@ -90,18 +90,18 @@ func TestDeployToLocal(t *testing.T) {
 		require.NoError(err)
 	}()
 
-	app := &application.Avalanche{}
+	app := &application.Odyssey{}
 	app.Setup(testDir, logging.NoLog{}, config.New(), prompts.NewPrompter(), application.NewDownloader())
 
-	binDir := filepath.Join(app.GetAvalanchegoBinDir(), "avalanchego-"+avagoVersion)
+	binDir := filepath.Join(app.GetOdysseygoBinDir(), "odysseygo-"+odygoVersion)
 
 	// create a dummy plugins dir, deploy will check it exists
 	binChecker := &mocks.BinaryChecker{}
 	err = os.MkdirAll(filepath.Join(binDir, "plugins"), perms.ReadWriteExecute)
 	require.NoError(err)
 
-	// create a dummy avalanchego file, deploy will check it exists
-	f, err := os.Create(filepath.Join(binDir, "avalanchego"))
+	// create a dummy odysseygo file, deploy will check it exists
+	f, err := os.Create(filepath.Join(binDir, "odysseygo"))
 	require.NoError(err)
 	defer func() {
 		_ = f.Close()
@@ -120,7 +120,7 @@ func TestDeployToLocal(t *testing.T) {
 		binaryDownloader:   binDownloader,
 		app:                app,
 		setDefaultSnapshot: fakeSetDefaultSnapshot,
-		avagoVersion:       avagoVersion,
+		odygoVersion:       odygoVersion,
 	}
 
 	// create a simple genesis for the test
@@ -146,7 +146,7 @@ func TestDeployToLocal(t *testing.T) {
 	require.Equal(testBlockChainID2, b.String())
 }
 
-func TestGetLatestAvagoVersion(t *testing.T) {
+func TestGetLatestOdygoVersion(t *testing.T) {
 	require := setupTest(t)
 
 	testVersion := "v1.99.9999"

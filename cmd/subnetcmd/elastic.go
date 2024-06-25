@@ -11,28 +11,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	es "github.com/ava-labs/avalanche-cli/pkg/elasticsubnet"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/metrics"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	subnet "github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/txutils"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/genesis"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/components/verify"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	es "github.com/DioneProtocol/odyssey-cli/pkg/elasticsubnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/metrics"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	subnet "github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/txutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/components/verify"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
 const (
 	localDeployment      = "Existing local deployment"
-	fujiDeployment       = "Fuji"
+	testnetDeployment    = "Testnet"
 	mainnetDeployment    = "Mainnet (coming soon)"
 	subnetIsElasticError = "subnet is already elastic"
 )
@@ -47,15 +47,15 @@ var (
 	denominationFlag    int
 )
 
-// avalanche subnet elastic
+// odyssey subnet elastic
 func newElasticCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "elastic [subnetName]",
 		Short: "Transforms a subnet into elastic subnet",
-		Long: `The elastic command enables anyone to be a validator of a Subnet by simply staking its token on the 
-P-Chain. When enabling Elastic Validation, the creator permanently locks the Subnet from future modification 
-(they relinquish their control keys), specifies an Avalanche Native Token (ANT) that validators must use for staking 
-and that will be distributed as staking rewards, and provides a set of parameters that govern how the Subnet’s staking 
+		Long: `The elastic command enables anyone to be a validator of a Subnet by simply staking its token on the
+O-Chain. When enabling Elastic Validation, the creator permanently locks the Subnet from future modification
+(they relinquish their control keys), specifies an Odyssey Native Token (ONT) that validators must use for staking
+and that will be distributed as staking rewards, and provides a set of parameters that govern how the Subnet’s staking
 mechanics will work.`,
 		SilenceUsage:      true,
 		Args:              cobra.ExactArgs(1),
@@ -63,8 +63,7 @@ mechanics will work.`,
 		PersistentPostRun: handlePostRun,
 	}
 	cmd.Flags().BoolVarP(&transformLocal, "local", "l", false, "transform a subnet on a local network")
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "remove from `fuji` deployment (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "remove from `testnet` deployment (alias for `fuji`)")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "remove from `testnet` deployment")
 	cmd.Flags().StringVar(&tokenNameFlag, "tokenName", "", "specify the token name")
 	cmd.Flags().StringVar(&tokenSymbolFlag, "tokenSymbol", "", "specify the token symbol")
 	cmd.Flags().BoolVar(&useDefaultConfig, "default", false, "use default elastic subnet config values")
@@ -74,9 +73,9 @@ mechanics will work.`,
 	cmd.Flags().DurationVar(&duration, "staking-period", 0, "how long validator validates for after start time")
 	cmd.Flags().BoolVar(&transformValidators, "transform-validators", false, "transform validators to permissionless validators")
 	cmd.Flags().IntVar(&denominationFlag, "denomination", -1, "specify the token denomination")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji)")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet only]")
 	cmd.Flags().StringSliceVar(&subnetAuthKeys, "subnet-auth-keys", nil, "control keys that will be used to authenticate the transformSubnet tx")
 	cmd.Flags().StringVar(&outputTxPath, "output-tx-path", "", "file path of the transformSubnet tx")
 	return cmd
@@ -117,7 +116,7 @@ func createAssetID(deployer *subnet.PublicDeployer,
 	return deployer.CreateAssetTx(subnetID, tokenName, tokenSymbol, byte(tokenDenomination), initialState)
 }
 
-func exportToPChain(deployer *subnet.PublicDeployer,
+func exportToOChain(deployer *subnet.PublicDeployer,
 	subnetID ids.ID,
 	subnetAssetID ids.ID,
 	recipientAddr ids.ShortID,
@@ -129,10 +128,10 @@ func exportToPChain(deployer *subnet.PublicDeployer,
 			recipientAddr,
 		},
 	}
-	return deployer.ExportToPChainTx(subnetID, subnetAssetID, owner, maxSupply)
+	return deployer.ExportToOChainTx(subnetID, subnetAssetID, owner, maxSupply)
 }
 
-func importFromXChain(deployer *subnet.PublicDeployer,
+func importFromAChain(deployer *subnet.PublicDeployer,
 	subnetID ids.ID,
 	recipientAddr ids.ShortID,
 ) (ids.ID, error) {
@@ -142,7 +141,7 @@ func importFromXChain(deployer *subnet.PublicDeployer,
 			recipientAddr,
 		},
 	}
-	return deployer.ImportFromXChain(subnetID, owner)
+	return deployer.ImportFromAChain(subnetID, owner)
 }
 
 func promptDeployFirst(cmd *cobra.Command, args []string, prompt string, err error) error {
@@ -191,7 +190,7 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 	network := models.UndefinedNetwork
 	switch {
 	case deployTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case deployMainnet:
 		network = models.MainnetNetwork
 	case transformLocal:
@@ -206,8 +205,8 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 		switch networkToUpgrade {
 		case localDeployment:
 			network = models.LocalNetwork
-		case fujiDeployment:
-			network = models.FujiNetwork
+		case testnetDeployment:
+			network = models.TestnetNetwork
 		default:
 			return errors.New("elastic subnet transformation is not yet supported on Mainnet")
 		}
@@ -224,7 +223,7 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 	}
 
 	if useLedger && keyName != "" {
-		return ErrMutuallyExlusiveKeyLedger
+		return ErrMutuallyExclusiveKeyLedger
 	}
 
 	subnetID := sc.Networks[network.Name()].SubnetID
@@ -286,9 +285,9 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 	switch network.Kind {
 	case models.Local:
 		return transformElasticSubnetLocal(sc, subnetName, tokenName, tokenSymbol, elasticSubnetConfig, cmd)
-	case models.Fuji:
+	case models.Testnet:
 		if !useLedger && keyName == "" {
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
 			if err != nil {
 				return err
 			}
@@ -331,7 +330,7 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 
 	txHasOccurred, _ = checkIfTxHasOccurred(&sc, network, "ExportTx")
 	if !txHasOccurred {
-		txID, err = exportToPChain(deployer, subnetID, assetID, recipientAddr, elasticSubnetConfig.MaxSupply)
+		txID, err = exportToOChain(deployer, subnetID, assetID, recipientAddr, elasticSubnetConfig.MaxSupply)
 		if err != nil {
 			return err
 		}
@@ -346,7 +345,7 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 
 	txHasOccurred, _ = checkIfTxHasOccurred(&sc, network, "ImportTx")
 	if !txHasOccurred {
-		txID, err = importFromXChain(deployer, subnetID, recipientAddr)
+		txID, err = importFromAChain(deployer, subnetID, recipientAddr)
 		if err != nil {
 			return err
 		}
@@ -369,7 +368,7 @@ func transformElasticSubnet(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	kcKeys, err := kc.PChainFormattedStrAddresses()
+	kcKeys, err := kc.OChainFormattedStrAddresses()
 	if err != nil {
 		return err
 	}
@@ -501,8 +500,8 @@ func promptNetworkElastic(sc models.Sidecar, prompt string) (string, error) {
 		switch network {
 		case models.Local.String():
 			networkOptions = append(networkOptions, localDeployment)
-		case models.Fuji.String():
-			networkOptions = append(networkOptions, fujiDeployment)
+		case models.Testnet.String():
+			networkOptions = append(networkOptions, testnetDeployment)
 		case models.Mainnet.String():
 			networkOptions = append(networkOptions, mainnetDeployment)
 		}
@@ -525,8 +524,8 @@ func getNetworkOptions(sc models.Sidecar) []string {
 		switch network {
 		case models.Local.String():
 			networkOptions = append(networkOptions, localDeployment)
-		case models.Fuji.String():
-			networkOptions = append(networkOptions, fujiDeployment)
+		case models.Testnet.String():
+			networkOptions = append(networkOptions, testnetDeployment)
 		case models.Mainnet.String():
 			networkOptions = append(networkOptions, mainnetDeployment)
 		}
@@ -567,7 +566,7 @@ func PrintTransformResults(chain string, txID ids.ID, subnetID ids.ID, tokenName
 	table.Append([]string{"Asset ID", assetID.String()})
 	table.Append([]string{"Chain Name", chain})
 	table.Append([]string{"Subnet ID", subnetID.String()})
-	table.Append([]string{"P-Chain TXID", txID.String()})
+	table.Append([]string{"O-Chain TXID", txID.String()})
 	table.Render()
 }
 
@@ -591,10 +590,10 @@ func getTokenSymbol() (string, error) {
 
 func checkAllLocalNodesAreCurrentValidators(subnetID ids.ID) error {
 	api := constants.LocalAPIEndpoint
-	pClient := platformvm.NewClient(api)
+	oClient := omegavm.NewClient(api)
 
 	ctx := context.Background()
-	validators, err := pClient.GetCurrentValidators(ctx, subnetID, nil)
+	validators, err := oClient.GetCurrentValidators(ctx, subnetID, nil)
 	if err != nil {
 		return err
 	}
@@ -703,10 +702,10 @@ func getTokenDenomination() (int, error) {
 }
 
 func CheckSubnetIsElastic(subnetID ids.ID, network models.Network) (bool, error) {
-	pClient := platformvm.NewClient(network.Endpoint)
+	oClient := omegavm.NewClient(network.Endpoint)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
-	_, _, err := pClient.GetCurrentSupply(ctx, subnetID)
+	_, _, err := oClient.GetCurrentSupply(ctx, subnetID)
 	if err != nil {
 		// if subnet is already elastic it will return "not found" error
 		if strings.Contains(err.Error(), "not found") {

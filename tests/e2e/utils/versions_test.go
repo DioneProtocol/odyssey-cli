@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/mod/semver"
 )
@@ -26,8 +26,8 @@ type testContext struct {
 	expected map[string]string
 	// fake versions set for the evm binaries, faking github
 	sourceEVM string
-	// fake versions set for the avalanchego binaries, faking github
-	sourceAvago string
+	// fake versions set for the odysseygo binaries, faking github
+	sourceOdygo string
 	// should the test fail
 	shouldFail bool
 	// name of the test
@@ -41,14 +41,14 @@ type testContext struct {
 // `GetVersionMapping` is able to correctly evaluate
 // the set of compatible versions for each test.
 type testMapper struct {
-	app            *application.Avalanche
+	app            *application.Odyssey
 	currentContext *testContext
 	srv            *httptest.Server
 	t              *testing.T
 }
 
 func newTestMapper(t *testing.T) *testMapper {
-	app := &application.Avalanche{
+	app := &application.Odyssey{
 		Downloader: application.NewDownloader(),
 		Log:        logging.NoLog{},
 	}
@@ -66,16 +66,16 @@ func (*testMapper) FilterAvailableVersions(versions []string) []string {
 }
 
 // implement VersionMapper
-func (*testMapper) GetEligibleVersions(sorted []string, _ string, _ *application.Avalanche) ([]string, error) {
+func (*testMapper) GetEligibleVersions(sorted []string, _ string, _ *application.Odyssey) ([]string, error) {
 	// tests were written with the assumption that the first version is always in progress
 	return sorted[1:], nil
 }
 
 // implement VersionMapper
-func (m *testMapper) GetLatestAvagoByProtoVersion(_ *application.Avalanche, rpcVersion int, _ string) (string, error) {
-	cBytes := []byte(m.currentContext.sourceAvago)
+func (m *testMapper) GetLatestOdygoByProtoVersion(_ *application.Odyssey, rpcVersion int, _ string) (string, error) {
+	cBytes := []byte(m.currentContext.sourceOdygo)
 
-	var compat models.AvagoCompatiblity
+	var compat models.OdygoCompatibility
 	if err := json.Unmarshal(cBytes, &compat); err != nil {
 		return "", err
 	}
@@ -102,7 +102,7 @@ func (m *testMapper) getVersionMapping(tc *testContext) (map[string]string, erro
 }
 
 // implement VersionMapper
-func (m *testMapper) GetApp() *application.Avalanche {
+func (m *testMapper) GetApp() *application.Odyssey {
 	return m.app
 }
 
@@ -119,11 +119,11 @@ func (m *testMapper) GetCompatURL(vmType models.VMType) string {
 	return ""
 }
 
-// GetAvagoURL fakes a github endpoint for
-// avalanchego releases
+// GetOdygoURL fakes a github endpoint for
+// odysseygo releases
 // implement VersionMapper
-func (m *testMapper) GetAvagoURL() string {
-	return m.srv.URL + "/avago"
+func (m *testMapper) GetOdygoURL() string {
+	return m.srv.URL + "/odygo"
 }
 
 // This is the server function which the local
@@ -139,8 +139,8 @@ func (m *testMapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/evm":
 		_, err = w.Write([]byte(m.currentContext.sourceEVM))
-	case "/avago":
-		_, err = w.Write([]byte(m.currentContext.sourceAvago))
+	case "/odygo":
+		_, err = w.Write([]byte(m.currentContext.sourceOdygo))
 	default:
 		m.t.Fatalf("Unexpected path URL for test server: %s\n", r.URL.Path)
 	}
@@ -154,7 +154,7 @@ func (m *testMapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // the expected values.
 // For the test to be meaningful, we start a httptest HTTP
 // server locally, which then returns fake versions for each request
-// (sourceEVM, sourceAvago) which then
+// (sourceEVM, sourceOdygo) which then
 // the mapping code in `GetVersionMapping` is expected
 // to correctly evaluate for the global `binaryToVersion` map,
 // used by the tests to know which version to use for which test.
@@ -174,18 +174,18 @@ func TestGetVersionMapping(t *testing.T) {
 			// The function should be able to correctly
 			// evaluate compatible versions, hence
 			// `shouldFail` is false
-			name:       "latest evm match latest avago",
+			name:       "latest evm match latest odygo",
 			shouldFail: false,
 			expected: map[string]string{
 				SoloSubnetEVMKey1:      "v0.4.2",
 				SoloSubnetEVMKey2:      "v0.4.1",
-				SoloAvagoKey:           "v1.9.1",
-				OnlyAvagoKey:           OnlyAvagoValue,
-				MultiAvago1Key:         "v1.9.3",
-				MultiAvago2Key:         "v1.9.2",
-				MultiAvagoSubnetEVMKey: "v0.4.3",
-				LatestEVM2AvagoKey:     "v0.4.3",
-				LatestAvago2EVMKey:     "v1.9.3",
+				SoloOdygoKey:           "v1.9.1",
+				OnlyOdygoKey:           OnlyOdygoValue,
+				MultiOdygo1Key:         "v1.9.3",
+				MultiOdygo2Key:         "v1.9.2",
+				MultiOdygoSubnetEVMKey: "v0.4.3",
+				LatestEVM2OdygoKey:     "v0.4.3",
+				LatestOdygo2EVMKey:     "v1.9.3",
 			},
 			sourceEVM: `{
 						"rpcChainVMProtocolVersion": {
@@ -196,7 +196,7 @@ func TestGetVersionMapping(t *testing.T) {
 							"v0.4.0": 17
 						}
 				  }`,
-			sourceAvago: `{
+			sourceOdygo: `{
 						"19": [
 							"v1.9.2",
 							"v1.9.3"
@@ -217,13 +217,13 @@ func TestGetVersionMapping(t *testing.T) {
 			expected: map[string]string{
 				SoloSubnetEVMKey1:      "v0.9.9",
 				SoloSubnetEVMKey2:      "v0.9.8",
-				SoloAvagoKey:           "v2.3.4",
-				OnlyAvagoKey:           OnlyAvagoValue,
-				MultiAvago1Key:         "v2.3.4",
-				MultiAvago2Key:         "v2.3.3",
-				MultiAvagoSubnetEVMKey: "v0.9.9",
-				LatestEVM2AvagoKey:     "v0.9.9",
-				LatestAvago2EVMKey:     "v2.3.4",
+				SoloOdygoKey:           "v2.3.4",
+				OnlyOdygoKey:           OnlyOdygoValue,
+				MultiOdygo1Key:         "v2.3.4",
+				MultiOdygo2Key:         "v2.3.3",
+				MultiOdygoSubnetEVMKey: "v0.9.9",
+				LatestEVM2OdygoKey:     "v0.9.9",
+				LatestOdygo2EVMKey:     "v2.3.4",
 			},
 			sourceEVM: `{
 					"rpcChainVMProtocolVersion": {
@@ -235,7 +235,7 @@ func TestGetVersionMapping(t *testing.T) {
 						"v0.4.0": 17
 					}
 			  }`,
-			sourceAvago: `{
+			sourceOdygo: `{
 					"99": [
 						"v2.3.4",
 						"v2.3.3"
@@ -256,13 +256,13 @@ func TestGetVersionMapping(t *testing.T) {
 			expected: map[string]string{
 				SoloSubnetEVMKey1:      "v0.4.2",
 				SoloSubnetEVMKey2:      "v0.4.1",
-				SoloAvagoKey:           "v2.1.1",
-				OnlyAvagoKey:           OnlyAvagoValue,
-				MultiAvago1Key:         "v2.1.1",
-				MultiAvago2Key:         "v2.1.0",
-				MultiAvagoSubnetEVMKey: "v0.4.2",
-				LatestEVM2AvagoKey:     "v0.9.9",
-				LatestAvago2EVMKey:     "v4.3.2",
+				SoloOdygoKey:           "v2.1.1",
+				OnlyOdygoKey:           OnlyOdygoValue,
+				MultiOdygo1Key:         "v2.1.1",
+				MultiOdygo2Key:         "v2.1.0",
+				MultiOdygoSubnetEVMKey: "v0.4.2",
+				LatestEVM2OdygoKey:     "v0.9.9",
+				LatestOdygo2EVMKey:     "v4.3.2",
 			},
 			sourceEVM: `{
 					"rpcChainVMProtocolVersion": {
@@ -276,7 +276,7 @@ func TestGetVersionMapping(t *testing.T) {
 						"v0.4.0": 17
 					}
 			  }`,
-			sourceAvago: `{
+			sourceOdygo: `{
 					"99": [
 						"v4.3.2"
 					],
@@ -308,7 +308,7 @@ func TestGetVersionMapping(t *testing.T) {
 			shouldFail:  true,
 			expected:    map[string]string{},
 			sourceEVM:   `{}`,
-			sourceAvago: `{}`,
+			sourceOdygo: `{}`,
 		},
 		{
 			// this test should fail, simulating that
@@ -317,7 +317,7 @@ func TestGetVersionMapping(t *testing.T) {
 			name:        "only evm",
 			shouldFail:  true,
 			expected:    map[string]string{},
-			sourceAvago: `{}`,
+			sourceOdygo: `{}`,
 			sourceEVM: `{
 					"rpcChainVMProtocolVersion": {
 						"v1.0.0": 100,
@@ -332,12 +332,12 @@ func TestGetVersionMapping(t *testing.T) {
 		{
 			// this test should fail, simulating that
 			// the APIs would return empty releases for some reason
-			// but only got sourceAvago versions
-			name:       "only avago",
+			// but only got sourceOdygo versions
+			name:       "only odygo",
 			shouldFail: true,
 			expected:   map[string]string{},
 			sourceEVM:  `{}`,
-			sourceAvago: `{
+			sourceOdygo: `{
 					"99": [
 						"v2.3.4",
 						"v2.3.3"

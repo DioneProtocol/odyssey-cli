@@ -1,7 +1,7 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apmintegration
+package opmintegration
 
 import (
 	"fmt"
@@ -9,22 +9,22 @@ import (
 	"path"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
 const gitExtension = ".git"
 
 // Returns alias
-func AddRepo(app *application.Avalanche, repoURL *url.URL, branch string) (string, error) {
+func AddRepo(app *application.Odyssey, repoURL *url.URL, branch string) (string, error) {
 	alias, err := getAlias(repoURL)
 	if err != nil {
 		return "", err
 	}
 
-	if alias == constants.DefaultAvaLabsPackage {
-		ux.Logger.PrintToUser("Avalanche Plugins Core already installed, skipping...")
+	if alias == constants.DefaultDioneProtocolPackage {
+		ux.Logger.PrintToUser("Odyssey Plugins Core already installed, skipping...")
 		return "", nil
 	}
 
@@ -36,14 +36,14 @@ func AddRepo(app *application.Avalanche, repoURL *url.URL, branch string) (strin
 
 	fmt.Println("Installing repo")
 
-	return alias, app.Apm.AddRepository(alias, repoStr, branch)
+	return alias, app.Opm.AddRepository(alias, repoStr, branch)
 }
 
-func UpdateRepos(app *application.Avalanche) error {
-	return app.Apm.Update()
+func UpdateRepos(app *application.Odyssey) error {
+	return app.Opm.Update()
 }
 
-func InstallVM(app *application.Avalanche, subnetKey string) error {
+func InstallVM(app *application.Odyssey, subnetKey string) error {
 	vms, err := getVMsInSubnet(app, subnetKey)
 	if err != nil {
 		return err
@@ -59,7 +59,7 @@ func InstallVM(app *application.Avalanche, subnetKey string) error {
 	for _, vm := range vms {
 		toInstall := repo + ":" + vm
 		fmt.Println("Installing vm:", toInstall)
-		err = app.Apm.Install(toInstall)
+		err = app.Opm.Install(toInstall)
 		if err != nil {
 			return err
 		}

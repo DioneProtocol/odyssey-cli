@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/perms"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/perms"
 	"go.uber.org/zap"
 )
 
@@ -33,7 +33,7 @@ func CheckReleaseVersion(
 	switch goos {
 	case "linux":
 		downloadURL = fmt.Sprintf(
-			"https://github.com/ava-labs/%s/releases/download/%s/%s_%s_linux_%s.tar.gz",
+			"https://github.com/dioneprotocol/%s/releases/download/%s/%s_%s_linux_%s.tar.gz",
 			repo,
 			version,
 			repo,
@@ -42,7 +42,7 @@ func CheckReleaseVersion(
 		)
 	case "darwin":
 		downloadURL = fmt.Sprintf(
-			"https://github.com/ava-labs/%s/releases/download/%s/%s_%s_darwin_%s.tar.gz",
+			"https://github.com/dioneprotocol/%s/releases/download/%s/%s_%s_darwin_%s.tar.gz",
 			repo,
 			version,
 			repo,

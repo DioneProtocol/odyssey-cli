@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/require"
 )
 
@@ -275,9 +275,9 @@ func Test_genesisExists(t *testing.T) {
 	require.NoError(err)
 }
 
-func newTestApp(t *testing.T) *Avalanche {
+func newTestApp(t *testing.T) *Odyssey {
 	tempDir := t.TempDir()
-	return &Avalanche{
+	return &Odyssey{
 		baseDir: tempDir,
 		Log:     logging.NoLog{},
 	}

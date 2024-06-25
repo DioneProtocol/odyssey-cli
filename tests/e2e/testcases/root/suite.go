@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/tests/e2e/commands"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/commands"
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -15,7 +15,7 @@ import (
 var _ = ginkgo.Describe("[Root]", func() {
 	ginkgo.It("can print version", func() {
 		expectedVersion, err := os.ReadFile("VERSION")
-		expectedVersionStr := fmt.Sprintf("avalanche version %s\n", string(expectedVersion))
+		expectedVersionStr := fmt.Sprintf("odyssey version %s\n", string(expectedVersion))
 		gomega.Expect(err).Should(gomega.BeNil())
 
 		version := commands.GetVersion()

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/testutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/internal/testutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"github.com/stretchr/testify/require"
 )
 

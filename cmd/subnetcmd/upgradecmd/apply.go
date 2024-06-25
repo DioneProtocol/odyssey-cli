@@ -13,17 +13,17 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	ANRclient "github.com/ava-labs/avalanche-network-runner/client"
-	"github.com/ava-labs/avalanche-network-runner/server"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/subnet-evm/params"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/txallowlist"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	ONRclient "github.com/DioneProtocol/odyssey-network-runner/client"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/subnet-evm/params"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/txallowlist"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -47,41 +47,40 @@ var (
 
 	errUserAborted = errors.New("user aborted")
 
-	avalanchegoChainConfigDirDefault = filepath.Join("$HOME", ".avalanchego", "chains")
-	avalanchegoChainConfigFlag       = "avalanchego-chain-config-dir"
-	avalanchegoChainConfigDir        string
+	odysseygoChainConfigDirDefault = filepath.Join("$HOME", ".odysseygo", "chains")
+	odysseygoChainConfigFlag       = "odysseygo-chain-config-dir"
+	odysseygoChainConfigDir        string
 
 	print bool
 )
 
-// avalanche subnet upgrade apply
+// odyssey subnet upgrade apply
 func newUpgradeApplyCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "apply [subnetName]",
 		Short: "Apply upgrade bytes onto subnet nodes",
 		Long: `Apply generated upgrade bytes to running Subnet nodes to trigger a network upgrade.
 
-For public networks (Fuji Testnet or Mainnet), to complete this process,
+For public networks (Testnet or Mainnet), to complete this process,
 you must have access to the machine running your validator.
 If the CLI is running on the same machine as your validator, it can manipulate your node's
 configuration automatically. Alternatively, the command can print the necessary instructions
 to upgrade your node manually.
 
 After you update your validator's configuration, you need to restart your validator manually.
-If you provide the --avalanchego-chain-config-dir flag, this command attempts to write the upgrade file at that path.
-Refer to https://docs.avax.network/nodes/maintain/chain-config-flags#subnet-chain-configs for related documentation.`,
+If you provide the --odysseygo-chain-config-dir flag, this command attempts to write the upgrade file at that path.
+Refer to https://docs.dione.network/nodes/maintain/chain-config-flags#subnet-chain-configs for related documentation.`,
 		RunE: applyCmd,
 		Args: cobra.ExactArgs(1),
 	}
 
 	cmd.Flags().BoolVar(&useConfig, "config", false, "create upgrade config for future subnet deployments (same as generate)")
 	cmd.Flags().BoolVar(&useLocal, "local", false, "apply upgrade existing `local` deployment")
-	cmd.Flags().BoolVar(&useFuji, "fuji", false, "apply upgrade existing `fuji` deployment (alias for `testnet`)")
-	cmd.Flags().BoolVar(&useFuji, "testnet", false, "apply upgrade existing `testnet` deployment (alias for `fuji`)")
+	cmd.Flags().BoolVar(&useTestnet, "testnet", false, "apply upgrade existing `testnet` deployment")
 	cmd.Flags().BoolVar(&useMainnet, "mainnet", false, "apply upgrade existing `mainnet` deployment")
 	cmd.Flags().BoolVar(&print, "print", false, "if true, print the manual config without prompting (for public networks only)")
 	cmd.Flags().BoolVar(&force, "force", false, "If true, don't prompt for confirmation of timestamps in the past")
-	cmd.Flags().StringVar(&avalanchegoChainConfigDir, avalanchegoChainConfigFlag, os.ExpandEnv(avalanchegoChainConfigDirDefault), "avalanchego's chain config file directory")
+	cmd.Flags().StringVar(&odysseygoChainConfigDir, odysseygoChainConfigFlag, os.ExpandEnv(odysseygoChainConfigDirDefault), "odysseygo's chain config file directory")
 
 	return cmd
 }
@@ -107,8 +106,8 @@ func applyCmd(_ *cobra.Command, args []string) error {
 	// update a locally running network
 	case localDeployment:
 		return applyLocalNetworkUpgrade(subnetName, models.Local.String(), &sc)
-	case fujiDeployment:
-		return applyPublicNetworkUpgrade(subnetName, models.Fuji.String(), &sc)
+	case testnetDeployment:
+		return applyPublicNetworkUpgrade(subnetName, models.Testnet.String(), &sc)
 	case mainnetDeployment:
 		return applyPublicNetworkUpgrade(subnetName, models.Mainnet.String(), &sc)
 	}
@@ -177,8 +176,8 @@ func applyLocalNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar)
 			"failed to find deployment information about this subnet in state - aborting")
 	}
 
-	// into ANR network ops
-	ctx, cancel = utils.GetANRContext()
+	// into ONR network ops
+	ctx, cancel = utils.GetONRContext()
 	defer cancel()
 
 	// save a temporary snapshot
@@ -195,7 +194,7 @@ func applyLocalNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar)
 		blockchainID.String(): strNetUpgrades,
 	}
 	// restart the network setting the upgrade bytes file
-	opts := ANRclient.WithUpgradeConfigs(netUpgradeConfs)
+	opts := ONRclient.WithUpgradeConfigs(netUpgradeConfs)
 	_, err = cli.LoadSnapshot(ctx, snapName, opts)
 	if err != nil {
 		return err
@@ -225,17 +224,17 @@ func applyLocalNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar)
 }
 
 // applyPublicNetworkUpgrade applies an upgrade file to a locally running validator
-// for public networks (fuji, main)
+// for public networks (testnet, mainnet)
 // the validation of the upgrade file has many things to consider:
 // * No upgrade file for <public net> can be found - do we copy the existing file in the prev stage?
-// (for fuji: take the local, for main, take the fuji?)?
-// * If not, we exit, but then force the user to create a fuji file? Can be quite annoying!
-// * Do we validate that the fuji file is the same as local before applying? Or we just take whatever is there?
-// For main, that it's the same as fuji and/or local or take whatever is there?
+// (for testnet: take the local, for mainnet, take the testnet?)?
+// * If not, we exit, but then force the user to create a testnet file? Can be quite annoying!
+// * Do we validate that the testnet file is the same as local before applying? Or we just take whatever is there?
+// For main, that it's the same as testnet and/or local or take whatever is there?
 // * What if the local deployment has applied different stages of upgrades,
-// but they were for development only and fuji/main is going to be different (start from scratch)?
-// * What if someone isn't even doing local, just fuji and main...(or even just main...we may want to discourage that though...)
-// * User probably would never use the exact same file for local as for Fuji, because you’d probably want to change the timestamps
+// but they were for development only and testnet/mainnet is going to be different (start from scratch)?
+// * What if someone isn't even doing local, just testnet and mainnet...(or even just mainnet...we may want to discourage that though...)
+// * User probably would never use the exact same file for local as for Testnet, because you’d probably want to change the timestamps
 //
 // For public networks we therefore limit ourselves to just "apply" the upgrades
 // This also means we are *ignoring* the lock file here!
@@ -249,10 +248,10 @@ func applyPublicNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar
 		}
 		ux.Logger.PrintToUser("To install the upgrade file on your validator:")
 		fmt.Println()
-		ux.Logger.PrintToUser("1. Identify where your validator has the avalanchego chain config dir configured.")
-		ux.Logger.PrintToUser("   The default is at $HOME/.avalanchego/chains (%s on this machine).", os.ExpandEnv(avalanchegoChainConfigDirDefault))
+		ux.Logger.PrintToUser("1. Identify where your validator has the odysseygo chain config dir configured.")
+		ux.Logger.PrintToUser("   The default is at $HOME/.odysseygo/chains (%s on this machine).", os.ExpandEnv(odysseygoChainConfigDirDefault))
 		ux.Logger.PrintToUser("   If you are using a different chain config dir for your node, use that one.")
-		ux.Logger.PrintToUser("2. Create a directory with the blockchainID in the configured chain-config-dir (e.g. $HOME/.avalanchego/chains/%s) if doesn't already exist.", blockchainIDstr)
+		ux.Logger.PrintToUser("2. Create a directory with the blockchainID in the configured chain-config-dir (e.g. $HOME/.odysseygo/chains/%s) if doesn't already exist.", blockchainIDstr)
 		ux.Logger.PrintToUser("3. Create an `upgrade.json` file in the blockchain directory with the content of your upgrade file.")
 		upgr, err := app.ReadUpgradeFile(subnetName)
 		if err == nil {
@@ -263,12 +262,12 @@ func applyPublicNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar
 			}
 		}
 		fmt.Println()
-		ux.Logger.PrintToUser("   *************************************************************************************************************")
-		ux.Logger.PrintToUser("   * Upgrades are tricky. The syntactic correctness of the upgrade file is important.                          *")
-		ux.Logger.PrintToUser("   * The sequence of upgrades must be strictly observed.                                                       *")
-		ux.Logger.PrintToUser("   * Make sure you understand https://docs.avax.network/nodes/maintain/chain-config-flags#subnet-chain-configs *")
-		ux.Logger.PrintToUser("   * before applying upgrades manually.                                                                        *")
-		ux.Logger.PrintToUser("   *************************************************************************************************************")
+		ux.Logger.PrintToUser("   **************************************************************************************************************")
+		ux.Logger.PrintToUser("   * Upgrades are tricky. The syntactic correctness of the upgrade file is important.                           *")
+		ux.Logger.PrintToUser("   * The sequence of upgrades must be strictly observed.                                                        *")
+		ux.Logger.PrintToUser("   * Make sure you understand https://docs.dione.network/nodes/maintain/chain-config-flags#subnet-chain-configs *")
+		ux.Logger.PrintToUser("   * before applying upgrades manually.                                                                         *")
+		ux.Logger.PrintToUser("   **************************************************************************************************************")
 		return nil
 	}
 	_, _, err := validateUpgrade(subnetName, networkKey, sc, force)
@@ -276,15 +275,15 @@ func applyPublicNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar
 		return err
 	}
 
-	ux.Logger.PrintToUser("The chain config dir avalanchego uses is set at %s", avalanchegoChainConfigDir)
+	ux.Logger.PrintToUser("The chain config dir odysseygo uses is set at %s", odysseygoChainConfigDir)
 	// give the user the chance to check if they indeed want to use the default
-	if avalanchegoChainConfigDir == avalanchegoChainConfigDirDefault {
+	if odysseygoChainConfigDir == odysseygoChainConfigDirDefault {
 		useDefault, err := app.Prompt.CaptureYesNo("It is set to the default. Is that correct?")
 		if err != nil {
 			return err
 		}
 		if !useDefault {
-			avalanchegoChainConfigDir, err = app.Prompt.CaptureExistingFilepath(
+			odysseygoChainConfigDir, err = app.Prompt.CaptureExistingFilepath(
 				"Enter the path to your custom chain config dir (*without* the blockchain ID, e.g /my/configs/dir)")
 			if err != nil {
 				return err
@@ -292,8 +291,8 @@ func applyPublicNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar
 		}
 	}
 
-	ux.Logger.PrintToUser("Trying to install the upgrade files at the provided %s path", avalanchegoChainConfigDir)
-	chainDir := filepath.Join(avalanchegoChainConfigDir, sc.Networks[networkKey].BlockchainID.String())
+	ux.Logger.PrintToUser("Trying to install the upgrade files at the provided %s path", odysseygoChainConfigDir)
+	chainDir := filepath.Join(odysseygoChainConfigDir, sc.Networks[networkKey].BlockchainID.String())
 	destPath := filepath.Join(chainDir, constants.UpgradeBytesFileName)
 	if err = os.Mkdir(chainDir, constants.DefaultPerms755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("failed to create blockchain directory: %w", err)
@@ -320,7 +319,7 @@ func validateUpgrade(subnetName, networkKey string, sc *models.Sidecar, skipProm
 	if err != nil {
 		if err == os.ErrNotExist {
 			ux.Logger.PrintToUser("No file with upgrade specs for the given subnet has been found")
-			ux.Logger.PrintToUser("You may need to first create it with the `avalanche subnet upgrade generate` command or import it")
+			ux.Logger.PrintToUser("You may need to first create it with the `odyssey subnet upgrade generate` command or import it")
 			ux.Logger.PrintToUser("Aborting this command. No changes applied")
 		}
 		return nil, "", err

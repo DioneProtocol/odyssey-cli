@@ -1,27 +1,27 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apmintegration
+package opmintegration
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"github.com/stretchr/testify/require"
 )
 
-func TestSetupAPM(t *testing.T) {
+func TestSetupOPM(t *testing.T) {
 	require := require.New(t)
 	testDir := t.TempDir()
 	app := newTestApp(t, testDir)
 
-	err := os.MkdirAll(filepath.Dir(app.GetAPMLog()), constants.DefaultPerms755)
+	err := os.MkdirAll(filepath.Dir(app.GetOPMLog()), constants.DefaultPerms755)
 	require.NoError(err)
 
-	err = SetupApm(app, testDir)
+	err = SetupOpm(app, testDir)
 	require.NoError(err)
-	require.NotEqual(nil, app.Apm)
-	require.Equal(testDir, app.ApmDir)
+	require.NotEqual(nil, app.Opm)
+	require.Equal(testDir, app.OpmDir)
 }

@@ -7,20 +7,20 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/txutils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/genesis"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/txutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet deploy
+// odyssey subnet removeValidator
 func newRemoveValidatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "removeValidator [subnetName]",
@@ -34,15 +34,14 @@ these prompts by providing the values with flags.`,
 		RunE:         removeValidator,
 		Args:         cobra.ExactArgs(1),
 	}
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji deploy only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet deploy only]")
 	cmd.Flags().StringVar(&nodeIDStr, "nodeID", "", "set the NodeID of the validator to remove")
 	cmd.Flags().BoolVar(&deployLocal, "local", false, "remove from the locally deployed Subnet")
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "remove from `fuji` deployment (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "remove from `testnet` deployment (alias for `fuji`)")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "remove from `testnet` deployment")
 	cmd.Flags().BoolVar(&deployMainnet, "mainnet", false, "remove from `mainnet` deployment")
 	cmd.Flags().StringSliceVar(&subnetAuthKeys, "subnet-auth-keys", nil, "control keys that will be used to authenticate the removeValidator tx")
 	cmd.Flags().StringVar(&outputTxPath, "output-tx-path", "", "file path of the removeValidator tx")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji)")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 	return cmd
 }
@@ -56,7 +55,7 @@ func removeValidator(_ *cobra.Command, args []string) error {
 	network := models.UndefinedNetwork
 	switch {
 	case deployTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case deployMainnet:
 		network = models.MainnetNetwork
 	case deployLocal:
@@ -66,7 +65,7 @@ func removeValidator(_ *cobra.Command, args []string) error {
 	if network.Kind == models.Undefined {
 		networkStr, err := app.Prompt.CaptureList(
 			"Choose a network to remove a validator from",
-			[]string{models.Local.String(), models.Fuji.String(), models.Mainnet.String()},
+			[]string{models.Local.String(), models.Testnet.String(), models.Mainnet.String()},
 		)
 		if err != nil {
 			return err
@@ -85,7 +84,7 @@ func removeValidator(_ *cobra.Command, args []string) error {
 	}
 
 	if useLedger && keyName != "" {
-		return ErrMutuallyExlusiveKeyLedger
+		return ErrMutuallyExclusiveKeyLedger
 	}
 
 	chains, err := ValidateSubnetNameAndGetChains(args)
@@ -97,9 +96,9 @@ func removeValidator(_ *cobra.Command, args []string) error {
 	switch network.Kind {
 	case models.Local:
 		return removeFromLocal(subnetName)
-	case models.Fuji:
+	case models.Testnet:
 		if !useLedger && keyName == "" {
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
 			if err != nil {
 				return err
 			}
@@ -113,7 +112,7 @@ func removeValidator(_ *cobra.Command, args []string) error {
 		return errors.New("unsupported network")
 	}
 
-	// get keychain accesor
+	// get keychain accessor
 	fee := network.GenesisParams().TxFee
 	kc, err := keychain.GetKeychain(app, false, useLedger, ledgerAddresses, keyName, network, fee)
 	if err != nil {
@@ -142,7 +141,7 @@ func removeValidator(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	kcKeys, err := kc.PChainFormattedStrAddresses()
+	kcKeys, err := kc.OChainFormattedStrAddresses()
 	if err != nil {
 		return err
 	}

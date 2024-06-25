@@ -12,10 +12,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 
 	"github.com/posthog/posthog-go"
 	"github.com/spf13/cobra"
@@ -42,22 +42,22 @@ func GetCLIVersion() string {
 
 func PrintMetricsOptOutPrompt() {
 	ux.Logger.PrintToUser(
-		"Avalanche-CLI (the \"software\") may collect statistical data on how the software is used on an anonymous " +
+		"Odyssey-CLI (the \"software\") may collect statistical data on how the software is used on an anonymous " +
 			"basis for purposes of product improvement.  This data will not (i) include any passwords, scripts, or data " +
 			"files, (ii) be associated with any particular user or entity, or (iii) include any personally identifiable " +
 			"information or be used to identify individuals or entities using the software.  You can disable such data " +
-			"collection with `avalanche config metrics disable` command, which will result in no data being collected; " +
+			"collection with `odyssey config metrics disable` command, which will result in no data being collected; " +
 			"by using the software without so disabling such data collection you expressly consent to the collection of " +
 			"such data.  You can also read our privacy statement <https://www.avalabs.org/privacy-policy> to learn more. \n")
-	ux.Logger.PrintToUser("You can disable data collection with `avalanche config metrics disable` command. " +
+	ux.Logger.PrintToUser("You can disable data collection with `odyssey config metrics disable` command. " +
 		"You can also read our privacy statement <https://www.avalabs.org/privacy-policy> to learn more.\n")
 }
 
-func saveMetricsConfig(app *application.Avalanche, metricsEnabled bool) error {
+func saveMetricsConfig(app *application.Odyssey, metricsEnabled bool) error {
 	return app.Conf.SetConfigValue(constants.ConfigMetricsEnabledKey, metricsEnabled)
 }
 
-func HandleUserMetricsPreference(app *application.Avalanche) error {
+func HandleUserMetricsPreference(app *application.Odyssey) error {
 	PrintMetricsOptOutPrompt()
 	txt := "Press [Enter] to opt-in, or opt out by choosing 'No'"
 	yes, err := app.Prompt.CaptureYesNo(txt)
@@ -65,9 +65,9 @@ func HandleUserMetricsPreference(app *application.Avalanche) error {
 		return err
 	}
 	if !yes {
-		ux.Logger.PrintToUser("Avalanche CLI usage metrics will not be collected")
+		ux.Logger.PrintToUser("Odyssey CLI usage metrics will not be collected")
 	} else {
-		ux.Logger.PrintToUser("Thank you for opting in Avalanche CLI usage metrics collection")
+		ux.Logger.PrintToUser("Thank you for opting in Odyssey CLI usage metrics collection")
 	}
 	if err = saveMetricsConfig(app, yes); err != nil {
 		return err
@@ -75,11 +75,11 @@ func HandleUserMetricsPreference(app *application.Avalanche) error {
 	return nil
 }
 
-func userIsOptedIn(app *application.Avalanche) bool {
+func userIsOptedIn(app *application.Odyssey) bool {
 	return app.Conf.GetConfigBoolValue(constants.ConfigMetricsEnabledKey)
 }
 
-func HandleTracking(cmd *cobra.Command, app *application.Avalanche, flags map[string]string) {
+func HandleTracking(cmd *cobra.Command, app *application.Odyssey, flags map[string]string) {
 	if userIsOptedIn(app) {
 		if !cmd.HasSubCommands() && CheckCommandIsNotCompletion(cmd) {
 			TrackMetrics(cmd, flags)

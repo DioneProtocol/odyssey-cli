@@ -12,15 +12,15 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/cb58"
-	"github.com/ava-labs/avalanchego/utils/crypto/secp256k1"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/vms/components/avax"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/cb58"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/secp256k1"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/vms/components/dione"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 
 	eth_crypto "github.com/ethereum/go-ethereum/crypto"
 	"go.uber.org/zap"
@@ -40,8 +40,8 @@ type SoftKey struct {
 	privKeyRaw     []byte
 	privKeyEncoded string
 
-	pAddr string
-	xAddr string
+	oAddr string
+	aAddr string
 
 	keyChain *secp256k1fx.Keychain
 }
@@ -136,11 +136,11 @@ func NewSoft(networkID uint32, opts ...SOpOption) (*SoftKey, error) {
 
 	// Parse HRP to create valid address
 	hrp := GetHRP(networkID)
-	m.pAddr, err = address.Format("P", hrp, m.privKey.PublicKey().Address().Bytes())
+	m.oAddr, err = address.Format("O", hrp, m.privKey.PublicKey().Address().Bytes())
 	if err != nil {
 		return nil, err
 	}
-	m.xAddr, err = address.Format("X", hrp, m.privKey.PublicKey().Address().Bytes())
+	m.aAddr, err = address.Format("A", hrp, m.privKey.PublicKey().Address().Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +253,7 @@ func decodePrivateKey(enc string) (*secp256k1.PrivateKey, error) {
 	return privKey, nil
 }
 
-func (m *SoftKey) C() string {
+func (m *SoftKey) D() string {
 	ecdsaPrv := m.privKey.ToECDSA()
 	pub := ecdsaPrv.PublicKey
 
@@ -287,17 +287,17 @@ func (m *SoftKey) Save(p string) error {
 	return os.WriteFile(p, []byte(k), constants.WriteReadUserOnlyPerms)
 }
 
-func (m *SoftKey) P() []string {
-	return []string{m.pAddr}
+func (m *SoftKey) O() []string {
+	return []string{m.oAddr}
 }
 
-func (m *SoftKey) X() []string {
-	return []string{m.xAddr}
+func (m *SoftKey) A() []string {
+	return []string{m.aAddr}
 }
 
-func (m *SoftKey) Spends(outputs []*avax.UTXO, opts ...OpOption) (
+func (m *SoftKey) Spends(outputs []*dione.UTXO, opts ...OpOption) (
 	totalBalanceToSpend uint64,
-	inputs []*avax.TransferableInput,
+	inputs []*dione.TransferableInput,
 	signers [][]ids.ShortID,
 ) {
 	ret := &Op{}
@@ -310,7 +310,7 @@ func (m *SoftKey) Spends(outputs []*avax.UTXO, opts ...OpOption) (
 			continue
 		}
 		totalBalanceToSpend += input.Amount()
-		inputs = append(inputs, &avax.TransferableInput{
+		inputs = append(inputs, &dione.TransferableInput{
 			UTXOID: out.UTXOID,
 			Asset:  out.Asset,
 			In:     input,
@@ -330,8 +330,8 @@ func (m *SoftKey) Spends(outputs []*avax.UTXO, opts ...OpOption) (
 	return totalBalanceToSpend, inputs, signers
 }
 
-func (m *SoftKey) spend(output *avax.UTXO, time uint64) (
-	input avax.TransferableIn,
+func (m *SoftKey) spend(output *dione.UTXO, time uint64) (
+	input dione.TransferableIn,
 	signers []*secp256k1.PrivateKey,
 	err error,
 ) {
@@ -342,7 +342,7 @@ func (m *SoftKey) spend(output *avax.UTXO, time uint64) (
 		return nil, nil, err
 	}
 	var ok bool
-	input, ok = inputf.(avax.TransferableIn)
+	input, ok = inputf.(dione.TransferableIn)
 	if !ok {
 		return nil, nil, ErrInvalidType
 	}
@@ -353,7 +353,7 @@ func (m *SoftKey) Addresses() []ids.ShortID {
 	return []ids.ShortID{m.privKey.PublicKey().Address()}
 }
 
-func (m *SoftKey) Sign(pTx *txs.Tx, signers [][]ids.ShortID) error {
+func (m *SoftKey) Sign(oTx *txs.Tx, signers [][]ids.ShortID) error {
 	privsigners := make([][]*secp256k1.PrivateKey, len(signers))
 	for i, inputSigners := range signers {
 		privsigners[i] = make([]*secp256k1.PrivateKey, len(inputSigners))
@@ -366,7 +366,7 @@ func (m *SoftKey) Sign(pTx *txs.Tx, signers [][]ids.ShortID) error {
 		}
 	}
 
-	return pTx.Sign(txs.Codec, privsigners)
+	return oTx.Sign(txs.Codec, privsigners)
 }
 
 func (m *SoftKey) Match(owners *secp256k1fx.OutputOwners, time uint64) ([]uint32, []ids.ShortID, bool) {

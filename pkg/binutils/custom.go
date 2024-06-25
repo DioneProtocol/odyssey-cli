@@ -3,14 +3,14 @@
 
 package binutils
 
-import "github.com/ava-labs/avalanche-cli/pkg/application"
+import "github.com/DioneProtocol/odyssey-cli/pkg/application"
 
-func SetupCustomBin(app *application.Avalanche, subnetName string) string {
+func SetupCustomBin(app *application.Odyssey, subnetName string) string {
 	// Just need to get the path of the vm
 	return app.GetCustomVMPath(subnetName)
 }
 
-func SetupAPMBin(app *application.Avalanche, vmid string) string {
+func SetupOPMBin(app *application.Odyssey, vmid string) string {
 	// Just need to get the path of the vm
-	return app.GetAPMVMPath(vmid)
+	return app.GetOPMVMPath(vmid)
 }

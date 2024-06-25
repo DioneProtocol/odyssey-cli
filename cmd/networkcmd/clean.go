@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/ava-labs/avalanche-cli/pkg/elasticsubnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/elasticsubnet"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/shirou/gopsutil/process"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -37,7 +37,7 @@ configuration.`,
 		&hard,
 		"hard",
 		false,
-		"Also clean downloaded avalanchego and plugin binaries",
+		"Also clean downloaded odysseygo and plugin binaries",
 	)
 
 	return cmd
@@ -59,8 +59,8 @@ func clean(*cobra.Command, []string) error {
 	}
 
 	if hard {
-		ux.Logger.PrintToUser("hard clean requested via flag, removing all downloaded avalanchego and plugin binaries")
-		binDir := filepath.Join(app.GetBaseDir(), constants.AvalancheCliBinDir)
+		ux.Logger.PrintToUser("hard clean requested via flag, removing all downloaded odysseygo and plugin binaries")
+		binDir := filepath.Join(app.GetBaseDir(), constants.OdysseyCliBinDir)
 		cleanBins(binDir)
 		_ = killAllBackendsByName()
 	}

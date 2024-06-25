@@ -14,14 +14,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
 	"github.com/melbahja/goph"
 	"golang.org/x/crypto/ssh"
 )
 
 const (
-	maxResponseSize      = 102400          // 100KB should be enough to read the avalanchego response
+	maxResponseSize      = 102400          // 100KB should be enough to read the odysseygo response
 	sshConnectionTimeout = 3 * time.Second // usually takes less than 2
 	sshConnectionRetries = 5
 )
@@ -226,12 +226,12 @@ func (h *Host) UntimedForward(httpRequest string) ([]byte, error) {
 			return nil, err
 		}
 	}
-	avalancheGoEndpoint := strings.TrimPrefix(constants.LocalAPIEndpoint, "http://")
-	avalancheGoAddr, err := net.ResolveTCPAddr("tcp", avalancheGoEndpoint)
+	odysseyGoEndpoint := strings.TrimPrefix(constants.LocalAPIEndpoint, "http://")
+	odysseyGoAddr, err := net.ResolveTCPAddr("tcp", odysseyGoEndpoint)
 	if err != nil {
 		return nil, err
 	}
-	proxy, err := h.Connection.DialTCP("tcp", nil, avalancheGoAddr)
+	proxy, err := h.Connection.DialTCP("tcp", nil, odysseyGoAddr)
 	if err != nil {
 		return nil, fmt.Errorf("unable to port forward to %s via %s", h.Connection.RemoteAddr(), "ssh")
 	}

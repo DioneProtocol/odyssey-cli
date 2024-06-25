@@ -5,14 +5,14 @@ package upgradecmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
 	"github.com/spf13/cobra"
 )
 
-var app *application.Avalanche
+var app *application.Odyssey
 
-// avalanche subnet vm
-func NewCmd(injectedApp *application.Avalanche) *cobra.Command {
+// odyssey subnet vm
+func NewCmd(injectedApp *application.Odyssey) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "upgrade",
 		Short: "Upgrade your Subnets",

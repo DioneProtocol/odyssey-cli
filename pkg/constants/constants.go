@@ -11,12 +11,12 @@ const (
 	WriteReadReadPerms     = 0o644
 	WriteReadUserOnlyPerms = 0o600
 
-	BaseDirName = ".avalanche-cli"
+	BaseDirName = ".odyssey-cli"
 	LogDir      = "logs"
 
-	ServerRunFile      = "gRPCserver.run"
-	AvalancheCliBinDir = "bin"
-	RunDir             = "runs"
+	ServerRunFile    = "gRPCserver.run"
+	OdysseyCliBinDir = "bin"
+	RunDir           = "runs"
 
 	SuffixSeparator              = "_"
 	SidecarFileName              = "sidecar.json"
@@ -44,7 +44,7 @@ const (
 
 	CloudOperationTimeout = 2 * time.Minute
 
-	ANRRequestTimeout   = 3 * time.Minute
+	ONRRequestTimeout   = 3 * time.Minute
 	APIRequestTimeout   = 30 * time.Second
 	FastGRPCDialTimeout = 100 * time.Millisecond
 
@@ -54,13 +54,13 @@ const (
 	SSHFileOpsTimeout     = 30 * time.Second
 	SSHPOSTTimeout        = 10 * time.Second
 	SSHSleepBetweenChecks = 1 * time.Second
-	SSHScriptLogFilter    = "_AvalancheCLI_LOG_"
+	SSHScriptLogFilter    = "_OdysseyCLI_LOG_"
 	SSHShell              = "/bin/bash"
 
 	SimulatePublicNetwork = "SIMULATE_PUBLIC_NETWORK"
 
-	FujiAPIEndpoint    = "https://api.avax-test.network"
-	MainnetAPIEndpoint = "https://api.avax.network"
+	TestnetAPIEndpoint = "https://testnode.dioneprotocol.com"
+	MainnetAPIEndpoint = "https://mainnode.dioneprotocol.com"
 
 	// this depends on bootstrap snapshot
 	LocalAPIEndpoint = "http://127.0.0.1:9650"
@@ -81,7 +81,7 @@ const (
 
 	Cortina17Version = "v1.10.17"
 
-	BootstrapSnapshotRawBranch = "https://github.com/ava-labs/avalanche-cli/raw/main/"
+	BootstrapSnapshotRawBranch = "https://github.com/DioneProtocol/odyssey-cli/raw/main/"
 
 	CurrentBootstrapNamePath = "currentBootstrapName.txt"
 
@@ -105,7 +105,7 @@ const (
 	BootstrapSnapshotSingleNodePreCortina17URL         = BootstrapSnapshotRawBranch + BootstrapSnapshotSingleNodePreCortina17LocalPath
 	BootstrapSnapshotSingleNodePreCortina17SHA256URL   = BootstrapSnapshotRawBranch + "assets/sha256sumSingleNode.PreCortina17.txt"
 
-	CliInstallationURL      = "https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh"
+	CliInstallationURL      = "https://raw.githubusercontent.com/DioneProtocol/odyssey-cli/main/scripts/install.sh"
 	ExpectedCliInstallErr   = "resource temporarily unavailable"
 	EIPLimitErr             = "AddressLimitExceeded"
 	ErrCreatingAWSNode      = "failed to create AWS Node"
@@ -122,8 +122,8 @@ const (
 	TimeParseLayout             = "2006-01-02 15:04:05"
 	MinStakeWeight              = 1
 	DefaultStakeWeight          = 20
-	AVAXSymbol                  = "AVAX"
-	DefaultFujiStakeDuration    = "48h"
+	DIONESymbol                 = "DIONE"
+	DefaultTestnetStakeDuration = "48h"
 	DefaultMainnetStakeDuration = "336h"
 	// The absolute minimum is 25 seconds, but set to 1 minute to allow for
 	// time to go through the command
@@ -133,7 +133,7 @@ const (
 	PrimaryNetworkValidatingStartLeadTimeNodeCmd = 20 * time.Second
 	PrimaryNetworkValidatingStartLeadTime        = 1 * time.Minute
 	AWSCloudServerRunningState                   = "running"
-	AvalancheCLISuffix                           = "-avalanche-cli"
+	OdysseyCLISuffix                             = "-odyssey-cli"
 	AWSDefaultCredential                         = "default"
 	GCPDefaultImageProvider                      = "ubuntu-os-cloud"
 	GCPImageFilter                               = "family=ubuntu-2004* AND architecture=x86_64"
@@ -143,9 +143,9 @@ const (
 	AWSSecurityGroupSuffix                       = "-sg"
 	ExportSubnetSuffix                           = "-export.dat"
 	SSHTCPPort                                   = 22
-	AvalanchegoAPIPort                           = 9650
-	AvalanchegoP2PPort                           = 9651
-	AvalanchegoGrafanaPort                       = 3000
+	OdysseygoAPIPort                             = 9650
+	OdysseygoP2PPort                             = 9651
+	OdysseygoGrafanaPort                         = 3000
 	CloudServerStorageSize                       = 1000
 	MonitoringCloudServerStorageSize             = 50
 	OutboundPort                                 = 0
@@ -156,7 +156,7 @@ const (
 	BuildEnvGolangVersion              = "1.21.1"
 	IsHealthyJSONFile                  = "isHealthy.json"
 	IsBootstrappedJSONFile             = "isBootstrapped.json"
-	AvalancheGoVersionJSONFile         = "avalancheGoVersion.json"
+	OdysseyGoVersionJSONFile           = "odysseyGoVersion.json"
 	SubnetSyncJSONFile                 = "isSubnetSynced.json"
 	AnsibleInventoryDir                = "inventories"
 	AnsibleTempInventoryDir            = "temp_inventories"
@@ -167,66 +167,66 @@ const (
 	AnsibleSSHUseAgentParams           = "-o StrictHostKeyChecking=no"
 	AnsibleExtraVarsFlag               = "--extra-vars"
 
-	ConfigAPMCredentialsFileKey  = "credentials-file"
-	ConfigAPMAdminAPIEndpointKey = "admin-api-endpoint"
+	ConfigOPMCredentialsFileKey  = "credentials-file"
+	ConfigOPMAdminAPIEndpointKey = "admin-api-endpoint"
 	ConfigNodeConfigKey          = "node-config"
 	ConfigMetricsEnabledKey      = "MetricsEnabled"
 	ConfigAutorizeCloudAccessKey = "AutorizeCloudAccess"
 	ConfigSingleNodeEnabledKey   = "SingleNodeEnabled"
-	OldConfigFileName            = ".avalanche-cli.json"
-	OldMetricsConfigFileName     = ".avalanche-cli/config"
-	DefaultConfigFileName        = ".avalanche-cli/config.json"
+	OldConfigFileName            = ".odyssey-cli.json"
+	OldMetricsConfigFileName     = ".odyssey-cli/config"
+	DefaultConfigFileName        = ".odyssey-cli/config.json"
 
-	AWSCloudService               = "Amazon Web Services"
-	GCPCloudService               = "Google Cloud Platform"
-	AWSDefaultInstanceType        = "c5.2xlarge"
-	GCPDefaultInstanceType        = "e2-standard-8"
-	AnsibleSSHUser                = "ubuntu"
-	AWSNodeAnsiblePrefix          = "aws_node"
-	GCPNodeAnsiblePrefix          = "gcp_node"
-	CustomVMDir                   = "vms"
-	GCPStaticIPPrefix             = "static-ip"
-	AvaLabsOrg                    = "ava-labs"
-	AvalancheGoRepoName           = "avalanchego"
-	SubnetEVMRepoName             = "subnet-evm"
-	CliRepoName                   = "avalanche-cli"
-	SubnetEVMReleaseURL           = "https://github.com/ava-labs/subnet-evm/releases/download/%s/%s"
-	SubnetEVMArchive              = "subnet-evm_%s_linux_amd64.tar.gz"
-	CloudNodeConfigBasePath       = "/home/ubuntu/.avalanchego/"
-	CloudNodeSubnetEvmBinaryPath  = "/home/ubuntu/.avalanchego/plugins/%s"
-	CloudNodeStakingPath          = "/home/ubuntu/.avalanchego/staking/"
-	CloudNodeConfigPath           = "/home/ubuntu/.avalanchego/configs/"
-	CloudNodeCLIConfigBasePath    = "/home/ubuntu/.avalanche-cli/"
-	AvalanchegoMonitoringPort     = 9090
-	AvalanchegoMachineMetricsPort = 9100
-	MonitoringScriptFile          = "monitoring-separate-installer.sh"
-	MonitoringDir                 = "monitoring"
-	DashboardsDir                 = "dashboards"
-	NodeConfigJSONFile            = "node.json"
-	IPAddressSuffix               = "/32"
-	AvalancheGoInstallDir         = "avalanchego"
-	SubnetEVMInstallDir           = "subnet-evm"
+	AWSCloudService              = "Amazon Web Services"
+	GCPCloudService              = "Google Cloud Platform"
+	AWSDefaultInstanceType       = "c5.2xlarge"
+	GCPDefaultInstanceType       = "e2-standard-8"
+	AnsibleSSHUser               = "ubuntu"
+	AWSNodeAnsiblePrefix         = "aws_node"
+	GCPNodeAnsiblePrefix         = "gcp_node"
+	CustomVMDir                  = "vms"
+	GCPStaticIPPrefix            = "static-ip"
+	DioneProtocolOrg             = "dioneprotocol"
+	OdysseyGoRepoName            = "odysseygo"
+	SubnetEVMRepoName            = "subnet-evm"
+	CliRepoName                  = "odyssey-cli"
+	SubnetEVMReleaseURL          = "https://github.com/DioneProtocol/subnet-evm/releases/download/%s/%s"
+	SubnetEVMArchive             = "subnet-evm_%s_linux_amd64.tar.gz"
+	CloudNodeConfigBasePath      = "/home/ubuntu/.odysseygo/"
+	CloudNodeSubnetEvmBinaryPath = "/home/ubuntu/.odysseygo/plugins/%s"
+	CloudNodeStakingPath         = "/home/ubuntu/.odysseygo/staking/"
+	CloudNodeConfigPath          = "/home/ubuntu/.odysseygo/configs/"
+	CloudNodeCLIConfigBasePath   = "/home/ubuntu/.odyssey-cli/"
+	OdysseygoMonitoringPort      = 9090
+	OdysseygoMachineMetricsPort  = 9100
+	MonitoringScriptFile         = "monitoring-separate-installer.sh"
+	MonitoringDir                = "monitoring"
+	DashboardsDir                = "dashboards"
+	NodeConfigJSONFile           = "node.json"
+	IPAddressSuffix              = "/32"
+	OdysseyGoInstallDir          = "odysseygo"
+	SubnetEVMInstallDir          = "subnet-evm"
 
 	SubnetEVMBin = "subnet-evm"
 
 	DefaultNodeRunURL = "http://127.0.0.1:9650"
 
-	APMDir                = ".apm"
-	APMLogName            = "apm.log"
-	DefaultAvaLabsPackage = "ava-labs/avalanche-plugins-core"
-	APMPluginDir          = "apm_plugins"
+	OPMDir                      = ".opm"
+	OPMLogName                  = "opm.log"
+	DefaultDioneProtocolPackage = "dioneprotocol/odyssey-plugins-core"
+	OPMPluginDir                = "opm_plugins"
 
 	// #nosec G101
-	GithubAPITokenEnvVarName = "AVALANCHE_CLI_GITHUB_TOKEN"
+	GithubAPITokenEnvVarName = "ODYSSEY_CLI_GITHUB_TOKEN"
 
 	ReposDir                   = "repos"
 	SubnetDir                  = "subnets"
 	NodesDir                   = "nodes"
 	VMDir                      = "vms"
 	ChainConfigDir             = "chains"
-	AVMKeyName                 = "avm"
+	AVMKeyName                 = "alpha"
 	EVMKeyName                 = "evm"
-	PlatformKeyName            = "platform"
+	PlatformKeyName            = "omega"
 	SubnetType                 = "subnet type"
 	PrecompileType             = "precompile type"
 	CustomAirdrop              = "custom-airdrop"
@@ -236,19 +236,19 @@ const (
 	PerNodeChainConfigFileName = "per-node-chain.json"
 	NodeConfigFileName         = "node-config.json"
 
-	GitRepoCommitName  = "Avalanche-CLI"
-	GitRepoCommitEmail = "info@avax.network"
-	AvaLabsMaintainers = "ava-labs"
+	GitRepoCommitName        = "Odyssey-CLI"
+	GitRepoCommitEmail       = "info@dione.network"
+	DioneProtocolMaintainers = "dioneprotocol"
 
 	UpgradeBytesFileName      = "upgrade.json"
 	UpgradeBytesLockExtension = ".lock"
 	NotAvailableLabel         = "Not available"
-	BackendCmd                = "avalanche-cli-backend"
+	BackendCmd                = "odyssey-cli-backend"
 
-	AvalancheGoVersionUnknown            = "n/a"
-	AvalancheGoCompatibilityVersionAdded = "v1.9.2"
-	AvalancheGoCompatibilityURL          = "https://raw.githubusercontent.com/ava-labs/avalanchego/master/version/compatibility.json"
-	SubnetEVMRPCCompatibilityURL         = "https://raw.githubusercontent.com/ava-labs/subnet-evm/master/compatibility.json"
+	OdysseyGoVersionUnknown            = "n/a"
+	OdysseyGoCompatibilityVersionAdded = "v1.9.2"
+	OdysseyGoCompatibilityURL          = "https://raw.githubusercontent.com/DioneProtocol/odysseygo/master/version/compatibility.json"
+	SubnetEVMRPCCompatibilityURL       = "https://raw.githubusercontent.com/DioneProtocol/subnet-evm/master/compatibility.json"
 
 	YesLabel = "Yes"
 	NoLabel  = "No"

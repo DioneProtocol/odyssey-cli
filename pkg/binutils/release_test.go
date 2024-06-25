@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanche-cli/internal/testutils"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/config"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odyssey-cli/internal/testutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/config"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +23,7 @@ const (
 	version1 = "v1.17.1"
 	version2 = "v1.18.1"
 
-	avalanchegoBin = "avalanchego"
+	odysseygoBin = "odysseygo"
 )
 
 var (
@@ -31,7 +31,7 @@ var (
 	binary2 = []byte{0xfe, 0xed, 0xc0, 0xde}
 )
 
-func setupInstallDir(require *require.Assertions) *application.Avalanche {
+func setupInstallDir(require *require.Assertions) *application.Odyssey {
 	rootDir, err := os.MkdirTemp(os.TempDir(), "binutils-tests")
 	require.NoError(err)
 	defer os.RemoveAll(rootDir)
@@ -41,72 +41,72 @@ func setupInstallDir(require *require.Assertions) *application.Avalanche {
 	return app
 }
 
-func Test_installAvalancheGoWithVersion_Zip(t *testing.T) {
+func Test_installOdysseyGoWithVersion_Zip(t *testing.T) {
 	require := testutils.SetupTest(t)
 
-	zipBytes := testutils.CreateDummyAvagoZip(require, binary1)
+	zipBytes := testutils.CreateDummyOdygoZip(require, binary1)
 	app := setupInstallDir(require)
 
 	mockInstaller := &mocks.Installer{}
 	mockInstaller.On("GetArch").Return("amd64", "darwin")
 
-	githubDownloader := NewAvagoDownloader()
+	githubDownloader := NewOdygoDownloader()
 
 	mockAppDownloader := mocks.Downloader{}
 	mockAppDownloader.On("Download", mock.Anything).Return(zipBytes, nil)
 	app.Downloader = &mockAppDownloader
 
-	expectedDir := filepath.Join(app.GetAvalanchegoBinDir(), avalanchegoBinPrefix+version1)
+	expectedDir := filepath.Join(app.GetOdysseygoBinDir(), odysseygoBinPrefix+version1)
 
-	binDir, err := installBinaryWithVersion(app, version1, app.GetAvalanchegoBinDir(), avalanchegoBinPrefix, githubDownloader, mockInstaller)
+	binDir, err := installBinaryWithVersion(app, version1, app.GetOdysseygoBinDir(), odysseygoBinPrefix, githubDownloader, mockInstaller)
 	require.Equal(expectedDir, binDir)
 	require.NoError(err)
 
 	// Check the installed binary
-	installedBin, err := os.ReadFile(filepath.Join(binDir, avalanchegoBin))
+	installedBin, err := os.ReadFile(filepath.Join(binDir, odysseygoBin))
 	require.NoError(err)
 	require.Equal(binary1, installedBin)
 }
 
-func Test_installAvalancheGoWithVersion_Tar(t *testing.T) {
+func Test_installOdysseyGoWithVersion_Tar(t *testing.T) {
 	require := testutils.SetupTest(t)
 
-	tarBytes := testutils.CreateDummyAvagoTar(require, binary1, version1)
+	tarBytes := testutils.CreateDummyOdygoTar(require, binary1, version1)
 
 	app := setupInstallDir(require)
 
 	mockInstaller := &mocks.Installer{}
 	mockInstaller.On("GetArch").Return("amd64", "linux")
 
-	downloader := NewAvagoDownloader()
+	downloader := NewOdygoDownloader()
 
 	mockAppDownloader := mocks.Downloader{}
 	mockAppDownloader.On("Download", mock.Anything).Return(tarBytes, nil)
 	app.Downloader = &mockAppDownloader
 
-	expectedDir := filepath.Join(app.GetAvalanchegoBinDir(), avalanchegoBinPrefix+version1)
+	expectedDir := filepath.Join(app.GetOdysseygoBinDir(), odysseygoBinPrefix+version1)
 
-	binDir, err := installBinaryWithVersion(app, version1, app.GetAvalanchegoBinDir(), avalanchegoBinPrefix, downloader, mockInstaller)
+	binDir, err := installBinaryWithVersion(app, version1, app.GetOdysseygoBinDir(), odysseygoBinPrefix, downloader, mockInstaller)
 	require.Equal(expectedDir, binDir)
 	require.NoError(err)
 
 	// Check the installed binary
-	installedBin, err := os.ReadFile(filepath.Join(binDir, avalanchegoBin))
+	installedBin, err := os.ReadFile(filepath.Join(binDir, odysseygoBin))
 	require.NoError(err)
 	require.Equal(binary1, installedBin)
 }
 
-func Test_installAvalancheGoWithVersion_MultipleCoinstalls(t *testing.T) {
+func Test_installOdysseyGoWithVersion_MultipleCoinstalls(t *testing.T) {
 	require := testutils.SetupTest(t)
 
-	zipBytes1 := testutils.CreateDummyAvagoZip(require, binary1)
-	zipBytes2 := testutils.CreateDummyAvagoZip(require, binary2)
+	zipBytes1 := testutils.CreateDummyOdygoZip(require, binary1)
+	zipBytes2 := testutils.CreateDummyOdygoZip(require, binary2)
 	app := setupInstallDir(require)
 
 	mockInstaller := &mocks.Installer{}
 	mockInstaller.On("GetArch").Return("amd64", "darwin")
 
-	downloader := NewAvagoDownloader()
+	downloader := NewOdygoDownloader()
 	url1, _, err := downloader.GetDownloadURL(version1, mockInstaller)
 	require.NoError(err)
 	url2, _, err := downloader.GetDownloadURL(version2, mockInstaller)
@@ -119,25 +119,25 @@ func Test_installAvalancheGoWithVersion_MultipleCoinstalls(t *testing.T) {
 	mockAppDownloader.On("Download", url2).Return(zipBytes2, nil)
 	app.Downloader = &mockAppDownloader
 
-	expectedDir1 := filepath.Join(app.GetAvalanchegoBinDir(), avalanchegoBinPrefix+version1)
-	expectedDir2 := filepath.Join(app.GetAvalanchegoBinDir(), avalanchegoBinPrefix+version2)
+	expectedDir1 := filepath.Join(app.GetOdysseygoBinDir(), odysseygoBinPrefix+version1)
+	expectedDir2 := filepath.Join(app.GetOdysseygoBinDir(), odysseygoBinPrefix+version2)
 
-	binDir1, err := installBinaryWithVersion(app, version1, app.GetAvalanchegoBinDir(), avalanchegoBinPrefix, downloader, mockInstaller)
+	binDir1, err := installBinaryWithVersion(app, version1, app.GetOdysseygoBinDir(), odysseygoBinPrefix, downloader, mockInstaller)
 	require.Equal(expectedDir1, binDir1)
 	require.NoError(err)
 
-	binDir2, err := installBinaryWithVersion(app, version2, app.GetAvalanchegoBinDir(), avalanchegoBinPrefix, downloader, mockInstaller)
+	binDir2, err := installBinaryWithVersion(app, version2, app.GetOdysseygoBinDir(), odysseygoBinPrefix, downloader, mockInstaller)
 	require.Equal(expectedDir2, binDir2)
 	require.NoError(err)
 
 	require.NotEqual(binDir1, binDir2)
 
 	// Check the installed binary
-	installedBin1, err := os.ReadFile(filepath.Join(binDir1, avalanchegoBin))
+	installedBin1, err := os.ReadFile(filepath.Join(binDir1, odysseygoBin))
 	require.NoError(err)
 	require.Equal(binary1, installedBin1)
 
-	installedBin2, err := os.ReadFile(filepath.Join(binDir2, avalanchegoBin))
+	installedBin2, err := os.ReadFile(filepath.Join(binDir2, odysseygoBin))
 	require.NoError(err)
 	require.Equal(binary2, installedBin2)
 }

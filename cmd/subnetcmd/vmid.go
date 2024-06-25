@@ -5,12 +5,12 @@ package subnetcmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/utils"
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet create
+// odyssey subnet vmid
 func vmidCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "vmid [vmName]",

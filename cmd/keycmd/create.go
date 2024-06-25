@@ -6,9 +6,9 @@ import (
 	"errors"
 	"regexp"
 
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -53,13 +53,13 @@ func createKey(_ *cobra.Command, args []string) error {
 		}
 		keyPath := app.GetKeyPath(keyName)
 		ux.Logger.PrintToUser("Key loaded")
-		networks := []models.Network{models.FujiNetwork, models.MainnetNetwork}
-		cchain := true
-		pClients, cClients, err := getClients(networks, cchain)
+		networks := []models.Network{models.TestnetNetwork, models.MainnetNetwork}
+		dchain := true
+		oClients, dClients, err := getClients(networks, dchain)
 		if err != nil {
 			return err
 		}
-		addrInfos, err := getStoredKeyInfo(pClients, cClients, networks, keyPath, cchain)
+		addrInfos, err := getStoredKeyInfo(oClients, dClients, networks, keyPath, dchain)
 		if err != nil {
 			return err
 		}

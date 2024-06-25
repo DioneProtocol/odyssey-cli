@@ -14,8 +14,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 )
 
 var (
@@ -37,7 +37,7 @@ type BinaryChecker interface {
 type (
 	binaryChecker          struct{}
 	pluginBinaryDownloader struct {
-		app *application.Avalanche
+		app *application.Odyssey
 	}
 )
 
@@ -45,7 +45,7 @@ func NewBinaryChecker() BinaryChecker {
 	return &binaryChecker{}
 }
 
-func NewPluginBinaryDownloader(app *application.Avalanche) PluginBinaryDownloader {
+func NewPluginBinaryDownloader(app *application.Odyssey) PluginBinaryDownloader {
 	return &pluginBinaryDownloader{
 		app: app,
 	}
@@ -141,7 +141,7 @@ func installTarGzArchive(targz []byte, binDir string) error {
 	byteReader := bytes.NewReader(targz)
 	uncompressedStream, err := gzip.NewReader(byteReader)
 	if err != nil {
-		return fmt.Errorf("failed creating gzip reader from avalanchego binary stream: %w", err)
+		return fmt.Errorf("failed creating gzip reader from odysseygo binary stream: %w", err)
 	}
 
 	tarReader := tar.NewReader(uncompressedStream)
@@ -189,7 +189,7 @@ func installTarGzArchive(targz []byte, binDir string) error {
 			if _, err := io.CopyN(f, tarReader, maxCopy); err != nil && !errors.Is(err, io.EOF) {
 				return fmt.Errorf("failed writing tar entry contents to disk: %w", err)
 			}
-			// manually close here after each file operation; defering would cause each file close
+			// manually close here after each file operation; deferring would cause each file close
 			// to wait until all operations have completed.
 			if err := f.Close(); err != nil {
 				return err

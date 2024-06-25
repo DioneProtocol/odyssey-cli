@@ -6,17 +6,17 @@ package networkcmd
 import (
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanche-cli/internal/testutils"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanchego/ids"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odyssey-cli/internal/testutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odysseygo/ids"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-var testAvagoCompat = []byte("{\"19\": [\"v1.9.2\"],\"18\": [\"v1.9.1\"],\"17\": [\"v1.9.0\",\"v1.8.0\"]}")
+var testOdygoCompat = []byte("{\"19\": [\"v1.9.2\"],\"18\": [\"v1.9.1\"],\"17\": [\"v1.9.0\",\"v1.8.0\"]}")
 
-func Test_determineAvagoVersion(t *testing.T) {
+func Test_determineOdygoVersion(t *testing.T) {
 	subnetName1 := "test1"
 	subnetName2 := "test2"
 	subnetName3 := "test3"
@@ -74,60 +74,60 @@ func Test_determineAvagoVersion(t *testing.T) {
 
 	type test struct {
 		name          string
-		userAvago     string
+		userOdygo     string
 		sidecars      []models.Sidecar
-		expectedAvago string
+		expectedOdygo string
 		expectedErr   bool
 	}
 
 	tests := []test{
 		{
 			name:          "user not latest",
-			userAvago:     "v1.9.5",
+			userOdygo:     "v1.9.5",
 			sidecars:      []models.Sidecar{sc1},
-			expectedAvago: "v1.9.5",
+			expectedOdygo: "v1.9.5",
 			expectedErr:   false,
 		},
 		{
 			name:          "single sc",
-			userAvago:     "latest",
+			userOdygo:     "latest",
 			sidecars:      []models.Sidecar{sc1},
-			expectedAvago: "v1.9.1",
+			expectedOdygo: "v1.9.1",
 			expectedErr:   false,
 		},
 		{
 			name:          "multi sc matching",
-			userAvago:     "latest",
+			userOdygo:     "latest",
 			sidecars:      []models.Sidecar{sc1, sc2},
-			expectedAvago: "v1.9.1",
+			expectedOdygo: "v1.9.1",
 			expectedErr:   false,
 		},
 		{
 			name:          "multi sc mismatch",
-			userAvago:     "latest",
+			userOdygo:     "latest",
 			sidecars:      []models.Sidecar{sc1, sc3},
-			expectedAvago: "",
+			expectedOdygo: "",
 			expectedErr:   true,
 		},
 		{
 			name:          "single custom",
-			userAvago:     "latest",
+			userOdygo:     "latest",
 			sidecars:      []models.Sidecar{scCustom},
-			expectedAvago: "latest",
+			expectedOdygo: "latest",
 			expectedErr:   false,
 		},
 		{
 			name:          "custom plus user selected",
-			userAvago:     "v1.9.1",
+			userOdygo:     "v1.9.1",
 			sidecars:      []models.Sidecar{scCustom},
-			expectedAvago: "v1.9.1",
+			expectedOdygo: "v1.9.1",
 			expectedErr:   false,
 		},
 		{
 			name:          "multi sc matching plus custom",
-			userAvago:     "latest",
+			userOdygo:     "latest",
 			sidecars:      []models.Sidecar{sc1, sc2, scCustom},
-			expectedAvago: "v1.9.1",
+			expectedOdygo: "v1.9.1",
 			expectedErr:   false,
 		},
 	}
@@ -136,7 +136,7 @@ func Test_determineAvagoVersion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			app = testutils.SetupTestInTempDir(t)
 			mockDownloader := &mocks.Downloader{}
-			mockDownloader.On("Download", mock.Anything).Return(testAvagoCompat, nil)
+			mockDownloader.On("Download", mock.Anything).Return(testOdygoCompat, nil)
 			mockDownloader.On("GetLatestReleaseVersion", mock.Anything).Return("v1.9.2", nil)
 
 			app.Downloader = mockDownloader
@@ -146,13 +146,13 @@ func Test_determineAvagoVersion(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			avagoVersion, err := determineAvagoVersion(tt.userAvago)
+			odygoVersion, err := determineOdygoVersion(tt.userOdygo)
 			if tt.expectedErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
 			}
-			require.Equal(t, tt.expectedAvago, avagoVersion)
+			require.Equal(t, tt.expectedOdygo, odygoVersion)
 		})
 	}
 }

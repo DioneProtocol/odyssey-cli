@@ -9,25 +9,25 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanchego/utils/units"
-	"github.com/ava-labs/coreth/ethclient"
+	"github.com/DioneProtocol/coreth/ethclient"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odysseygo/utils/units"
 	"go.uber.org/zap"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/subnet-evm/commontype"
-	"github.com/ava-labs/subnet-evm/params"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/deployerallowlist"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/feemanager"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/nativeminter"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/rewardmanager"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/txallowlist"
-	subnetevmutils "github.com/ava-labs/subnet-evm/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/subnet-evm/commontype"
+	"github.com/DioneProtocol/subnet-evm/params"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/deployerallowlist"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/feemanager"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/nativeminter"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/rewardmanager"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/txallowlist"
+	subnetevmutils "github.com/DioneProtocol/subnet-evm/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/spf13/cobra"
@@ -46,7 +46,7 @@ const (
 
 var subnetName string
 
-// avalanche subnet upgrade generate
+// odyssey subnet upgrade generate
 func newUpgradeGenerateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "generate [subnetName]",
@@ -77,7 +77,7 @@ func upgradeGenerateCmd(_ *cobra.Command, args []string) error {
 			"may cause the network to halt and recovering may be difficult.")))
 	ux.Logger.PrintToUser(logging.Reset.Wrap(
 		"Please consult " + logging.Cyan.Wrap(
-			"https://docs.avax.network/subnets/customize-a-subnet#network-upgrades-enabledisable-precompiles ") +
+			"https://docs.dione.network/subnets/customize-a-subnet#network-upgrades-enabledisable-precompiles ") +
 			logging.Reset.Wrap("for more information")))
 
 	txt := "Press [Enter] to continue, or abort by choosing 'no'"
@@ -100,7 +100,7 @@ func upgradeGenerateCmd(_ *cobra.Command, args []string) error {
 
 	fmt.Println()
 	ux.Logger.PrintToUser(logging.Yellow.Wrap(
-		"Avalanchego and this tool support configuring multiple precompiles. " +
+		"Odysseygo and this tool support configuring multiple precompiles. " +
 			"However, we suggest to only configure one per upgrade."))
 	fmt.Println()
 
@@ -227,7 +227,7 @@ func promptNativeMintParams(precompiles *[]params.PrecompileUpgrade, date time.T
 				if err != nil {
 					return "", err
 				}
-				amount, err := app.Prompt.CaptureUint64("Amount to airdrop (in AVAX units)")
+				amount, err := app.Prompt.CaptureUint64("Amount to airdrop (in DIONE units)")
 				if err != nil {
 					return "", err
 				}
@@ -361,23 +361,23 @@ func promptTxAllowListParams(precompiles *[]params.PrecompileUpgrade, date time.
 	return nil
 }
 
-func getCClient(apiEndpoint string, blockchainID string) (ethclient.Client, error) {
-	cClient, err := ethclient.Dial(fmt.Sprintf("%s/ext/bc/%s/rpc", apiEndpoint, blockchainID))
+func getDClient(apiEndpoint string, blockchainID string) (ethclient.Client, error) {
+	dClient, err := ethclient.Dial(fmt.Sprintf("%s/ext/bc/%s/rpc", apiEndpoint, blockchainID))
 	if err != nil {
 		return nil, err
 	}
-	return cClient, nil
+	return dClient, nil
 }
 
 func ensureAdminsHaveBalanceLocalNetwork(admins []common.Address, blockchainID string) error {
-	cClient, err := getCClient(constants.LocalAPIEndpoint, blockchainID)
+	dClient, err := getDClient(constants.LocalAPIEndpoint, blockchainID)
 	if err != nil {
 		return err
 	}
 
 	for _, admin := range admins {
 		// we can break at the first admin who has a non-zero balance
-		accountBalance, err := getAccountBalance(cClient, admin.String())
+		accountBalance, err := getAccountBalance(dClient, admin.String())
 		if err != nil {
 			return err
 		}
@@ -420,20 +420,20 @@ func ensureAdminsHaveBalance(admins []common.Address, subnetName string) error {
 	return nil
 }
 
-func getAccountBalance(cClient ethclient.Client, addrStr string) (float64, error) {
+func getAccountBalance(dClient ethclient.Client, addrStr string) (float64, error) {
 	addr := common.HexToAddress(addrStr)
 	ctx, cancel := utils.GetAPIContext()
-	balance, err := cClient.BalanceAt(ctx, addr, nil)
+	balance, err := dClient.BalanceAt(ctx, addr, nil)
 	defer cancel()
 	if err != nil {
 		return 0, err
 	}
-	// convert to nAvax
-	balance = balance.Div(balance, big.NewInt(int64(units.Avax)))
+	// convert to nDione
+	balance = balance.Div(balance, big.NewInt(int64(units.Dione)))
 	if balance.Cmp(big.NewInt(0)) == 0 {
 		return 0, nil
 	}
-	return float64(balance.Uint64()) / float64(units.Avax), nil
+	return float64(balance.Uint64()) / float64(units.Dione), nil
 }
 
 func promptAdminAndEnabledAddresses() ([]common.Address, []common.Address, error) {

@@ -6,7 +6,7 @@ package models
 import (
 	"testing"
 
-	"github.com/ava-labs/avalanche-network-runner/utils"
+	"github.com/DioneProtocol/odyssey-network-runner/utils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +14,7 @@ func TestGetVMID_imported(t *testing.T) {
 	assert := require.New(t)
 	testVMID := "abcd"
 	sc := Sidecar{
-		ImportedFromAPM: true,
+		ImportedFromOPM: true,
 		ImportedVMID:    testVMID,
 	}
 
@@ -27,7 +27,7 @@ func TestGetVMID_derived(t *testing.T) {
 	assert := require.New(t)
 	testVMName := "subnet"
 	sc := Sidecar{
-		ImportedFromAPM: false,
+		ImportedFromOPM: false,
 		Name:            testVMName,
 	}
 

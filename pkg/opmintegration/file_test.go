@@ -1,19 +1,19 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apmintegration
+package opmintegration
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/ava-labs/apm/types"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/version"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/version"
+	"github.com/DioneProtocol/opm/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,11 +59,11 @@ const (
 `
 )
 
-func newTestApp(t *testing.T, testDir string) *application.Avalanche {
+func newTestApp(t *testing.T, testDir string) *application.Odyssey {
 	tempDir := t.TempDir()
 	app := application.New()
 	app.Setup(tempDir, logging.NoLog{}, nil, prompts.NewPrompter(), application.NewDownloader())
-	app.ApmDir = testDir
+	app.OpmDir = testDir
 	return app
 }
 

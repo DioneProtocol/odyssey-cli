@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -377,23 +377,23 @@ func (c *AwsCloud) UploadSSHIdentityKeyPair(keyName string, identity string) err
 
 // SetupSecurityGroup sets up a security group for the AwsCloud instance.
 func (c *AwsCloud) SetupSecurityGroup(ipAddress, securityGroupName string) (string, error) {
-	sgID, err := c.CreateSecurityGroup(securityGroupName, "Allow SSH, AVAX HTTP outbound traffic")
+	sgID, err := c.CreateSecurityGroup(securityGroupName, "Allow SSH, DIONE HTTP outbound traffic")
 	if err != nil {
 		return "", err
 	}
 	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.SSHTCPPort); err != nil {
 		return "", err
 	}
-	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.AvalanchegoAPIPort); err != nil {
+	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.OdysseygoAPIPort); err != nil {
 		return "", err
 	}
-	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.AvalanchegoMonitoringPort); err != nil {
+	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.OdysseygoMonitoringPort); err != nil {
 		return "", err
 	}
-	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.AvalanchegoGrafanaPort); err != nil {
+	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", ipAddress, constants.OdysseygoGrafanaPort); err != nil {
 		return "", err
 	}
-	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", "0.0.0.0/0", constants.AvalanchegoP2PPort); err != nil {
+	if err := c.AddSecurityGroupRule(sgID, "ingress", "tcp", "0.0.0.0/0", constants.OdysseygoP2PPort); err != nil {
 		return "", err
 	}
 	return sgID, nil

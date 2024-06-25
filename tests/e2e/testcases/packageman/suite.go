@@ -6,8 +6,8 @@ package packageman
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/tests/e2e/commands"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/commands"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -44,10 +44,10 @@ var _ = ginkgo.Describe("[Package Management]", ginkgo.Ordered, func() {
 	ginkgo.It("can deploy a subnet with subnet-evm version", func() {
 		// check subnet-evm install precondition
 		gomega.Expect(utils.CheckSubnetEVMExists(binaryToVersion[utils.SoloSubnetEVMKey1])).Should(gomega.BeFalse())
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.SoloAvagoKey])).Should(gomega.BeFalse())
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.SoloOdygoKey])).Should(gomega.BeFalse())
 
 		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, binaryToVersion[utils.SoloSubnetEVMKey1])
-		deployOutput := commands.DeploySubnetLocallyWithVersion(subnetName, binaryToVersion[utils.SoloAvagoKey])
+		deployOutput := commands.DeploySubnetLocallyWithVersion(subnetName, binaryToVersion[utils.SoloOdygoKey])
 		rpcs, err := utils.ParseRPCsFromOutput(deployOutput)
 		if err != nil {
 			fmt.Println(deployOutput)
@@ -64,7 +64,7 @@ var _ = ginkgo.Describe("[Package Management]", ginkgo.Ordered, func() {
 
 		// check subnet-evm install
 		gomega.Expect(utils.CheckSubnetEVMExists(binaryToVersion[utils.SoloSubnetEVMKey1])).Should(gomega.BeTrue())
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.SoloAvagoKey])).Should(gomega.BeTrue())
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.SoloOdygoKey])).Should(gomega.BeTrue())
 
 		commands.DeleteSubnetConfig(subnetName)
 	})
@@ -113,13 +113,13 @@ var _ = ginkgo.Describe("[Package Management]", ginkgo.Ordered, func() {
 		commands.DeleteSubnetConfig(secondSubnetName)
 	})
 
-	ginkgo.It("can deploy with multiple avalanchego versions", func() {
-		// check avago install precondition
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.MultiAvago1Key])).Should(gomega.BeFalse())
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.MultiAvago2Key])).Should(gomega.BeFalse())
+	ginkgo.It("can deploy with multiple odysseygo versions", func() {
+		// check odygo install precondition
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.MultiOdygo1Key])).Should(gomega.BeFalse())
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.MultiOdygo2Key])).Should(gomega.BeFalse())
 
-		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, binaryToVersion[utils.MultiAvagoSubnetEVMKey])
-		deployOutput := commands.DeploySubnetLocallyWithVersion(subnetName, binaryToVersion[utils.MultiAvago1Key])
+		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, binaryToVersion[utils.MultiOdygoSubnetEVMKey])
+		deployOutput := commands.DeploySubnetLocallyWithVersion(subnetName, binaryToVersion[utils.MultiOdygo1Key])
 		rpcs, err := utils.ParseRPCsFromOutput(deployOutput)
 		if err != nil {
 			fmt.Println(deployOutput)
@@ -144,13 +144,13 @@ var _ = ginkgo.Describe("[Package Management]", ginkgo.Ordered, func() {
 		err = utils.RunHardhatTests(utils.BaseTest)
 		gomega.Expect(err).Should(gomega.BeNil())
 
-		// check avago install
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.MultiAvago1Key])).Should(gomega.BeTrue())
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.MultiAvago2Key])).Should(gomega.BeFalse())
+		// check odygo install
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.MultiOdygo1Key])).Should(gomega.BeTrue())
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.MultiOdygo2Key])).Should(gomega.BeFalse())
 
 		commands.CleanNetwork()
 
-		deployOutput = commands.DeploySubnetLocallyWithVersion(subnetName, binaryToVersion[utils.MultiAvago2Key])
+		deployOutput = commands.DeploySubnetLocallyWithVersion(subnetName, binaryToVersion[utils.MultiOdygo2Key])
 		rpcs, err = utils.ParseRPCsFromOutput(deployOutput)
 		if err != nil {
 			fmt.Println(deployOutput)
@@ -165,9 +165,9 @@ var _ = ginkgo.Describe("[Package Management]", ginkgo.Ordered, func() {
 		err = utils.RunHardhatTests(utils.BaseTest)
 		gomega.Expect(err).Should(gomega.BeNil())
 
-		// check avago install
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.MultiAvago1Key])).Should(gomega.BeTrue())
-		gomega.Expect(utils.CheckAvalancheGoExists(binaryToVersion[utils.MultiAvago2Key])).Should(gomega.BeTrue())
+		// check odygo install
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.MultiOdygo1Key])).Should(gomega.BeTrue())
+		gomega.Expect(utils.CheckOdysseyGoExists(binaryToVersion[utils.MultiOdygo2Key])).Should(gomega.BeTrue())
 
 		commands.DeleteSubnetConfig(subnetName)
 	})

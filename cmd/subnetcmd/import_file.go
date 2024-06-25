@@ -11,11 +11,11 @@ import (
 	"os/user"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/apmintegration"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/opmintegration"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +26,7 @@ var (
 	branch          string
 )
 
-// avalanche subnet import
+// odyssey subnet import
 func newImportFileCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "file [subnetPath]",
@@ -38,7 +38,7 @@ func newImportFileCmd() *cobra.Command {
 
 To import from a file, you can optionally provide the path as a command-line argument.
 Alternatively, running the command without any arguments triggers an interactive wizard.
-To import from a repository, go through the wizard. By default, an imported Subnet doesn't 
+To import from a repository, go through the wizard. By default, an imported Subnet doesn't
 overwrite an existing Subnet with the same name. To allow overwrites, provide the --force
 flag.`,
 	}
@@ -53,7 +53,7 @@ flag.`,
 		&repoOrURL,
 		"repo",
 		"",
-		"the repo to import (ex: ava-labs/avalanche-plugins-core) or url to download the repo from",
+		"the repo to import (ex: dioneprotocol/odyssey-plugins-core) or url to download the repo from",
 	)
 	cmd.Flags().StringVar(
 		&branch,
@@ -78,8 +78,8 @@ func importSubnet(_ *cobra.Command, args []string) error {
 
 	if repoOrURL == "" && branch == "" && subnetAlias == "" {
 		fileOption := "File"
-		apmOption := "Repository"
-		typeOptions := []string{fileOption, apmOption}
+		opmOption := "Repository"
+		typeOptions := []string{fileOption, opmOption}
 		promptStr := "Would you like to import your subnet from a file or a repository?"
 		result, err := app.Prompt.CaptureList(promptStr, typeOptions)
 		if err != nil {
@@ -91,8 +91,8 @@ func importSubnet(_ *cobra.Command, args []string) error {
 		}
 	}
 
-	// Option must be APM
-	return importFromAPM()
+	// Option must be OPM
+	return importFromOPM()
 }
 
 func importFromFile(importPath string) error {
@@ -155,11 +155,11 @@ func importFromFile(importPath string) error {
 	}
 
 	if importable.NodeConfig != nil {
-		if err := app.WriteAvagoNodeConfigFile(subnetName, importable.NodeConfig); err != nil {
+		if err := app.WriteOdygoNodeConfigFile(subnetName, importable.NodeConfig); err != nil {
 			return err
 		}
 	} else {
-		_ = os.RemoveAll(app.GetAvagoNodeConfigPath(subnetName))
+		_ = os.RemoveAll(app.GetOdygoNodeConfigPath(subnetName))
 	}
 
 	if importable.ChainConfig != nil {
@@ -171,11 +171,11 @@ func importFromFile(importPath string) error {
 	}
 
 	if importable.SubnetConfig != nil {
-		if err := app.WriteAvagoSubnetConfigFile(subnetName, importable.SubnetConfig); err != nil {
+		if err := app.WriteOdygoSubnetConfigFile(subnetName, importable.SubnetConfig); err != nil {
 			return err
 		}
 	} else {
-		_ = os.RemoveAll(app.GetAvagoSubnetConfigPath(subnetName))
+		_ = os.RemoveAll(app.GetOdygoSubnetConfigPath(subnetName))
 	}
 
 	if importable.NetworkUpgrades != nil {
@@ -195,17 +195,17 @@ func importFromFile(importPath string) error {
 	return nil
 }
 
-func importFromAPM() error {
-	// setup apm
+func importFromOPM() error {
+	// setup opm
 	usr, err := user.Current()
 	if err != nil {
 		return err
 	}
-	apmBaseDir := filepath.Join(usr.HomeDir, constants.APMDir)
-	if err = apmintegration.SetupApm(app, apmBaseDir); err != nil {
+	opmBaseDir := filepath.Join(usr.HomeDir, constants.OPMDir)
+	if err = opmintegration.SetupOpm(app, opmBaseDir); err != nil {
 		return err
 	}
-	installedRepos, err := apmintegration.GetRepos(app)
+	installedRepos, err := opmintegration.GetRepos(app)
 	if err != nil {
 		return err
 	}
@@ -262,18 +262,18 @@ func importFromAPM() error {
 			}
 		}
 
-		repoAlias, err = apmintegration.AddRepo(app, repoURL, branch)
+		repoAlias, err = opmintegration.AddRepo(app, repoURL, branch)
 		if err != nil {
 			return err
 		}
 
-		err = apmintegration.UpdateRepos(app)
+		err = opmintegration.UpdateRepos(app)
 		if err != nil {
 			return err
 		}
 	}
 
-	subnets, err := apmintegration.GetSubnets(app, repoAlias)
+	subnets, err := opmintegration.GetSubnets(app, repoAlias)
 	if err != nil {
 		return err
 	}
@@ -297,10 +297,10 @@ func importFromAPM() error {
 		}
 	}
 
-	subnetKey := apmintegration.MakeKey(repoAlias, subnet)
+	subnetKey := opmintegration.MakeKey(repoAlias, subnet)
 
 	// Populate the sidecar and create a genesis
-	subnetDescr, err := apmintegration.LoadSubnetFile(app, subnetKey)
+	subnetDescr, err := opmintegration.LoadSubnetFile(app, subnetKey)
 	if err != nil {
 		return err
 	}
@@ -313,7 +313,7 @@ func importFromAPM() error {
 		return errors.New("multiple vm subnets not supported")
 	}
 
-	vmDescr, err := apmintegration.LoadVMFile(app, repoAlias, subnetDescr.VMs[0])
+	vmDescr, err := opmintegration.LoadVMFile(app, repoAlias, subnetDescr.VMs[0])
 	if err != nil {
 		return err
 	}
@@ -331,13 +331,13 @@ func importFromAPM() error {
 		Subnet:          subnetDescr.Alias,
 		TokenName:       constants.DefaultTokenName,
 		Version:         constants.SidecarVersion,
-		ImportedFromAPM: true,
+		ImportedFromOPM: true,
 		ImportedVMID:    vmDescr.ID,
 	}
 
 	ux.Logger.PrintToUser("Selected subnet, installing " + subnetKey)
 
-	if err = apmintegration.InstallVM(app, subnetKey); err != nil {
+	if err = opmintegration.InstallVM(app, subnetKey); err != nil {
 		return err
 	}
 

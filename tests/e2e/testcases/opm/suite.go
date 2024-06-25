@@ -1,13 +1,13 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apm
+package opm
 
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/tests/e2e/commands"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/commands"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -18,15 +18,14 @@ const (
 	vmid1   = "srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy"
 	vmid2   = "sqja3uK17MJxfC7AN8nGadBw9JK5BcrsNwNynsqP5Gih8M5Bm"
 
-	testRepo = "https://github.com/ava-labs/test-subnet-configs"
+	testRepo = "https://github.com/dioneprotocol/test-subnet-configs"
 )
 
-var _ = ginkgo.Describe("[APM]", func() {
+var _ = ginkgo.Describe("[OPM]", func() {
 	ginkgo.BeforeEach(func() {
 		// TODO this is a bit coarse, but I'm not sure a better solution is possible
-		// without modifications to the APM.
-		// More details: https://github.com/ava-labs/avalanche-cli/issues/244
-		utils.RemoveAPMRepo()
+		// without modifications to the OPM.
+		utils.RemoveOPMRepo()
 	})
 
 	ginkgo.AfterEach(func() {
@@ -40,15 +39,15 @@ var _ = ginkgo.Describe("[APM]", func() {
 			fmt.Println("Delete config error:", err)
 		}
 		gomega.Expect(err).Should(gomega.BeNil())
-		utils.DeleteAPMBin(vmid1)
-		utils.DeleteAPMBin(vmid2)
+		utils.DeleteOPMBin(vmid1)
+		utils.DeleteOPMBin(vmid2)
 		// TODO same as above
-		utils.RemoveAPMRepo()
+		utils.RemoveOPMRepo()
 	})
 
-	ginkgo.It("can import from avalanche-core", func() {
+	ginkgo.It("can import from odyssey-core", func() {
 		ginkgo.Skip("TODO")
-		repo := "ava-labs/avalanche-plugins-core"
+		repo := "dioneprotocol/odyssey-plugins-core"
 		commands.ImportSubnetConfig(repo, subnet1)
 	})
 

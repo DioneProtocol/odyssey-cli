@@ -7,25 +7,25 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	avagoconstants "github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/utils/crypto/keychain"
-	ledger "github.com/ava-labs/avalanchego/utils/crypto/ledger"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/utils/units"
-	avmtxs "github.com/ava-labs/avalanchego/vms/avm/txs"
-	"github.com/ava-labs/avalanchego/vms/components/avax"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
-	"github.com/ava-labs/avalanchego/wallet/subnet/primary"
-	"github.com/ava-labs/avalanchego/wallet/subnet/primary/common"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	odygoconstants "github.com/DioneProtocol/odysseygo/utils/constants"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/keychain"
+	ledger "github.com/DioneProtocol/odysseygo/utils/crypto/ledger"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/utils/units"
+	alphatxs "github.com/DioneProtocol/odysseygo/vms/alpha/txs"
+	"github.com/DioneProtocol/odysseygo/vms/components/dione"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
+	"github.com/DioneProtocol/odysseygo/wallet/subnet/primary"
+	"github.com/DioneProtocol/odysseygo/wallet/subnet/primary/common"
 	"github.com/spf13/cobra"
 )
 
@@ -76,17 +76,10 @@ func newTransferCmd() *cobra.Command {
 	)
 	cmd.Flags().BoolVarP(
 		&testnet,
-		fujiFlag,
-		"u",
-		false,
-		"transfer between testnet (fuji) addresses",
-	)
-	cmd.Flags().BoolVarP(
-		&testnet,
 		testnetFlag,
 		"t",
 		false,
-		"transfer between testnet (fuji) addresses",
+		"transfer between testnet addresses",
 	)
 	cmd.Flags().BoolVarP(
 		&mainnet,
@@ -142,7 +135,7 @@ func newTransferCmd() *cobra.Command {
 		amountFlag,
 		"o",
 		0,
-		"amount to send or receive (AVAX units)",
+		"amount to send or receive (DIONE units)",
 	)
 	return cmd
 }
@@ -161,13 +154,13 @@ func transferF(*cobra.Command, []string) error {
 	case local:
 		network = models.LocalNetwork
 	case testnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case mainnet:
 		network = models.MainnetNetwork
 	default:
 		networkStr, err := app.Prompt.CaptureList(
 			"Network to use",
-			[]string{models.Mainnet.String(), models.Fuji.String(), models.Local.String()},
+			[]string{models.Mainnet.String(), models.Testnet.String(), models.Local.String()},
 		)
 		if err != nil {
 			return err
@@ -200,7 +193,7 @@ func transferF(*cobra.Command, []string) error {
 		} else {
 			goalStr = " for the receiver address"
 		}
-		useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, goalStr, app.GetKeyDir())
+		useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, goalStr, app.GetKeyDir())
 		if err != nil {
 			return err
 		}
@@ -215,9 +208,9 @@ func transferF(*cobra.Command, []string) error {
 	if amountFlt == 0 {
 		var promptStr string
 		if send {
-			promptStr = "Amount to send (AVAX units)"
+			promptStr = "Amount to send (DIONE units)"
 		} else {
-			promptStr = "Amount to receive (AVAX units)"
+			promptStr = "Amount to receive (DIONE units)"
 		}
 		amountFlt, err = app.Prompt.CaptureFloat(promptStr, func(v float64) error {
 			if v <= 0 {
@@ -229,7 +222,7 @@ func transferF(*cobra.Command, []string) error {
 			return err
 		}
 	}
-	amount := uint64(amountFlt * float64(units.Avax))
+	amount := uint64(amountFlt * float64(units.Dione))
 
 	fee := network.GenesisParams().TxFee
 
@@ -256,7 +249,7 @@ func transferF(*cobra.Command, []string) error {
 	var receiverAddr ids.ShortID
 	if send {
 		if receiverAddrStr == "" {
-			receiverAddrStr, err = app.Prompt.CapturePChainAddress("Receiver address", network)
+			receiverAddrStr, err = app.Prompt.CaptureOChainAddress("Receiver address", network)
 			if err != nil {
 				return err
 			}
@@ -267,7 +260,7 @@ func transferF(*cobra.Command, []string) error {
 		}
 	} else {
 		receiverAddr = kc.Addresses().List()[0]
-		receiverAddrStr, err = address.Format("P", key.GetHRP(network.ID), receiverAddr[:])
+		receiverAddrStr, err = address.Format("O", key.GetHRP(network.ID), receiverAddr[:])
 		if err != nil {
 			return err
 		}
@@ -277,17 +270,17 @@ func transferF(*cobra.Command, []string) error {
 	ux.Logger.PrintToUser("this operation is going to:")
 	if send {
 		addr := kc.Addresses().List()[0]
-		addrStr, err := address.Format("P", key.GetHRP(network.ID), addr[:])
+		addrStr, err := address.Format("O", key.GetHRP(network.ID), addr[:])
 		if err != nil {
 			return err
 		}
 		if addr == receiverAddr {
 			return fmt.Errorf("sender addr is the same as receiver addr")
 		}
-		ux.Logger.PrintToUser("- send %.9f AVAX from %s to target address %s", float64(amount)/float64(units.Avax), addrStr, receiverAddrStr)
-		ux.Logger.PrintToUser("- take a fee of %.9f AVAX from source address %s", float64(4*fee)/float64(units.Avax), addrStr)
+		ux.Logger.PrintToUser("- send %.9f DIONE from %s to target address %s", float64(amount)/float64(units.Dione), addrStr, receiverAddrStr)
+		ux.Logger.PrintToUser("- take a fee of %.9f DIONE from source address %s", float64(4*fee)/float64(units.Dione), addrStr)
 	} else {
-		ux.Logger.PrintToUser("- receive %.9f AVAX at target address %s", float64(amount)/float64(units.Avax), receiverAddrStr)
+		ux.Logger.PrintToUser("- receive %.9f DIONE at target address %s", float64(amount)/float64(units.Dione), receiverAddrStr)
 	}
 	ux.Logger.PrintToUser("")
 
@@ -312,42 +305,42 @@ func transferF(*cobra.Command, []string) error {
 		wallet, err := primary.MakeWallet(
 			context.Background(),
 			&primary.WalletConfig{
-				URI:          network.Endpoint,
-				AVAXKeychain: kc,
-				EthKeychain:  secp256k1fx.NewKeychain(),
+				URI:           network.Endpoint,
+				DIONEKeychain: kc,
+				EthKeychain:   secp256k1fx.NewKeychain(),
 			},
 		)
 		if err != nil {
 			return err
 		}
-		output := &avax.TransferableOutput{
-			Asset: avax.Asset{ID: wallet.P().AVAXAssetID()},
+		output := &dione.TransferableOutput{
+			Asset: dione.Asset{ID: wallet.O().DIONEAssetID()},
 			Out: &secp256k1fx.TransferOutput{
 				Amt:          amount + fee*3,
 				OutputOwners: to,
 			},
 		}
-		outputs := []*avax.TransferableOutput{output}
-		ux.Logger.PrintToUser("Issuing ExportTx P -> X")
+		outputs := []*dione.TransferableOutput{output}
+		ux.Logger.PrintToUser("Issuing ExportTx O -> A")
 
 		if ledgerIndex != wrongLedgerIndexVal {
-			ux.Logger.PrintToUser("*** Please sign 'Export Tx / P to X Chain' transaction on the ledger device *** ")
+			ux.Logger.PrintToUser("*** Please sign 'Export Tx / O to A Chain' transaction on the ledger device *** ")
 		}
-		unsignedTx, err := wallet.P().Builder().NewExportTx(
-			wallet.X().BlockchainID(),
+		unsignedTx, err := wallet.O().Builder().NewExportTx(
+			wallet.A().BlockchainID(),
 			outputs,
 		)
 		if err != nil {
 			return fmt.Errorf("error building tx: %w", err)
 		}
 		tx := txs.Tx{Unsigned: unsignedTx}
-		if err := wallet.P().Signer().Sign(context.Background(), &tx); err != nil {
+		if err := wallet.O().Signer().Sign(context.Background(), &tx); err != nil {
 			return fmt.Errorf("error signing tx: %w", err)
 		}
 
 		ctx, cancel := utils.GetAPIContext()
 		defer cancel()
-		err = wallet.P().IssueTx(
+		err = wallet.O().IssueTx(
 			&tx,
 			common.WithContext(ctx),
 		)
@@ -364,36 +357,36 @@ func transferF(*cobra.Command, []string) error {
 			wallet, err := primary.MakeWallet(
 				context.Background(),
 				&primary.WalletConfig{
-					URI:          network.Endpoint,
-					AVAXKeychain: kc,
-					EthKeychain:  secp256k1fx.NewKeychain(),
+					URI:           network.Endpoint,
+					DIONEKeychain: kc,
+					EthKeychain:   secp256k1fx.NewKeychain(),
 				},
 			)
 			if err != nil {
 				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
 				return err
 			}
-			ux.Logger.PrintToUser("Issuing ImportTx P -> X")
+			ux.Logger.PrintToUser("Issuing ImportTx O -> A")
 			if ledgerIndex != wrongLedgerIndexVal {
 				ux.Logger.PrintToUser("*** Please sign ImportTx transaction on the ledger device *** ")
 			}
-			unsignedTx, err := wallet.X().Builder().NewImportTx(
-				avagoconstants.PlatformChainID,
+			unsignedTx, err := wallet.A().Builder().NewImportTx(
+				odygoconstants.OmegaChainID,
 				&to,
 			)
 			if err != nil {
 				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
 				return fmt.Errorf("error building tx: %w", err)
 			}
-			tx := avmtxs.Tx{Unsigned: unsignedTx}
-			if err := wallet.X().Signer().Sign(context.Background(), &tx); err != nil {
+			tx := alphatxs.Tx{Unsigned: unsignedTx}
+			if err := wallet.A().Signer().Sign(context.Background(), &tx); err != nil {
 				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
 				return fmt.Errorf("error signing tx: %w", err)
 			}
 
 			ctx, cancel := utils.GetAPIContext()
 			defer cancel()
-			err = wallet.X().IssueTx(
+			err = wallet.A().IssueTx(
 				&tx,
 				common.WithContext(ctx),
 			)
@@ -414,21 +407,21 @@ func transferF(*cobra.Command, []string) error {
 			wallet, err := primary.MakeWallet(
 				context.Background(),
 				&primary.WalletConfig{
-					URI:          network.Endpoint,
-					AVAXKeychain: kc,
-					EthKeychain:  secp256k1fx.NewKeychain(),
+					URI:           network.Endpoint,
+					DIONEKeychain: kc,
+					EthKeychain:   secp256k1fx.NewKeychain(),
 				},
 			)
 			if err != nil {
 				ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
 				return err
 			}
-			ux.Logger.PrintToUser("Issuing ExportTx X -> P")
-			_, err = subnet.IssueXToPExportTx(
+			ux.Logger.PrintToUser("Issuing ExportTx A -> O")
+			_, err = subnet.IssueAToOExportTx(
 				wallet,
 				ledgerIndex != wrongLedgerIndexVal,
 				true,
-				wallet.P().AVAXAssetID(),
+				wallet.O().DIONEAssetID(),
 				amount+fee*1,
 				&to,
 			)
@@ -443,17 +436,17 @@ func transferF(*cobra.Command, []string) error {
 			wallet, err := primary.MakeWallet(
 				context.Background(),
 				&primary.WalletConfig{
-					URI:          network.Endpoint,
-					AVAXKeychain: kc,
-					EthKeychain:  secp256k1fx.NewKeychain(),
+					URI:           network.Endpoint,
+					DIONEKeychain: kc,
+					EthKeychain:   secp256k1fx.NewKeychain(),
 				},
 			)
 			if err != nil {
 				ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
 				return err
 			}
-			ux.Logger.PrintToUser("Issuing ImportTx X -> P")
-			_, err = subnet.IssuePFromXImportTx(
+			ux.Logger.PrintToUser("Issuing ImportTx A -> O")
+			_, err = subnet.IssueOFromAImportTx(
 				wallet,
 				ledgerIndex != wrongLedgerIndexVal,
 				true,

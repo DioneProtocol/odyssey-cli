@@ -6,7 +6,7 @@ package binutils
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 )
 
 const (
@@ -23,56 +23,56 @@ type GithubDownloader interface {
 }
 
 type (
-	subnetEVMDownloader   struct{}
-	avalancheGoDownloader struct{}
+	subnetEVMDownloader struct{}
+	odysseyGoDownloader struct{}
 )
 
 var (
 	_ GithubDownloader = (*subnetEVMDownloader)(nil)
-	_ GithubDownloader = (*avalancheGoDownloader)(nil)
+	_ GithubDownloader = (*odysseyGoDownloader)(nil)
 )
 
 func GetGithubLatestReleaseURL(org, repo string) string {
 	return "https://api.github.com/repos/" + org + "/" + repo + "/releases/latest"
 }
 
-func NewAvagoDownloader() GithubDownloader {
-	return &avalancheGoDownloader{}
+func NewOdygoDownloader() GithubDownloader {
+	return &odysseyGoDownloader{}
 }
 
-func (avalancheGoDownloader) GetDownloadURL(version string, installer Installer) (string, string, error) {
+func (odysseyGoDownloader) GetDownloadURL(version string, installer Installer) (string, string, error) {
 	// NOTE: if any of the underlying URLs change (github changes, release file names, etc.) this fails
 	goarch, goos := installer.GetArch()
 
-	var avalanchegoURL string
+	var odysseygoURL string
 	var ext string
 
 	switch goos {
 	case linux:
-		avalanchegoURL = fmt.Sprintf(
-			"https://github.com/%s/%s/releases/download/%s/avalanchego-linux-%s-%s.tar.gz",
-			constants.AvaLabsOrg,
-			constants.AvalancheGoRepoName,
+		odysseygoURL = fmt.Sprintf(
+			"https://github.com/%s/%s/releases/download/%s/odysseygo-linux-%s-%s.tar.gz",
+			constants.DioneProtocolOrg,
+			constants.OdysseyGoRepoName,
 			version,
 			goarch,
 			version,
 		)
 		ext = tarExtension
 	case darwin:
-		avalanchegoURL = fmt.Sprintf(
-			"https://github.com/%s/%s/releases/download/%s/avalanchego-macos-%s.zip",
-			constants.AvaLabsOrg,
-			constants.AvalancheGoRepoName,
+		odysseygoURL = fmt.Sprintf(
+			"https://github.com/%s/%s/releases/download/%s/odysseygo-macos-%s.zip",
+			constants.DioneProtocolOrg,
+			constants.OdysseyGoRepoName,
 			version,
 			version,
 		)
 		ext = zipExtension
 		// EXPERIMENTAL WIN, no support
 	case windows:
-		avalanchegoURL = fmt.Sprintf(
-			"https://github.com/%s/%s/releases/download/%s/avalanchego-win-%s-experimental.zip",
-			constants.AvaLabsOrg,
-			constants.AvalancheGoRepoName,
+		odysseygoURL = fmt.Sprintf(
+			"https://github.com/%s/%s/releases/download/%s/odysseygo-win-%s-experimental.zip",
+			constants.DioneProtocolOrg,
+			constants.OdysseyGoRepoName,
 			version,
 			version,
 		)
@@ -81,7 +81,7 @@ func (avalancheGoDownloader) GetDownloadURL(version string, installer Installer)
 		return "", "", fmt.Errorf("OS not supported: %s", goos)
 	}
 
-	return avalanchegoURL, ext, nil
+	return odysseygoURL, ext, nil
 }
 
 func NewSubnetEVMDownloader() GithubDownloader {
@@ -99,7 +99,7 @@ func (subnetEVMDownloader) GetDownloadURL(version string, installer Installer) (
 	case linux:
 		subnetEVMURL = fmt.Sprintf(
 			"https://github.com/%s/%s/releases/download/%s/%s_%s_linux_%s.tar.gz",
-			constants.AvaLabsOrg,
+			constants.DioneProtocolOrg,
 			constants.SubnetEVMRepoName,
 			version,
 			constants.SubnetEVMRepoName,
@@ -109,7 +109,7 @@ func (subnetEVMDownloader) GetDownloadURL(version string, installer Installer) (
 	case darwin:
 		subnetEVMURL = fmt.Sprintf(
 			"https://github.com/%s/%s/releases/download/%s/%s_%s_darwin_%s.tar.gz",
-			constants.AvaLabsOrg,
+			constants.DioneProtocolOrg,
 			constants.SubnetEVMRepoName,
 			version,
 			constants.SubnetEVMRepoName,

@@ -5,12 +5,12 @@ package configcmd
 import (
 	"errors"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
-// avalanche config metrics command
+// odyssey config metrics command
 func newMetricsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "metrics [enable | disable]",
@@ -27,13 +27,13 @@ func newMetricsCmd() *cobra.Command {
 func handleMetricsSettings(_ *cobra.Command, args []string) error {
 	switch args[0] {
 	case constants.Enable:
-		ux.Logger.PrintToUser("Thank you for opting in Avalanche CLI usage metrics collection")
+		ux.Logger.PrintToUser("Thank you for opting in Odyssey CLI usage metrics collection")
 		err := saveMetricsPreferences(true)
 		if err != nil {
 			return err
 		}
 	case constants.Disable:
-		ux.Logger.PrintToUser("Avalanche CLI usage metrics will no longer be collected")
+		ux.Logger.PrintToUser("Odyssey CLI usage metrics will no longer be collected")
 		err := saveMetricsPreferences(false)
 		if err != nil {
 			return err

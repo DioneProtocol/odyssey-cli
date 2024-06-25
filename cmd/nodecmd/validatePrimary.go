@@ -9,48 +9,48 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ava-labs/avalanchego/utils/crypto/bls"
-	"github.com/ava-labs/avalanchego/vms/platformvm/signer"
+	"github.com/DioneProtocol/odysseygo/utils/crypto/bls"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/signer"
 	"golang.org/x/exp/maps"
 
-	"github.com/ava-labs/avalanchego/utils/units"
+	"github.com/DioneProtocol/odysseygo/utils/units"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
 
-	"github.com/ava-labs/avalanchego/vms/platformvm"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 
-	subnetcmd "github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
+	subnetcmd "github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
 	"github.com/spf13/cobra"
 )
 
 var (
-	deployDevnet                 bool
-	deployTestnet                bool
-	deployMainnet                bool
-	endpoint                     string
-	keyName                      string
-	useEwoq                      bool
-	useLedger                    bool
-	useStaticIP                  bool
-	sameMonitoringInstance       bool
-	separateMonitoringInstance   bool
-	awsProfile                   string
-	ledgerAddresses              []string
-	weight                       uint64
-	startTimeStr                 string
-	duration                     time.Duration
-	defaultValidatorParams       bool
-	useCustomDuration            bool
-	ErrMutuallyExlusiveKeyLedger = errors.New("--key and --ledger,--ledger-addrs are mutually exclusive")
-	ErrStoredKeyOnMainnet        = errors.New("--key is not available for mainnet operations")
-	ErrNoBlockchainID            = errors.New("failed to find the blockchain ID for this subnet, has it been deployed/created on this network?")
+	deployDevnet                  bool
+	deployTestnet                 bool
+	deployMainnet                 bool
+	endpoint                      string
+	keyName                       string
+	useEwoq                       bool
+	useLedger                     bool
+	useStaticIP                   bool
+	sameMonitoringInstance        bool
+	separateMonitoringInstance    bool
+	awsProfile                    string
+	ledgerAddresses               []string
+	weight                        uint64
+	startTimeStr                  string
+	duration                      time.Duration
+	defaultValidatorParams        bool
+	useCustomDuration             bool
+	ErrMutuallyExclusiveKeyLedger = errors.New("--key and --ledger,--ledger-addrs are mutually exclusive")
+	ErrStoredKeyOnMainnet         = errors.New("--key is not available for mainnet operations")
+	ErrNoBlockchainID             = errors.New("failed to find the blockchain ID for this subnet, has it been deployed/created on this network?")
 )
 
 func newValidatePrimaryCmd() *cobra.Command {
@@ -67,16 +67,15 @@ Network.`,
 	}
 
 	cmd.Flags().BoolVarP(&deployDevnet, "devnet", "d", false, "set up validator in devnet")
-	cmd.Flags().BoolVarP(&deployTestnet, "testnet", "t", false, "set up validator in testnet (alias to `fuji`)")
-	cmd.Flags().BoolVarP(&deployTestnet, "fuji", "f", false, "set up validator in fuji (alias to `testnet`")
+	cmd.Flags().BoolVarP(&deployTestnet, "testnet", "t", false, "set up validator in testnet")
 	cmd.Flags().BoolVarP(&deployMainnet, "mainnet", "m", false, "set up validator in mainnet")
 
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji only]")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji/devnet)")
-	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [fuji/devnet only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet only]")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet/devnet)")
+	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [testnet/devnet only]")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 
-	cmd.Flags().Uint64Var(&weight, "stake-amount", 0, "how many AVAX to stake in the validator")
+	cmd.Flags().Uint64Var(&weight, "stake-amount", 0, "how many DIONE to stake in the validator")
 	cmd.Flags().StringVar(&startTimeStr, "start-time", "", "UTC start time when this validator starts validating, in 'YYYY-MM-DD HH:MM:SS' format")
 	cmd.Flags().DurationVar(&duration, "staking-period", 0, "how long validator validates for after start time")
 
@@ -84,10 +83,10 @@ Network.`,
 }
 
 func GetMinStakingAmount(network models.Network) (uint64, error) {
-	pClient := platformvm.NewClient(network.Endpoint)
+	oClient := omegavm.NewClient(network.Endpoint)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
-	minValStake, _, err := pClient.GetMinStake(ctx, ids.Empty)
+	minValStake, _, err := oClient.GetMinStake(ctx, ids.Empty)
 	if err != nil {
 		return 0, err
 	}
@@ -156,7 +155,7 @@ func joinAsPrimaryNetworkValidator(
 
 func PromptWeightPrimaryNetwork(network models.Network) (uint64, error) {
 	defaultStake := network.GenesisParams().MinValidatorStake
-	defaultWeight := fmt.Sprintf("Default (%s)", convertNanoAvaxToAvaxString(defaultStake))
+	defaultWeight := fmt.Sprintf("Default (%s)", convertNanoDioneToDioneString(defaultStake))
 	txt := "What stake weight would you like to assign to the validator?"
 	weightOptions := []string{defaultWeight, "Custom"}
 	weightOption, err := app.Prompt.CaptureList(txt, weightOptions)
@@ -223,7 +222,7 @@ func GetTimeParametersPrimaryNetwork(network models.Network, nodeIndex int, vali
 }
 
 func getDefaultValidationTime(start time.Time, network models.Network, nodeIndex int) (time.Duration, error) {
-	durationStr := constants.DefaultFujiStakeDuration
+	durationStr := constants.DefaultTestnetStakeDuration
 	if network.Kind == models.Mainnet {
 		durationStr = constants.DefaultMainnetStakeDuration
 	}
@@ -262,7 +261,7 @@ func getNodeIDs(hosts []*models.Host) (map[string]string, map[string]error) {
 			failedNodes[host.NodeID] = err
 			continue
 		}
-		ux.Logger.PrintToUser("Avalanche node id for host %s is %s", host.NodeID, nodeID)
+		ux.Logger.PrintToUser("Odyssey node id for host %s is %s", host.NodeID, nodeID)
 		nodeIDMap[host.NodeID] = nodeID.String()
 	}
 	return nodeIDMap, failedNodes
@@ -392,9 +391,9 @@ func validatePrimaryNetwork(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-// convertNanoAvaxToAvaxString converts nanoAVAX to AVAX
-func convertNanoAvaxToAvaxString(weight uint64) string {
-	return fmt.Sprintf("%.2f %s", float64(weight)/float64(units.Avax), constants.AVAXSymbol)
+// convertNanoDioneToDioneString converts nanoDIONE to DIONE
+func convertNanoDioneToDioneString(weight uint64) string {
+	return fmt.Sprintf("%.2f %s", float64(weight)/float64(units.Dione), constants.DIONESymbol)
 }
 
 func PrintNodeJoinPrimaryNetworkOutput(nodeID ids.NodeID, weight uint64, network models.Network, start time.Time) {
@@ -402,7 +401,7 @@ func PrintNodeJoinPrimaryNetworkOutput(nodeID ids.NodeID, weight uint64, network
 	ux.Logger.PrintToUser("Network: %s", network.Name())
 	ux.Logger.PrintToUser("Start time: %s", start.Format(constants.TimeParseLayout))
 	ux.Logger.PrintToUser("End time: %s", start.Add(duration).Format(constants.TimeParseLayout))
-	// we need to divide by 10 ^ 9 since we were using nanoAvax
-	ux.Logger.PrintToUser("Weight: %s", convertNanoAvaxToAvaxString(weight))
+	// we need to divide by 10 ^ 9 since we were using nanoDione
+	ux.Logger.PrintToUser("Weight: %s", convertNanoDioneToDioneString(weight))
 	ux.Logger.PrintToUser("Inputs complete, issuing transaction to add the provided validator information...")
 }

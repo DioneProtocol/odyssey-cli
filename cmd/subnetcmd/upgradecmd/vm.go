@@ -6,30 +6,30 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/plugins"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	"github.com/ava-labs/avalanche-network-runner/server"
-	anrutils "github.com/ava-labs/avalanche-network-runner/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/plugins"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
+	onrutils "github.com/DioneProtocol/odyssey-network-runner/utils"
 	"github.com/spf13/cobra"
 )
 
 const (
 	futureDeployment  = "Update config for future deployments"
 	localDeployment   = "Existing local deployment"
-	fujiDeployment    = "Fuji"
+	testnetDeployment = "Testnet"
 	mainnetDeployment = "Mainnet"
 )
 
 var (
 	pluginDir string
 
-	useFuji       bool
+	useTestnet    bool
 	useMainnet    bool
 	useLocal      bool
 	useConfig     bool
@@ -39,13 +39,13 @@ var (
 	binaryPathArg string
 )
 
-// avalanche subnet update vm
+// odyssey subnet update vm
 func newUpgradeVMCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "vm [subnetName]",
 		Short: "Upgrade a subnet's binary",
 		Long: `The subnet upgrade vm command enables the user to upgrade their Subnet's VM binary. The command
-can upgrade both local Subnets and publicly deployed Subnets on Fuji and Mainnet.
+can upgrade both local Subnets and publicly deployed Subnets on Testnet and Mainnet.
 
 The command walks the user through an interactive wizard. The user can skip the wizard by providing
 command line flags.`,
@@ -56,8 +56,7 @@ command line flags.`,
 
 	cmd.Flags().BoolVar(&useConfig, "config", false, "upgrade config for future subnet deployments")
 	cmd.Flags().BoolVar(&useLocal, "local", false, "upgrade existing `local` deployment")
-	cmd.Flags().BoolVar(&useFuji, "fuji", false, "upgrade existing `fuji` deployment (alias for `testnet`)")
-	cmd.Flags().BoolVar(&useFuji, "testnet", false, "upgrade existing `testnet` deployment (alias for `fuji`)")
+	cmd.Flags().BoolVar(&useTestnet, "testnet", false, "upgrade existing `testnet` deployment")
 	cmd.Flags().BoolVar(&useMainnet, "mainnet", false, "upgrade existing `mainnet` deployment")
 
 	cmd.Flags().BoolVar(&useManual, "print", false, "print instructions for upgrading")
@@ -71,8 +70,8 @@ command line flags.`,
 }
 
 func atMostOneNetworkSelected() bool {
-	return !(useConfig && useLocal || useConfig && useFuji || useConfig && useMainnet || useLocal && useFuji ||
-		useLocal && useMainnet || useFuji && useMainnet)
+	return !(useConfig && useLocal || useConfig && useTestnet || useConfig && useMainnet || useLocal && useTestnet ||
+		useLocal && useMainnet || useTestnet && useMainnet)
 }
 
 func atMostOneVersionSelected() bool {
@@ -142,8 +141,8 @@ func selectNetworkToUpgrade(sc models.Sidecar, upgradeOptions []string) (string,
 		return futureDeployment, nil
 	case useLocal:
 		return localDeployment, nil
-	case useFuji:
-		return fujiDeployment, nil
+	case useTestnet:
+		return testnetDeployment, nil
 	case useMainnet:
 		return mainnetDeployment, nil
 	}
@@ -165,9 +164,9 @@ func selectNetworkToUpgrade(sc models.Sidecar, upgradeOptions []string) (string,
 		}
 	}
 
-	// check if subnet deployed on fuji
-	if _, ok := sc.Networks[models.Fuji.String()]; ok {
-		upgradeOptions = append(upgradeOptions, fujiDeployment)
+	// check if subnet deployed on testnet
+	if _, ok := sc.Networks[models.Testnet.String()]; ok {
+		upgradeOptions = append(upgradeOptions, testnetDeployment)
 	}
 
 	// check if subnet deployed on mainnet
@@ -226,7 +225,7 @@ func updateToLatestVersion(vmType models.VMType, sc models.Sidecar, networkToUpg
 
 	// check latest version
 	latestVersion, err := app.Downloader.GetLatestReleaseVersion(binutils.GetGithubLatestReleaseURL(
-		constants.AvaLabsOrg,
+		constants.DioneProtocolOrg,
 		vmType.RepoName(),
 	))
 	if err != nil {
@@ -270,7 +269,7 @@ func updateVMByNetwork(sc models.Sidecar, targetVersion string, networkToUpgrade
 		return updateFutureVM(sc, targetVersion)
 	case localDeployment:
 		return updateExistingLocalVM(sc, targetVersion)
-	case fujiDeployment:
+	case testnetDeployment:
 		return chooseManualOrAutomatic(sc, targetVersion)
 	case mainnetDeployment:
 		return chooseManualOrAutomatic(sc, targetVersion)
@@ -315,7 +314,7 @@ func updateFutureVM(sc models.Sidecar, targetVersion string) error {
 }
 
 func updateExistingLocalVM(sc models.Sidecar, targetVersion string) error {
-	vmid, err := anrutils.VMID(sc.Name)
+	vmid, err := onrutils.VMID(sc.Name)
 	if err != nil {
 		return err
 	}
@@ -373,7 +372,7 @@ func chooseManualOrAutomatic(sc models.Sidecar, targetVersion string) error {
 		choiceAutomatic = "Automatic (Make sure your node isn't running)"
 	)
 	choice, err := app.Prompt.CaptureList(
-		"How would you like to update the avalanchego config?",
+		"How would you like to update the odysseygo config?",
 		[]string{choiceAutomatic, choiceManual},
 	)
 	if err != nil {

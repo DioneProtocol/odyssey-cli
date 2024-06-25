@@ -10,19 +10,19 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/statemachine"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/subnet-evm/core"
-	"github.com/ava-labs/subnet-evm/params"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/txallowlist"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/statemachine"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/subnet-evm/core"
+	"github.com/DioneProtocol/subnet-evm/params"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/txallowlist"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 func CreateEvmSubnetConfig(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	subnetName string,
 	genesisPath string,
 	subnetEVMVersion string,
@@ -72,7 +72,7 @@ func CreateEvmSubnetConfig(
 }
 
 func createEvmGenesis(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	subnetName string,
 	subnetEVMVersion string,
 	subnetEVMChainID uint64,
@@ -194,6 +194,6 @@ func ensureAdminsHaveBalance(admins []common.Address, alloc core.GenesisAlloc) e
 }
 
 // In own function to facilitate testing
-func getEVMAllocation(app *application.Avalanche, useDefaults bool) (core.GenesisAlloc, statemachine.StateDirection, error) {
-	return getAllocation(app, defaultEvmAirdropAmount, oneAvax, "Amount to airdrop (in AVAX units)", useDefaults)
+func getEVMAllocation(app *application.Odyssey, useDefaults bool) (core.GenesisAlloc, statemachine.StateDirection, error) {
+	return getAllocation(app, defaultEvmAirdropAmount, oneDione, "Amount to airdrop (in DIONE units)", useDefaults)
 }

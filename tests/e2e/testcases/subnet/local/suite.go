@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/commands"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
-	"github.com/ava-labs/avalanche-network-runner/api"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/commands"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odyssey-network-runner/api"
 	"github.com/ethereum/go-ethereum/common"
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -25,7 +25,7 @@ import (
 const (
 	subnetName       = "e2eSubnetTest"
 	secondSubnetName = "e2eSecondSubnetTest"
-	confPath         = "tests/e2e/assets/test_avalanche-cli.json"
+	confPath         = "tests/e2e/assets/test_odyssey-cli.json"
 	stakeAmount      = "2000"
 	stakeDuration    = "337h"
 	delegateAmount   = "25"
@@ -67,7 +67,7 @@ var _ = ginkgo.Describe("[Local Subnet]", ginkgo.Ordered, func() {
 		customVMPath, err := utils.DownloadCustomVMBin(mapping[utils.SoloSubnetEVMKey1])
 		gomega.Expect(err).Should(gomega.BeNil())
 		commands.CreateCustomVMConfig(subnetName, utils.SubnetEvmGenesisPath, customVMPath)
-		deployOutput := commands.DeploySubnetLocallyWithVersion(subnetName, mapping[utils.SoloAvagoKey])
+		deployOutput := commands.DeploySubnetLocallyWithVersion(subnetName, mapping[utils.SoloOdygoKey])
 		rpcs, err := utils.ParseRPCsFromOutput(deployOutput)
 		if err != nil {
 			fmt.Println(deployOutput)
@@ -329,10 +329,10 @@ var _ = ginkgo.Describe("[Local Subnet]", ginkgo.Ordered, func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		port, err := strconv.Atoi(url.Port())
 		gomega.Expect(err).Should(gomega.BeNil())
-		cClient := api.NewEthClient(url.Hostname(), uint(port))
+		dClient := api.NewEthClient(url.Hostname(), uint(port))
 
 		ethAddr := common.HexToAddress(addr)
-		balance, err := cClient.BalanceAt(context.Background(), ethAddr, nil)
+		balance, err := dClient.BalanceAt(context.Background(), ethAddr, nil)
 		gomega.Expect(err).Should(gomega.BeNil())
 
 		gomega.Expect(balance.Int64()).Should(gomega.Not(gomega.BeZero()))

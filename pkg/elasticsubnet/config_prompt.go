@@ -8,15 +8,15 @@ import (
 	"math"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/vms/platformvm/reward"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/reward"
 )
 
 // default elastic config parameter values are from
-// https://docs.avax.network/subnets/reference-elastic-subnets-parameters#primary-network-parameters-on-mainnet
+// https://docs.dione.network/subnets/reference-elastic-subnets-parameters#primary-network-parameters-on-mainnet
 const (
 	defaultInitialSupply               = 240_000_000
 	defaultMaximumSupply               = 720_000_000
@@ -38,7 +38,7 @@ const (
 	defaultUptimeRequirement           = 0.8
 )
 
-func GetElasticSubnetConfig(app *application.Avalanche, tokenSymbol string, useDefaultConfig bool) (models.ElasticSubnetConfig, error) {
+func GetElasticSubnetConfig(app *application.Odyssey, tokenSymbol string, useDefaultConfig bool) (models.ElasticSubnetConfig, error) {
 	const (
 		defaultConfig   = "Use default elastic subnet config"
 		customizeConfig = "Customize elastic subnet config"
@@ -81,8 +81,8 @@ func GetElasticSubnetConfig(app *application.Avalanche, tokenSymbol string, useD
 	return customElasticSubnetConfig, nil
 }
 
-func getCustomElasticSubnetConfig(app *application.Avalanche, tokenSymbol string) (models.ElasticSubnetConfig, error) {
-	ux.Logger.PrintToUser("More info regarding elastic subnet parameters can be found at https://docs.avax.network/subnets/reference-elastic-subnets-parameters")
+func getCustomElasticSubnetConfig(app *application.Odyssey, tokenSymbol string) (models.ElasticSubnetConfig, error) {
+	ux.Logger.PrintToUser("More info regarding elastic subnet parameters can be found at https://docs.dione.network/subnets/reference-elastic-subnets-parameters")
 	initialSupply, err := getInitialSupply(app, tokenSymbol)
 	if err != nil {
 		return models.ElasticSubnetConfig{}, err
@@ -143,7 +143,7 @@ func getCustomElasticSubnetConfig(app *application.Avalanche, tokenSymbol string
 	return elasticSubnetConfig, err
 }
 
-func getInitialSupply(app *application.Avalanche, tokenName string) (uint64, error) {
+func getInitialSupply(app *application.Odyssey, tokenName string) (uint64, error) {
 	ux.Logger.PrintToUser(fmt.Sprintf("Select the Initial Supply of %s. \"_\" can be used as thousand separator", tokenName))
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Initial Supply is %s", ux.ConvertToStringWithThousandSeparator(defaultInitialSupply)))
 	initialSupply, err := app.Prompt.CaptureUint64("Initial Supply amount")
@@ -153,7 +153,7 @@ func getInitialSupply(app *application.Avalanche, tokenName string) (uint64, err
 	return initialSupply, nil
 }
 
-func getMaximumSupply(app *application.Avalanche, tokenName string, initialSupply uint64) (uint64, error) {
+func getMaximumSupply(app *application.Odyssey, tokenName string, initialSupply uint64) (uint64, error) {
 	ux.Logger.PrintToUser(fmt.Sprintf("Select the Maximum Supply of %s. \"_\" can be used as thousand separator", tokenName))
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Supply is %s", ux.ConvertToStringWithThousandSeparator(defaultMaximumSupply)))
 	maxSupply, err := app.Prompt.CaptureUint64Compare(
@@ -172,7 +172,7 @@ func getMaximumSupply(app *application.Avalanche, tokenName string, initialSuppl
 	return maxSupply, nil
 }
 
-func getConsumptionRate(app *application.Avalanche) (uint64, uint64, error) {
+func getConsumptionRate(app *application.Odyssey) (uint64, uint64, error) {
 	ux.Logger.PrintToUser("Select the Minimum Consumption Rate. Please denominate your percentage in PercentDenominator")
 	ux.Logger.PrintToUser("To denominate your percentage in PercentDenominator just multiply it by 10_000. For example, 1 percent corresponds to 10_000")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Consumption Rate is %s", ux.ConvertToStringWithThousandSeparator(uint64(defaultMinConsumptionRate*reward.PercentDenominator))))
@@ -214,7 +214,7 @@ func getConsumptionRate(app *application.Avalanche) (uint64, uint64, error) {
 	return minConsumptionRate, maxConsumptionRate, nil
 }
 
-func getValidatorStake(app *application.Avalanche, initialSupply uint64, maximumSupply uint64) (uint64, uint64, error) {
+func getValidatorStake(app *application.Odyssey, initialSupply uint64, maximumSupply uint64) (uint64, uint64, error) {
 	ux.Logger.PrintToUser("Select the Minimum Validator Stake. \"_\" can be used as thousand separator")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Validator Stake is %s", ux.ConvertToStringWithThousandSeparator(defaultMinValidatorStake)))
 	minValidatorStake, err := app.Prompt.CaptureUint64Compare(
@@ -259,7 +259,7 @@ func getValidatorStake(app *application.Avalanche, initialSupply uint64, maximum
 	return minValidatorStake, maxValidatorStake, nil
 }
 
-func getValidatorStakeDuration(app *application.Avalanche) (time.Duration, time.Duration, error) {
+func getValidatorStakeDuration(app *application.Odyssey) (time.Duration, time.Duration, error) {
 	ux.Logger.PrintToUser("Select the Minimum Stake Duration. Please enter in units of hours")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinStakeDurationHours, defaultMinStakeDurationHoursString))
 	minStakeDuration, err := app.Prompt.CaptureUint64Compare(
@@ -374,7 +374,7 @@ func getMinDelegationFee(app *application.Odyssey) (uint32, error) {
 	return uint32(minDelegationFee), nil
 }
 
-func getMinDelegatorStake(app *application.Avalanche) (uint64, error) {
+func getMinDelegatorStake(app *application.Odyssey) (uint64, error) {
 	ux.Logger.PrintToUser("Select the Minimum Delegator Stake")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Delegator Stake is %d", defaultMinDelegatorStake))
 	minDelegatorStake, err := app.Prompt.CaptureUint64Compare(
@@ -393,9 +393,9 @@ func getMinDelegatorStake(app *application.Avalanche) (uint64, error) {
 	return minDelegatorStake, nil
 }
 
-func getMaxValidatorWeightFactor(app *application.Avalanche) (byte, error) {
+func getMaxValidatorWeightFactor(app *application.Odyssey) (byte, error) {
 	ux.Logger.PrintToUser("Select the Maximum Validator Weight Factor. A value of 1 effectively disables delegation")
-	ux.Logger.PrintToUser("More info can be found at https://docs.avax.network/subnets/reference-elastic-subnets-parameters#delegators-weight-checks")
+	ux.Logger.PrintToUser("More info can be found at https://docs.dione.network/subnets/reference-elastic-subnets-parameters#delegators-weight-checks")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Validator Weight Factor is %d", defaultMaxValidatorWeightFactor))
 	maxValidatorWeightFactor, err := app.Prompt.CaptureUint64Compare(
 		"Maximum Validator Weight Factor",
@@ -416,7 +416,7 @@ func getMaxValidatorWeightFactor(app *application.Avalanche) (byte, error) {
 	return byte(maxValidatorWeightFactor), nil
 }
 
-func getUptimeRequirement(app *application.Avalanche) (uint32, error) {
+func getUptimeRequirement(app *application.Odyssey) (uint32, error) {
 	ux.Logger.PrintToUser("Select the Uptime Requirement. Please denominate your percentage in PercentDenominator")
 	ux.Logger.PrintToUser("To denominate your percentage in PercentDenominator just multiply it by 10_000. For example, 1 percent corresponds to 10_000")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Uptime Requirement is %s", ux.ConvertToStringWithThousandSeparator(uint64(defaultUptimeRequirement*reward.PercentDenominator))))

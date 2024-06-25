@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
 	"github.com/onsi/gomega"
 )
 
@@ -25,9 +25,9 @@ func CreateSubnetEvmConfig(subnetName string, genesisPath string) (string, strin
 	mapper := utils.NewVersionMapper()
 	mapping, err := utils.GetVersionMapping(mapper)
 	gomega.Expect(err).Should(gomega.BeNil())
-	// let's use a SubnetEVM version which has a guaranteed compatible avago
-	CreateSubnetEvmConfigWithVersion(subnetName, genesisPath, mapping[utils.LatestEVM2AvagoKey])
-	return mapping[utils.LatestEVM2AvagoKey], mapping[utils.LatestAvago2EVMKey]
+	// let's use a SubnetEVM version which has a guaranteed compatible odygo
+	CreateSubnetEvmConfigWithVersion(subnetName, genesisPath, mapping[utils.LatestEVM2OdygoKey])
+	return mapping[utils.LatestEVM2OdygoKey], mapping[utils.LatestOdygo2EVMKey]
 }
 
 /* #nosec G204 */
@@ -190,7 +190,7 @@ func DeploySubnetLocallyExpectError(subnetName string) {
 	mapping, err := utils.GetVersionMapping(mapper)
 	gomega.Expect(err).Should(gomega.BeNil())
 
-	DeploySubnetLocallyWithArgsExpectError(subnetName, mapping[utils.OnlyAvagoKey], "")
+	DeploySubnetLocallyWithArgsExpectError(subnetName, mapping[utils.OnlyOdygoKey], "")
 }
 
 // Returns the deploy output
@@ -200,7 +200,7 @@ func DeploySubnetLocallyWithViperConf(subnetName string, confPath string) string
 	mapping, err := utils.GetVersionMapping(mapper)
 	gomega.Expect(err).Should(gomega.BeNil())
 
-	return DeploySubnetLocallyWithArgs(subnetName, mapping[utils.OnlyAvagoKey], confPath)
+	return DeploySubnetLocallyWithArgs(subnetName, mapping[utils.OnlyOdygoKey], confPath)
 }
 
 // Returns the deploy output
@@ -220,7 +220,7 @@ func DeploySubnetLocallyWithArgs(subnetName string, version string, confPath str
 	// Deploy subnet locally
 	cmdArgs := []string{SubnetCmd, "deploy", "--local", subnetName, "--" + constants.SkipUpdateFlag}
 	if version != "" {
-		cmdArgs = append(cmdArgs, "--avalanchego-version", version)
+		cmdArgs = append(cmdArgs, "--odysseygo-version", version)
 	}
 	if confPath != "" {
 		cmdArgs = append(cmdArgs, "--config", confPath)
@@ -253,7 +253,7 @@ func DeploySubnetLocallyWithArgsAndOutput(subnetName string, version string, con
 	// Deploy subnet locally
 	cmdArgs := []string{SubnetCmd, "deploy", "--local", subnetName, "--" + constants.SkipUpdateFlag}
 	if version != "" {
-		cmdArgs = append(cmdArgs, "--avalanchego-version", version)
+		cmdArgs = append(cmdArgs, "--odysseygo-version", version)
 	}
 	if confPath != "" {
 		cmdArgs = append(cmdArgs, "--config", confPath)
@@ -268,9 +268,9 @@ func DeploySubnetLocallyWithArgsExpectError(subnetName string, version string, c
 	gomega.Expect(err).Should(gomega.HaveOccurred())
 }
 
-// simulates fuji deploy execution path on a local network
+// simulates testnet deploy execution path on a local network
 /* #nosec G204 */
-func SimulateFujiDeploy(
+func SimulateTestnetDeploy(
 	subnetName string,
 	key string,
 	controlKeys string,
@@ -289,7 +289,7 @@ func SimulateFujiDeploy(
 		CLIBinary,
 		SubnetCmd,
 		"deploy",
-		"--fuji",
+		"--testnet",
 		"--threshold",
 		"1",
 		"--key",
@@ -450,9 +450,9 @@ func TransactionCommit(
 	)
 }
 
-// simulates fuji add validator execution path on a local network
+// simulates testnet add validator execution path on a local network
 /* #nosec G204 */
-func SimulateFujiAddValidator(
+func SimulateTestnetAddValidator(
 	subnetName string,
 	key string,
 	nodeID string,
@@ -473,7 +473,7 @@ func SimulateFujiAddValidator(
 		CLIBinary,
 		SubnetCmd,
 		"addValidator",
-		"--fuji",
+		"--testnet",
 		"--key",
 		key,
 		"--nodeID",
@@ -502,8 +502,8 @@ func SimulateFujiAddValidator(
 	return string(output)
 }
 
-// simulates fuji add validator execution path on a local network
-func SimulateFujiRemoveValidator(
+// simulates testnet add validator execution path on a local network
+func SimulateTestnetRemoveValidator(
 	subnetName string,
 	key string,
 	nodeID string,
@@ -521,7 +521,7 @@ func SimulateFujiRemoveValidator(
 		CLIBinary,
 		SubnetCmd,
 		"removeValidator",
-		"--fuji",
+		"--testnet",
 		"--key",
 		key,
 		"--nodeID",
@@ -543,7 +543,7 @@ func SimulateFujiRemoveValidator(
 	return string(output)
 }
 
-func SimulateFujiTransformSubnet(
+func SimulateTestnetTransformSubnet(
 	subnetName string,
 	key string,
 ) (string, error) {
@@ -559,7 +559,7 @@ func SimulateFujiTransformSubnet(
 		CLIBinary,
 		SubnetCmd,
 		ElasticTransformCmd,
-		"--fuji",
+		"--testnet",
 		"--key",
 		key,
 		"--tokenName",
@@ -589,7 +589,7 @@ func SimulateFujiTransformSubnet(
 	return string(output), nil
 }
 
-func SimulateFujiAddPermissionlessValidator(
+func SimulateTestnetAddPermissionlessValidator(
 	subnetName string,
 	key string,
 	nodeID string,
@@ -609,7 +609,7 @@ func SimulateFujiAddPermissionlessValidator(
 		CLIBinary,
 		SubnetCmd,
 		JoinCmd,
-		"--fuji",
+		"--testnet",
 		"--key",
 		key,
 		"--elastic",
@@ -680,11 +680,11 @@ func SimulateMainnetAddValidator(
 	)
 }
 
-// simulates fuji join execution path on a local network
+// simulates testnet join execution path on a local network
 /* #nosec G204 */
-func SimulateFujiJoin(
+func SimulateTestnetJoin(
 	subnetName string,
-	avalanchegoConfig string,
+	odysseygoConfig string,
 	pluginDir string,
 	nodeID string,
 ) string {
@@ -701,9 +701,9 @@ func SimulateFujiJoin(
 		CLIBinary,
 		SubnetCmd,
 		"join",
-		"--fuji",
-		"--avalanchego-config",
-		avalanchegoConfig,
+		"--testnet",
+		"--odysseygo-config",
+		odysseygoConfig,
 		"--plugin-dir",
 		pluginDir,
 		"--nodeID",
@@ -730,7 +730,7 @@ func SimulateFujiJoin(
 /* #nosec G204 */
 func SimulateMainnetJoin(
 	subnetName string,
-	avalanchegoConfig string,
+	odysseygoConfig string,
 	pluginDir string,
 	nodeID string,
 ) string {
@@ -748,8 +748,8 @@ func SimulateMainnetJoin(
 		SubnetCmd,
 		"join",
 		"--mainnet",
-		"--avalanchego-config",
-		avalanchegoConfig,
+		"--odysseygo-config",
+		odysseygoConfig,
 		"--plugin-dir",
 		pluginDir,
 		"--nodeID",
@@ -811,10 +811,10 @@ func ImportSubnetConfig(repoAlias string, subnetName string) {
 	}
 
 	// Config should now exist
-	exists, err = utils.APMConfigExists(subnetName)
+	exists, err = utils.OPMConfigExists(subnetName)
 	gomega.Expect(err).Should(gomega.BeNil())
 	gomega.Expect(exists).Should(gomega.BeTrue())
-	exists, err = utils.SubnetAPMVMExists(subnetName)
+	exists, err = utils.SubnetOPMVMExists(subnetName)
 	gomega.Expect(err).Should(gomega.BeNil())
 	gomega.Expect(exists).Should(gomega.BeTrue())
 }
@@ -859,10 +859,10 @@ func ImportSubnetConfigFromURL(repoURL string, branch string, subnetName string)
 	}
 
 	// Config should now exist
-	exists, err = utils.APMConfigExists(subnetName)
+	exists, err = utils.OPMConfigExists(subnetName)
 	gomega.Expect(err).Should(gomega.BeNil())
 	gomega.Expect(exists).Should(gomega.BeTrue())
-	exists, err = utils.SubnetAPMVMExists(subnetName)
+	exists, err = utils.SubnetOPMVMExists(subnetName)
 	gomega.Expect(err).Should(gomega.BeNil())
 	gomega.Expect(exists).Should(gomega.BeTrue())
 }
@@ -888,17 +888,17 @@ func DescribeSubnet(subnetName string) (string, error) {
 }
 
 /* #nosec G204 */
-func SimulateGetSubnetStatsFuji(subnetName, subnetID string) string {
+func SimulateGetSubnetStatsTestnet(subnetName, subnetID string) string {
 	// Check config does already exist:
 	// We want to run stats on an existing subnet
 	exists, err := utils.SubnetConfigExists(subnetName)
 	gomega.Expect(err).Should(gomega.BeNil())
 	gomega.Expect(exists).Should(gomega.BeTrue())
 
-	// add the subnet ID to the `fuji` section so that the `stats` command
+	// add the subnet ID to the `testnet` section so that the `stats` command
 	// can find it (as this is a simulation with a `local` network,
 	// it got written in to the `local` network section)
-	err = utils.AddSubnetIDToSidecar(subnetName, models.FujiNetwork, subnetID)
+	err = utils.AddSubnetIDToSidecar(subnetName, models.TestnetNetwork, subnetID)
 	gomega.Expect(err).Should(gomega.BeNil())
 	// run stats
 	cmd := exec.Command(
@@ -906,7 +906,7 @@ func SimulateGetSubnetStatsFuji(subnetName, subnetID string) string {
 		SubnetCmd,
 		"stats",
 		subnetName,
-		"--fuji",
+		"--testnet",
 		"--"+constants.SkipUpdateFlag,
 	)
 	output, err := cmd.CombinedOutput()

@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	"github.com/ava-labs/avalanchego/api/info"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/rpc"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
-	"github.com/ava-labs/coreth/core"
+	"github.com/DioneProtocol/coreth/core"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	"github.com/DioneProtocol/odysseygo/api/info"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/rpc"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ var (
 	nodeURL         string
 )
 
-// avalanche subnet import
+// odyssey subnet import
 func newImportFromNetworkCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "public [subnetPath]",
@@ -44,8 +44,7 @@ flag.`,
 
 	cmd.Flags().StringVar(&nodeURL, "node-url", "", "[optional] URL of an already running subnet validator")
 
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "import from `fuji` (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "import from `testnet` (alias for `fuji`)")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "import from `testnet`")
 	cmd.Flags().BoolVar(&deployMainnet, "mainnet", false, "import from `mainnet`")
 	cmd.Flags().BoolVar(&useSubnetEvm, "evm", false, "import a subnet-evm")
 	cmd.Flags().BoolVar(&useCustom, "custom", false, "use a custom VM template")
@@ -77,7 +76,7 @@ func importRunningSubnet(*cobra.Command, []string) error {
 	network := models.UndefinedNetwork
 	switch {
 	case deployTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case deployMainnet:
 		network = models.MainnetNetwork
 	}
@@ -85,7 +84,7 @@ func importRunningSubnet(*cobra.Command, []string) error {
 	if network.Kind == models.Undefined {
 		networkStr, err := app.Prompt.CaptureList(
 			"Choose a network to import from",
-			[]string{models.Fuji.String(), models.Mainnet.String()},
+			[]string{models.Testnet.String(), models.Mainnet.String()},
 		)
 		if err != nil {
 			return err
@@ -137,7 +136,7 @@ func importRunningSubnet(*cobra.Command, []string) error {
 		}
 	}
 
-	client := platformvm.NewClient(network.Endpoint)
+	client := omegavm.NewClient(network.Endpoint)
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
 	options := []rpc.Option{}
@@ -157,7 +156,7 @@ func importRunningSubnet(*cobra.Command, []string) error {
 
 	_, err = txs.Codec.Unmarshal(txBytes, &tx)
 	if err != nil {
-		return fmt.Errorf("failed unmarshaling the createChainTx: %w", err)
+		return fmt.Errorf("failed unmarshalling the createChainTx: %w", err)
 	}
 
 	createChainTx, ok := tx.Unsigned.(*txs.CreateChainTx)
@@ -215,7 +214,7 @@ func importRunningSubnet(*cobra.Command, []string) error {
 		TokenName:    constants.DefaultTokenName,
 		ImportedVMID: vmIDstr,
 		// signals that the VMID wasn't derived from the subnet name but through import
-		ImportedFromAPM: true,
+		ImportedFromOPM: true,
 	}
 
 	var versions []string
@@ -233,7 +232,7 @@ func importRunningSubnet(*cobra.Command, []string) error {
 		// no node was queried, ask the user
 		switch vmType {
 		case models.SubnetEvm:
-			versions, err = app.Downloader.GetAllReleasesForRepo(constants.AvaLabsOrg, constants.SubnetEVMRepoName)
+			versions, err = app.Downloader.GetAllReleasesForRepo(constants.DioneProtocolOrg, constants.SubnetEVMRepoName)
 			if err != nil {
 				return err
 			}

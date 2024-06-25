@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 )
 
 func CopyFile(src, dest string) error {

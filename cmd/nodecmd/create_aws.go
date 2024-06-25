@@ -8,12 +8,12 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
 
-	awsAPI "github.com/ava-labs/avalanche-cli/pkg/cloud/aws"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	awsAPI "github.com/DioneProtocol/odyssey-cli/pkg/cloud/aws"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
 func getNewKeyPairName(ec2Svc *awsAPI.AwsCloud) (string, error) {
@@ -41,7 +41,7 @@ func getNewKeyPairName(ec2Svc *awsAPI.AwsCloud) (string, error) {
 func printNoCredentialsOutput(awsProfile string) {
 	ux.Logger.PrintToUser("No AWS credentials found in file ~/.aws/credentials ")
 	ux.Logger.PrintToUser("Or in environment variables AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY")
-	ux.Logger.PrintToUser("Please make sure correspoding keys are set in [%s] section in ~/.aws/credentials", awsProfile)
+	ux.Logger.PrintToUser("Please make sure corresponding keys are set in [%s] section in ~/.aws/credentials", awsProfile)
 	ux.Logger.PrintToUser("Or create a file called 'credentials' with the contents below, and add the file to ~/.aws/ directory if it's not already there")
 	ux.Logger.PrintToUser("===========BEGINNING OF FILE===========")
 	ux.Logger.PrintToUser("[%s]\naws_access_key_id=<AWS_ACCESS_KEY>\naws_secret_access_key=<AWS_SECRET_ACCESS_KEY>", awsProfile)
@@ -233,9 +233,9 @@ func createEC2Instances(ec2Svc map[string]*awsAPI.AwsCloud,
 			sgID = *sg.GroupId
 			ux.Logger.PrintToUser(fmt.Sprintf("Using existing security group %s in AWS[%s]", securityGroupName, region))
 			ipInTCP := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.SSHTCPPort)
-			ipInHTTP := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.AvalanchegoAPIPort)
-			ipInMonitoring := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.AvalanchegoMonitoringPort)
-			ipInGrafana := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.AvalanchegoGrafanaPort)
+			ipInHTTP := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.OdysseygoAPIPort)
+			ipInMonitoring := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.OdysseygoMonitoringPort)
+			ipInGrafana := awsAPI.CheckUserIPInSg(&sg, userIPAddress, constants.OdysseygoGrafanaPort)
 
 			if !ipInTCP {
 				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.SSHTCPPort); err != nil {
@@ -243,17 +243,17 @@ func createEC2Instances(ec2Svc map[string]*awsAPI.AwsCloud,
 				}
 			}
 			if !ipInHTTP {
-				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.AvalanchegoAPIPort); err != nil {
+				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.OdysseygoAPIPort); err != nil {
 					return nil, nil, nil, nil, err
 				}
 			}
 			if !ipInMonitoring {
-				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.AvalanchegoMonitoringPort); err != nil {
+				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.OdysseygoMonitoringPort); err != nil {
 					return nil, nil, nil, nil, err
 				}
 			}
 			if !ipInGrafana {
-				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.AvalanchegoGrafanaPort); err != nil {
+				if err := ec2Svc[region].AddSecurityGroupRule(sgID, "ingress", "tcp", userIPAddress, constants.OdysseygoGrafanaPort); err != nil {
 					return nil, nil, nil, nil, err
 				}
 			}
@@ -328,15 +328,15 @@ func AddMonitoringSecurityGroupRule(ec2Svc map[string]*awsAPI.AwsCloud, monitori
 	if !securityGroupExists {
 		return fmt.Errorf("security group %s doesn't exist in region %s", securityGroupName, region)
 	}
-	metricsPortInSG := awsAPI.CheckUserIPInSg(&sg, monitoringHostPublicIP, constants.AvalanchegoMachineMetricsPort)
-	apiPortInSG := awsAPI.CheckUserIPInSg(&sg, monitoringHostPublicIP, constants.AvalanchegoAPIPort)
+	metricsPortInSG := awsAPI.CheckUserIPInSg(&sg, monitoringHostPublicIP, constants.OdysseygoMachineMetricsPort)
+	apiPortInSG := awsAPI.CheckUserIPInSg(&sg, monitoringHostPublicIP, constants.OdysseygoAPIPort)
 	if !metricsPortInSG {
-		if err = ec2Svc[region].AddSecurityGroupRule(*sg.GroupId, "ingress", "tcp", monitoringHostPublicIP+constants.IPAddressSuffix, constants.AvalanchegoMachineMetricsPort); err != nil {
+		if err = ec2Svc[region].AddSecurityGroupRule(*sg.GroupId, "ingress", "tcp", monitoringHostPublicIP+constants.IPAddressSuffix, constants.OdysseygoMachineMetricsPort); err != nil {
 			return err
 		}
 	}
 	if !apiPortInSG {
-		if err = ec2Svc[region].AddSecurityGroupRule(*sg.GroupId, "ingress", "tcp", monitoringHostPublicIP+constants.IPAddressSuffix, constants.AvalanchegoAPIPort); err != nil {
+		if err = ec2Svc[region].AddSecurityGroupRule(*sg.GroupId, "ingress", "tcp", monitoringHostPublicIP+constants.IPAddressSuffix, constants.OdysseygoAPIPort); err != nil {
 			return err
 		}
 	}
@@ -355,7 +355,7 @@ func createAWSInstances(
 ) {
 	regionConf := map[string]models.RegionConfig{}
 	for _, region := range regions {
-		prefix := usr.Username + "-" + region + constants.AvalancheCLISuffix
+		prefix := usr.Username + "-" + region + constants.OdysseyCLISuffix
 		regionConf[region] = models.RegionConfig{
 			Prefix:            prefix,
 			ImageID:           ami[region],

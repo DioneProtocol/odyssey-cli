@@ -12,15 +12,15 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
 type scriptInputs struct {
-	AvalancheGoVersion      string
+	OdysseyGoVersion        string
 	SubnetExportFileName    string
 	SubnetName              string
 	GoVersion               string
@@ -31,7 +31,7 @@ type scriptInputs struct {
 	SubnetEVMReleaseURL     string
 	SubnetEVMArchive        string
 	MonitoringDashboardPath string
-	AvalancheGoPorts        string
+	OdysseyGoPorts          string
 	MachinePorts            string
 }
 
@@ -91,13 +91,13 @@ func PostOverSSH(host *models.Host, path string, requestBody string) ([]byte, er
 }
 
 // RunSSHSetupNode runs script to setup node
-func RunSSHSetupNode(host *models.Host, configPath, avalancheGoVersion string, isDevNet bool) error {
+func RunSSHSetupNode(host *models.Host, configPath, odysseyGoVersion string, isDevNet bool) error {
 	if err := RunOverSSH(
 		"Setup Node",
 		host,
 		constants.SSHScriptTimeout,
 		"shell/setupNode.sh",
-		scriptInputs{AvalancheGoVersion: avalancheGoVersion, IsDevNet: isDevNet},
+		scriptInputs{OdysseyGoVersion: odysseyGoVersion, IsDevNet: isDevNet},
 	); err != nil {
 		return err
 	}
@@ -109,10 +109,10 @@ func RunSSHSetupNode(host *models.Host, configPath, avalancheGoVersion string, i
 	)
 }
 
-// RunSSHRestartNode runs script to restart avalanchego
+// RunSSHRestartNode runs script to restart odysseygo
 func RunSSHRestartNode(host *models.Host) error {
 	return RunOverSSH(
-		"Restart Avalanchego",
+		"Restart Odysseygo",
 		host,
 		constants.SSHScriptTimeout,
 		"shell/restartNode.sh",
@@ -120,21 +120,21 @@ func RunSSHRestartNode(host *models.Host) error {
 	)
 }
 
-// RunSSHUpgradeAvalanchego runs script to upgrade avalanchego
-func RunSSHUpgradeAvalanchego(host *models.Host, avalancheGoVersion string) error {
+// RunSSHUpgradeOdysseygo runs script to upgrade odysseygo
+func RunSSHUpgradeOdysseygo(host *models.Host, odysseyGoVersion string) error {
 	return RunOverSSH(
-		"Upgrade Avalanchego",
+		"Upgrade Odysseygo",
 		host,
 		constants.SSHScriptTimeout,
-		"shell/upgradeAvalancheGo.sh",
-		scriptInputs{AvalancheGoVersion: avalancheGoVersion},
+		"shell/upgradeOdysseyGo.sh",
+		scriptInputs{OdysseyGoVersion: odysseyGoVersion},
 	)
 }
 
-// RunSSHStartNode runs script to start avalanchego
+// RunSSHStartNode runs script to start odysseygo
 func RunSSHStartNode(host *models.Host) error {
 	return RunOverSSH(
-		"Start Avalanchego",
+		"Start Odysseygo",
 		host,
 		constants.SSHScriptTimeout,
 		"shell/startNode.sh",
@@ -142,10 +142,10 @@ func RunSSHStartNode(host *models.Host) error {
 	)
 }
 
-// RunSSHStopNode runs script to stop avalanchego
+// RunSSHStopNode runs script to stop odysseygo
 func RunSSHStopNode(host *models.Host) error {
 	return RunOverSSH(
-		"Stop Avalanchego",
+		"Stop Odysseygo",
 		host,
 		constants.SSHScriptTimeout,
 		"shell/stopNode.sh",
@@ -207,7 +207,7 @@ func RunSSHSetupMachineMetrics(host *models.Host) error {
 	)
 }
 
-func RunSSHSetupSeparateMonitoring(host *models.Host, monitoringDashboardPath, avalancheGoPorts, machinePorts string) error {
+func RunSSHSetupSeparateMonitoring(host *models.Host, monitoringDashboardPath, odysseyGoPorts, machinePorts string) error {
 	if err := host.Upload(
 		monitoringDashboardPath,
 		fmt.Sprintf("/home/ubuntu/%s", filepath.Base(monitoringDashboardPath)),
@@ -221,21 +221,21 @@ func RunSSHSetupSeparateMonitoring(host *models.Host, monitoringDashboardPath, a
 		constants.SSHScriptTimeout,
 		"shell/setupSeparateMonitoring.sh",
 		scriptInputs{
-			AvalancheGoPorts: avalancheGoPorts,
-			MachinePorts:     machinePorts,
+			OdysseyGoPorts: odysseyGoPorts,
+			MachinePorts:   machinePorts,
 		},
 	)
 }
 
-func RunSSHUpdatePrometheusConfig(host *models.Host, avalancheGoPorts, machinePorts string) error {
+func RunSSHUpdatePrometheusConfig(host *models.Host, odysseyGoPorts, machinePorts string) error {
 	return RunOverSSH(
 		"Update Prometheus Config",
 		host,
 		constants.SSHScriptTimeout,
 		"shell/updatePrometheusConfig.sh",
 		scriptInputs{
-			AvalancheGoPorts: avalancheGoPorts,
-			MachinePorts:     machinePorts,
+			OdysseyGoPorts: odysseyGoPorts,
+			MachinePorts:   machinePorts,
 		},
 	)
 }
@@ -355,7 +355,7 @@ func RunSSHTrackSubnet(host *models.Host, subnetName, importPath, networkFlag st
 	)
 }
 
-// RunSSHUpdateSubnet runs avalanche subnet join <subnetName> in cloud server using update subnet info
+// RunSSHUpdateSubnet runs odyssey subnet join <subnetName> in cloud server using update subnet info
 func RunSSHUpdateSubnet(host *models.Host, subnetName, importPath string) error {
 	return RunOverSSH(
 		"Update Subnet",
@@ -391,8 +391,8 @@ func RunSSHSetupCLIFromSource(host *models.Host, cliBranch string) error {
 	)
 }
 
-// RunSSHCheckAvalancheGoVersion checks node avalanchego version
-func RunSSHCheckAvalancheGoVersion(host *models.Host) ([]byte, error) {
+// RunSSHCheckOdysseyGoVersion checks node odysseygo version
+func RunSSHCheckOdysseyGoVersion(host *models.Host) ([]byte, error) {
 	// Craft and send the HTTP POST request
 	requestBody := "{\"jsonrpc\":\"2.0\", \"id\":1,\"method\" :\"info.getNodeVersion\"}"
 	return PostOverSSH(host, "", requestBody)
@@ -401,18 +401,18 @@ func RunSSHCheckAvalancheGoVersion(host *models.Host) ([]byte, error) {
 // RunSSHCheckBootstrapped checks if node is bootstrapped to primary network
 func RunSSHCheckBootstrapped(host *models.Host) ([]byte, error) {
 	// Craft and send the HTTP POST request
-	requestBody := "{\"jsonrpc\":\"2.0\", \"id\":1,\"method\" :\"info.isBootstrapped\", \"params\": {\"chain\":\"X\"}}"
+	requestBody := "{\"jsonrpc\":\"2.0\", \"id\":1,\"method\" :\"info.isBootstrapped\", \"params\": {\"chain\":\"A\"}}"
 	return PostOverSSH(host, "", requestBody)
 }
 
 // RunSSHCheckHealthy checks if node is healthy
 func RunSSHCheckHealthy(host *models.Host) ([]byte, error) {
 	// Craft and send the HTTP POST request
-	requestBody := "{\"jsonrpc\":\"2.0\", \"id\":1,\"method\":\"health.health\",\"params\": {\"tags\": [\"P\"]}}"
+	requestBody := "{\"jsonrpc\":\"2.0\", \"id\":1,\"method\":\"health.health\",\"params\": {\"tags\": [\"O\"]}}"
 	return PostOverSSH(host, "/ext/health", requestBody)
 }
 
-// RunSSHGetNodeID reads nodeID from avalanchego
+// RunSSHGetNodeID reads nodeID from odysseygo
 func RunSSHGetNodeID(host *models.Host) ([]byte, error) {
 	// Craft and send the HTTP POST request
 	requestBody := "{\"jsonrpc\":\"2.0\", \"id\":1,\"method\" :\"info.getNodeID\"}"
@@ -422,6 +422,6 @@ func RunSSHGetNodeID(host *models.Host) ([]byte, error) {
 // SubnetSyncStatus checks if node is synced to subnet
 func RunSSHSubnetSyncStatus(host *models.Host, blockchainID string) ([]byte, error) {
 	// Craft and send the HTTP POST request
-	requestBody := fmt.Sprintf("{\"jsonrpc\":\"2.0\", \"id\":1,\"method\" :\"platform.getBlockchainStatus\", \"params\": {\"blockchainID\":\"%s\"}}", blockchainID)
-	return PostOverSSH(host, "/ext/bc/P", requestBody)
+	requestBody := fmt.Sprintf("{\"jsonrpc\":\"2.0\", \"id\":1,\"method\" :\"omega.getBlockchainStatus\", \"params\": {\"blockchainID\":\"%s\"}}", blockchainID)
+	return PostOverSSH(host, "/ext/bc/O", requestBody)
 }

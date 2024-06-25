@@ -3,8 +3,8 @@
 package models
 
 import (
-	"github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/ids"
+	"github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/ids"
 )
 
 type NetworkData struct {
@@ -19,7 +19,7 @@ type PermissionlessValidators struct {
 type ElasticSubnet struct {
 	SubnetID    ids.ID
 	AssetID     ids.ID
-	PChainTXID  ids.ID
+	OChainTXID  ids.ID
 	TokenName   string
 	TokenSymbol string
 	Validators  map[string]PermissionlessValidators
@@ -37,7 +37,7 @@ type Sidecar struct {
 	Version             string
 	Networks            map[string]NetworkData
 	ElasticSubnet       map[string]ElasticSubnet
-	ImportedFromAPM     bool
+	ImportedFromOPM     bool
 	ImportedVMID        string
 	CustomVMRepoURL     string
 	CustomVMBranch      string
@@ -49,7 +49,7 @@ type Sidecar struct {
 func (sc Sidecar) GetVMID() (string, error) {
 	// get vmid
 	var vmid string
-	if sc.ImportedFromAPM {
+	if sc.ImportedFromOPM {
 		vmid = sc.ImportedVMID
 	} else {
 		chainVMID, err := utils.VMID(sc.Name)

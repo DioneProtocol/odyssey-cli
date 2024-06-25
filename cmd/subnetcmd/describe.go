@@ -9,18 +9,18 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/subnet-evm/core"
-	"github.com/ava-labs/subnet-evm/params"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/deployerallowlist"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/feemanager"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/nativeminter"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/rewardmanager"
-	"github.com/ava-labs/subnet-evm/precompile/contracts/txallowlist"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/subnet-evm/core"
+	"github.com/DioneProtocol/subnet-evm/params"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/deployerallowlist"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/feemanager"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/nativeminter"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/rewardmanager"
+	"github.com/DioneProtocol/subnet-evm/precompile/contracts/txallowlist"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -29,7 +29,7 @@ import (
 
 var printGenesisOnly bool
 
-// avalanche subnet describe
+// odyssey subnet describe
 func newDescribeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "describe [subnetName]",

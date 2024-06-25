@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanchego/utils/formatting"
-	"github.com/ava-labs/avalanchego/vms/platformvm/txs"
+	"github.com/DioneProtocol/odysseygo/utils/formatting"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/txs"
 )
 
 // saves a given [tx] to [txPath]
@@ -51,7 +51,7 @@ func LoadFromDisk(txPath string) (*txs.Tx, error) {
 	}
 	var tx txs.Tx
 	if _, err := txs.Codec.Unmarshal(txBytes, &tx); err != nil {
-		return nil, fmt.Errorf("error unmarshaling signed tx: %w", err)
+		return nil, fmt.Errorf("error unmarshalling signed tx: %w", err)
 	}
 	if err := tx.Initialize(txs.Codec); err != nil {
 		return nil, fmt.Errorf("error initializing signed tx: %w", err)

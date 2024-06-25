@@ -5,11 +5,11 @@ package configcmd
 import (
 	"errors"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"github.com/spf13/cobra"
 )
 
-// avalanche config singlenode command
+// odyssey config singlenode command
 func newSingleNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "singleNode [enable | disable]",

@@ -5,20 +5,20 @@ package keycmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
 	"github.com/spf13/cobra"
 )
 
-var app *application.Avalanche
+var app *application.Odyssey
 
-func NewCmd(injectedApp *application.Avalanche) *cobra.Command {
+func NewCmd(injectedApp *application.Odyssey) *cobra.Command {
 	app = injectedApp
 
 	cmd := &cobra.Command{
 		Use:   "key",
 		Short: "Create and manage testnet signing keys",
 		Long: `The key command suite provides a collection of tools for creating and managing
-signing keys. You can use these keys to deploy Subnets to the Fuji Testnet,
+signing keys. You can use these keys to deploy Subnets to the Testnet,
 but these keys are NOT suitable to use in production environments. DO NOT use
 these keys on Mainnet.
 
@@ -31,19 +31,19 @@ To get started, use the key create command.`,
 		},
 	}
 
-	// avalanche key create
+	// odyssey key create
 	cmd.AddCommand(newCreateCmd())
 
-	// avalanche key list
+	// odyssey key list
 	cmd.AddCommand(newListCmd())
 
-	// avalanche key delete
+	// odyssey key delete
 	cmd.AddCommand(newDeleteCmd())
 
-	// avalanche key export
+	// odyssey key export
 	cmd.AddCommand(newExportCmd())
 
-	// avalanche key transfer
+	// odyssey key transfer
 	cmd.AddCommand(newTransferCmd())
 
 	return cmd

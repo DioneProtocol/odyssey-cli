@@ -10,12 +10,12 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/metrics"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/metrics"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
@@ -42,7 +42,7 @@ var (
 		"illegal name character: only letters, no special characters allowed")
 )
 
-// avalanche subnet create
+// odyssey subnet create
 func newCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [subnetName]",
@@ -207,7 +207,7 @@ func createSubnetConfig(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	sc.ImportedFromAPM = false
+	sc.ImportedFromOPM = false
 	if err = app.CreateSidecar(sc); err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func sendMetrics(cmd *cobra.Command, repoName, subnetName string) error {
 }
 
 func checkInvalidSubnetNames(name string) error {
-	// this is currently exactly the same code as in avalanchego/vms/platformvm/create_chain_tx.go
+	// this is currently exactly the same code as in odysseygo/vms/omegavm/create_chain_tx.go
 	for _, r := range name {
 		if r > unicode.MaxASCII || !(unicode.IsLetter(r) || unicode.IsNumber(r) || r == ' ') {
 			return errIllegalNameCharacter

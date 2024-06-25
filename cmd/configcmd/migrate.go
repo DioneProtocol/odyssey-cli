@@ -6,21 +6,21 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var MigrateOutput string
 
-// avalanche config metrics migrate
+// odyssey config metrics migrate
 func newMigrateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "migrate",
-		Short:        "migrate ~/.avalanche-cli.json and ~/.avalanche-cli/config to new configuration location ~/.avalanche-cli/config.json",
-		Long:         `migrate command migrates old ~/.avalanche-cli.json and ~/.avalanche-cli/config to /.avalanche-cli/config.json..`,
+		Short:        "migrate ~/.odyssey-cli.json and ~/.odyssey-cli/config to new configuration location ~/.odyssey-cli/config.json",
+		Long:         `migrate command migrates old ~/.odyssey-cli.json and ~/.odyssey-cli/config to /.odyssey-cli/config.json..`,
 		RunE:         migrateConfig,
 		SilenceUsage: true,
 	}

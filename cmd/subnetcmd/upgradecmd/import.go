@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ var upgradeBytesFilePath string
 
 const upgradeBytesFilePathKey = "upgrade-filepath"
 
-// avalanche subnet upgrade import
+// odyssey subnet upgrade import
 func newUpgradeImportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "import [subnetName]",

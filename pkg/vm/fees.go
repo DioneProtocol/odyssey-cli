@@ -4,14 +4,14 @@
 package vm
 
 import (
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/statemachine"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/subnet-evm/commontype"
-	"github.com/ava-labs/subnet-evm/params"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/statemachine"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/subnet-evm/commontype"
+	"github.com/DioneProtocol/subnet-evm/params"
 )
 
-func GetFeeConfig(config params.ChainConfig, app *application.Avalanche, useDefault bool) (
+func GetFeeConfig(config params.ChainConfig, app *application.Odyssey, useDefault bool) (
 	params.ChainConfig,
 	statemachine.StateDirection,
 	error,
@@ -19,7 +19,7 @@ func GetFeeConfig(config params.ChainConfig, app *application.Avalanche, useDefa
 	const (
 		useFast   = "High disk use   / High Throughput   5 mil   gas/s"
 		useMedium = "Medium disk use / Medium Throughput 2 mil   gas/s"
-		useSlow   = "Low disk use    / Low Throughput    1.5 mil gas/s (C-Chain's setting)"
+		useSlow   = "Low disk use    / Low Throughput    1.5 mil gas/s (D-Chain's setting)"
 		customFee = "Customize fee config"
 
 		setGasLimit                 = "Set gas limit"

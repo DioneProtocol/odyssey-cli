@@ -10,35 +10,35 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/cmd/flags"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/plugins"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/server"
-	"github.com/ava-labs/avalanchego/genesis"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/avalanchego/vms/secp256k1fx"
+	"github.com/DioneProtocol/odyssey-cli/cmd/flags"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/plugins"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
+	"github.com/DioneProtocol/odysseygo/vms/secp256k1fx"
 	"github.com/spf13/cobra"
 )
 
-const ewoqPChainAddr = "P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
+const ewoqOChainAddr = "O-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
 
 var (
-	// path to avalanchego config file
-	avagoConfigPath string
-	// path to avalanchego plugin dir
+	// path to odysseygo config file
+	odygoConfigPath string
+	// path to odysseygo plugin dir
 	pluginDir string
-	// path to avalanchego datadir dir
+	// path to odysseygo datadir dir
 	dataDir string
 	// if true, print the manual instructions to screen
 	printManual bool
@@ -49,11 +49,11 @@ var (
 	// for permissionless subnet only: how much subnet native token will be staked in the validator
 	stakeAmount uint64
 
-	errNoBlockchainID                     = errors.New("failed to find the blockchain ID for this subnet, has it been deployed/created on this network?")
-	errMutuallyExlusiveNetworksWithDevnet = errors.New("--local, --devnet, --fuji (resp. --testnet) and --mainnet are mutually exclusive")
+	errNoBlockchainID                      = errors.New("failed to find the blockchain ID for this subnet, has it been deployed/created on this network?")
+	errMutuallyExclusiveNetworksWithDevnet = errors.New("--local, --devnet, --testnet and --mainnet are mutually exclusive")
 )
 
-// avalanche subnet deploy
+// odyssey subnet join
 func newJoinCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "join [subnetName]",
@@ -68,18 +68,17 @@ the NodeID of your validator to the Subnet's allow list by calling addValidator 
 NodeID.
 
 After you update your validator's config, you need to restart your validator manually. If
-you provide the --avalanchego-config flag, this command attempts to edit the config file
+you provide the --odysseygo-config flag, this command attempts to edit the config file
 at that path.
 
-This command currently only supports Subnets deployed on the Fuji Testnet and Mainnet.`,
+This command currently only supports Subnets deployed on the Testnet and Mainnet.`,
 		RunE: joinCmd,
 		Args: cobra.ExactArgs(1),
 	}
-	cmd.Flags().StringVar(&avagoConfigPath, "avalanchego-config", "", "file path of the avalanchego config file")
-	cmd.Flags().StringVar(&pluginDir, "plugin-dir", "", "file path of avalanchego's plugin directory")
-	cmd.Flags().StringVar(&dataDir, "data-dir", "", "path of avalanchego's data dir directory")
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "join on `fuji` (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "join on `testnet` (alias for `fuji`)")
+	cmd.Flags().StringVar(&odygoConfigPath, "odysseygo-config", "", "file path of the odysseygo config file")
+	cmd.Flags().StringVar(&pluginDir, "plugin-dir", "", "file path of odysseygo's plugin directory")
+	cmd.Flags().StringVar(&dataDir, "data-dir", "", "path of odysseygo's data dir directory")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "join on `testnet`")
 	cmd.Flags().BoolVar(&deployLocal, "local", false, "join on `local` (for elastic subnet only)")
 	cmd.Flags().BoolVar(&deployDevnet, "devnet", false, "join on `devnet`")
 	cmd.Flags().BoolVar(&deployMainnet, "mainnet", false, "join on `mainnet`")
@@ -90,15 +89,15 @@ This command currently only supports Subnets deployed on the Fuji Testnet and Ma
 	cmd.Flags().Uint64Var(&stakeAmount, "stake-amount", 0, "amount of tokens to stake on validator")
 	cmd.Flags().StringVar(&startTimeStr, "start-time", "", "start time that validator starts validating")
 	cmd.Flags().DurationVar(&duration, "staking-period", 0, "how long validator validates for after start time")
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji only]")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji)")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet only]")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 	return cmd
 }
 
 func joinCmd(_ *cobra.Command, args []string) error {
-	if printManual && (avagoConfigPath != "" || pluginDir != "") {
-		return errors.New("--print cannot be used with --avalanchego-config or --plugin-dir")
+	if printManual && (odygoConfigPath != "" || pluginDir != "") {
+		return errors.New("--print cannot be used with --odysseygo-config or --plugin-dir")
 	}
 
 	chains, err := ValidateSubnetNameAndGetChains(args)
@@ -114,7 +113,7 @@ func joinCmd(_ *cobra.Command, args []string) error {
 	}
 
 	if !flags.EnsureMutuallyExclusive([]bool{deployMainnet, deployTestnet, deployLocal, deployDevnet}) {
-		return errMutuallyExlusiveNetworksWithDevnet
+		return errMutuallyExclusiveNetworksWithDevnet
 	}
 
 	network := models.UndefinedNetwork
@@ -124,7 +123,7 @@ func joinCmd(_ *cobra.Command, args []string) error {
 	case deployDevnet:
 		network = models.DevnetNetwork
 	case deployTestnet:
-		network = models.FujiNetwork
+		network = models.TestnetNetwork
 	case deployMainnet:
 		network = models.MainnetNetwork
 	}
@@ -138,15 +137,15 @@ func joinCmd(_ *cobra.Command, args []string) error {
 			switch selectedNetwork {
 			case localDeployment:
 				network = models.LocalNetwork
-			case fujiDeployment:
-				network = models.FujiNetwork
+			case testnetDeployment:
+				network = models.TestnetNetwork
 			case mainnetDeployment:
 				return errors.New("joining elastic subnet is not yet supported on Mainnet")
 			}
 		} else {
 			networkStr, err := app.Prompt.CaptureList(
 				"Choose a network to validate on (this command only supports public networks)",
-				[]string{models.Fuji.String(), models.Mainnet.String()},
+				[]string{models.Testnet.String(), models.Mainnet.String()},
 			)
 			if err != nil {
 				return err
@@ -179,14 +178,14 @@ func joinCmd(_ *cobra.Command, args []string) error {
 
 	// if **both** flags were set, nothing special needs to be done
 	// just check the following blocks
-	if avagoConfigPath == "" && pluginDir == "" {
+	if odygoConfigPath == "" && pluginDir == "" {
 		// both flags are NOT set
 		const (
 			choiceManual    = "Manual"
 			choiceAutomatic = "Automatic"
 		)
 		choice, err := app.Prompt.CaptureList(
-			"How would you like to update the avalanchego config?",
+			"How would you like to update the odysseygo config?",
 			[]string{choiceAutomatic, choiceManual},
 		)
 		if err != nil {
@@ -204,27 +203,27 @@ func joinCmd(_ *cobra.Command, args []string) error {
 	}
 
 	// if choice is automatic, we just pass through this block
-	// or, pluginDir was set but not avagoConfigPath
+	// or, pluginDir was set but not odygoConfigPath
 	// if **both** flags were set, this will be skipped...
-	if avagoConfigPath == "" {
-		avagoConfigPath, err = plugins.FindAvagoConfigPath()
+	if odygoConfigPath == "" {
+		odygoConfigPath, err = plugins.FindOdygoConfigPath()
 		if err != nil {
 			return err
 		}
-		if avagoConfigPath != "" {
-			ux.Logger.PrintToUser(logging.Bold.Wrap(logging.Green.Wrap("Found a config file at %s")), avagoConfigPath)
+		if odygoConfigPath != "" {
+			ux.Logger.PrintToUser(logging.Bold.Wrap(logging.Green.Wrap("Found a config file at %s")), odygoConfigPath)
 			yes, err := app.Prompt.CaptureYesNo("Is this the file we should update?")
 			if err != nil {
 				return err
 			}
 			if yes {
-				ux.Logger.PrintToUser("Will use file at path %s to update the configuration", avagoConfigPath)
+				ux.Logger.PrintToUser("Will use file at path %s to update the configuration", odygoConfigPath)
 			} else {
-				avagoConfigPath = ""
+				odygoConfigPath = ""
 			}
 		}
-		if avagoConfigPath == "" {
-			avagoConfigPath, err = app.Prompt.CaptureString("Path to your existing config file (or where it will be generated)")
+		if odygoConfigPath == "" {
+			odygoConfigPath, err = app.Prompt.CaptureString("Path to your existing config file (or where it will be generated)")
 			if err != nil {
 				return err
 			}
@@ -232,12 +231,12 @@ func joinCmd(_ *cobra.Command, args []string) error {
 	}
 
 	// ...but not this
-	avagoConfigPath, err := plugins.SanitizePath(avagoConfigPath)
+	odygoConfigPath, err := plugins.SanitizePath(odygoConfigPath)
 	if err != nil {
 		return err
 	}
 
-	// avagoConfigPath was set but not pluginDir
+	// odygoConfigPath was set but not pluginDir
 	// if **both** flags were set, this will be skipped...
 	if pluginDir == "" {
 		pluginDir, err = plugins.FindPluginDir()
@@ -257,7 +256,7 @@ func joinCmd(_ *cobra.Command, args []string) error {
 			}
 		}
 		if pluginDir == "" {
-			pluginDir, err = app.Prompt.CaptureString("Path to your avalanchego plugin dir (likely avalanchego/build/plugins)")
+			pluginDir, err = app.Prompt.CaptureString("Path to your odysseygo plugin dir (likely odysseygo/build/plugins)")
 			if err != nil {
 				return err
 			}
@@ -278,23 +277,23 @@ func joinCmd(_ *cobra.Command, args []string) error {
 	ux.Logger.PrintToUser("VM binary written to %s", vmPath)
 
 	if forceWrite {
-		if err := writeAvagoChainConfigFiles(app, dataDir, subnetName, sc, network); err != nil {
+		if err := writeOdygoChainConfigFiles(app, dataDir, subnetName, sc, network); err != nil {
 			return err
 		}
 	}
 
-	subnetAvagoConfigFile := ""
-	if app.AvagoNodeConfigExists(subnetName) {
-		subnetAvagoConfigFile = app.GetAvagoNodeConfigPath(subnetName)
+	subnetOdygoConfigFile := ""
+	if app.OdygoNodeConfigExists(subnetName) {
+		subnetOdygoConfigFile = app.GetOdygoNodeConfigPath(subnetName)
 	}
 
 	if err := plugins.EditConfigFile(
 		app,
 		subnetIDStr,
 		network,
-		avagoConfigPath,
+		odygoConfigPath,
 		forceWrite,
-		subnetAvagoConfigFile,
+		subnetOdygoConfigFile,
 	); err != nil {
 		return err
 	}
@@ -302,15 +301,15 @@ func joinCmd(_ *cobra.Command, args []string) error {
 	return nil
 }
 
-func writeAvagoChainConfigFiles(
-	app *application.Avalanche,
+func writeOdygoChainConfigFiles(
+	app *application.Odyssey,
 	dataDir string,
 	subnetName string,
 	sc models.Sidecar,
 	network models.Network,
 ) error {
 	if dataDir == "" {
-		dataDir = utils.UserHomePath(".avalanchego")
+		dataDir = utils.UserHomePath(".odysseygo")
 	}
 
 	subnetID := sc.Networks[network.Name()].SubnetID
@@ -328,11 +327,11 @@ func writeAvagoChainConfigFiles(
 
 	subnetConfigsPath := filepath.Join(configsPath, "subnets")
 	subnetConfigPath := filepath.Join(subnetConfigsPath, subnetIDStr+".json")
-	if app.AvagoSubnetConfigExists(subnetName) {
+	if app.OdygoSubnetConfigExists(subnetName) {
 		if err := os.MkdirAll(subnetConfigsPath, constants.DefaultPerms755); err != nil {
 			return err
 		}
-		subnetConfig, err := app.LoadRawAvagoSubnetConfig(subnetName)
+		subnetConfig, err := app.LoadRawOdygoSubnetConfig(subnetName)
 		if err != nil {
 			return err
 		}
@@ -384,7 +383,7 @@ func handleValidatorJoinElasticSubnet(sc models.Sidecar, network models.Network,
 	}
 
 	if useLedger && keyName != "" {
-		return ErrMutuallyExlusiveKeyLedger
+		return ErrMutuallyExclusiveKeyLedger
 	}
 
 	subnetID := sc.Networks[network.Name()].SubnetID
@@ -413,9 +412,9 @@ func handleValidatorJoinElasticSubnet(sc models.Sidecar, network models.Network,
 	switch network.Kind {
 	case models.Local:
 		return handleValidatorJoinElasticSubnetLocal(sc, network, subnetName, nodeID, stakedTokenAmount, start, endTime)
-	case models.Fuji:
+	case models.Testnet:
 		if !useLedger && keyName == "" {
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, constants.PayTxsFeesMsg, app.GetKeyDir())
 			if err != nil {
 				return err
 			}
@@ -454,9 +453,9 @@ func handleValidatorJoinElasticSubnet(sc models.Sidecar, network models.Network,
 }
 
 func getSubnetAssetID(subnetID ids.ID, network models.Network) (ids.ID, error) {
-	pClient := platformvm.NewClient(network.Endpoint)
+	oClient := omegavm.NewClient(network.Endpoint)
 	ctx := context.Background()
-	assetID, err := pClient.GetStakingAssetID(ctx, subnetID)
+	assetID, err := oClient.GetStakingAssetID(ctx, subnetID)
 	if err != nil {
 		return ids.Empty, err
 	}
@@ -497,11 +496,11 @@ func handleValidatorJoinElasticSubnetLocal(sc models.Sidecar, network models.Net
 	return nil
 }
 
-func checkIsValidating(subnetID ids.ID, nodeID ids.NodeID, pClient platformvm.Client) (bool, error) {
+func checkIsValidating(subnetID ids.ID, nodeID ids.NodeID, oClient omegavm.Client) (bool, error) {
 	// first check if the node is already an accepted validator on the subnet
 	ctx := context.Background()
 	nodeIDs := []ids.NodeID{nodeID}
-	vals, err := pClient.GetCurrentValidators(ctx, subnetID, nodeIDs)
+	vals, err := oClient.GetCurrentValidators(ctx, subnetID, nodeIDs)
 	if err != nil {
 		return false, err
 	}
@@ -514,13 +513,13 @@ func checkIsValidating(subnetID ids.ID, nodeID ids.NodeID, pClient platformvm.Cl
 	}
 
 	// if not, also check the pending validator set
-	pVals, _, err := pClient.GetPendingValidators(ctx, subnetID, nodeIDs)
+	oVals, _, err := oClient.GetPendingValidators(ctx, subnetID, nodeIDs)
 	if err != nil {
 		return false, err
 	}
-	// pVals is an array of interfaces as it can be of different types
+	// oVals is an array of interfaces as it can be of different types
 	// but it's content is a JSON map[string]interface{}
-	for _, iv := range pVals {
+	for _, iv := range oVals {
 		if v, ok := iv.(map[string]interface{}); ok {
 			// strictly this is not needed, as we are providing the nodeID as param
 			// just a double check
@@ -632,8 +631,8 @@ func promptStakeAmount(subnetName string, isValidator bool, network models.Netwo
 		if err != nil {
 			return 0, err
 		}
-		pClient := platformvm.NewClient(constants.LocalAPIEndpoint)
-		walletBalance, err := getAssetBalance(pClient, ewoqPChainAddr, esc.AssetID)
+		oClient := omegavm.NewClient(constants.LocalAPIEndpoint)
+		walletBalance, err := getAssetBalance(oClient, ewoqOChainAddr, esc.AssetID)
 		if err != nil {
 			return 0, err
 		}
@@ -686,8 +685,8 @@ To setup your node, you must do two things:
 
 To add the VM to your plugin directory, copy or scp from %s
 
-If you installed avalanchego with the install script, your plugin directory is likely
-~/.avalanchego/build/plugins.
+If you installed odysseygo with the install script, your plugin directory is likely
+~/.odysseygo/build/plugins.
 
 If you start your node from the command line WITHOUT a config file (e.g. via command
 line or systemd script), add the following flag to your node's startup command:
@@ -697,7 +696,7 @@ line or systemd script), add the following flag to your node's startup command:
 comma-separating it).
 
 For example:
-./build/avalanchego --network-id=%s --track-subnets=%s
+./build/odysseygo --network-id=%s --track-subnets=%s
 
 If you start the node via a JSON config file, add this to your config file:
 track-subnets: %s
@@ -705,7 +704,7 @@ track-subnets: %s
 NOTE: The flag --track-subnets is a replacement of the deprecated --whitelisted-subnets.
 If the later is present in config, please rename it to track-subnets first.
 
-TIP: Try this command with the --avalanchego-config flag pointing to your config file,
+TIP: Try this command with the --odysseygo-config flag pointing to your config file,
 this tool will try to update the file automatically (make sure it can write to it).
 
 After you update your config, you will need to restart your node for the changes to
@@ -714,13 +713,13 @@ take effect.`
 	ux.Logger.PrintToUser(msg, vmPath, subnetID, network.NetworkIDFlagValue(), subnetID, subnetID)
 }
 
-func getAssetBalance(pClient platformvm.Client, addr string, assetID ids.ID) (uint64, error) {
-	pID, err := address.ParseToID(addr)
+func getAssetBalance(oClient omegavm.Client, addr string, assetID ids.ID) (uint64, error) {
+	oID, err := address.ParseToID(addr)
 	if err != nil {
 		return 0, err
 	}
 	ctx, cancel := utils.GetAPIContext()
-	resp, err := pClient.GetBalance(ctx, []ids.ShortID{pID})
+	resp, err := oClient.GetBalance(ctx, []ids.ShortID{oID})
 	cancel()
 	if err != nil {
 		return 0, err

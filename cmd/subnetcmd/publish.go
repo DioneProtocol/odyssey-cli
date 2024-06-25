@@ -13,16 +13,16 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	"github.com/ava-labs/apm/types"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/version"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/version"
+	"github.com/DioneProtocol/opm/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -34,12 +34,12 @@ var (
 	noRepoPath     string
 
 	errSubnetNotDeployed = errors.New(
-		"only subnets which have already been deployed to either testnet (fuji) or mainnet can be published")
+		"only subnets which have already been deployed to either testnet or mainnet can be published")
 )
 
 type newPublisherFunc func(string, string, string) subnet.Publisher
 
-// avalanche subnet publish
+// odyssey subnet publish
 func newPublishCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "publish [subnetName]",
@@ -79,10 +79,10 @@ func publish(_ *cobra.Command, args []string) error {
 	return doPublish(&sc, subnetName, subnet.NewPublisher)
 }
 
-// isReadyToPublish currently means if deployed to fuji and/or main
+// isReadyToPublish currently means if deployed to testnet and/or main
 func isReadyToPublish(sc *models.Sidecar) bool {
-	if sc.Networks[models.Fuji.String()].SubnetID != ids.Empty &&
-		sc.Networks[models.Fuji.String()].BlockchainID != ids.Empty {
+	if sc.Networks[models.Testnet.String()].SubnetID != ids.Empty &&
+		sc.Networks[models.Testnet.String()].BlockchainID != ids.Empty {
 		return true
 	}
 	if sc.Networks[models.Mainnet.String()].SubnetID != ids.Empty &&
@@ -365,7 +365,7 @@ func getSubnetInfo(sc *models.Sidecar) (*types.Subnet, error) {
 	}
 
 	subnet := &types.Subnet{
-		ID:          sc.Networks[models.Fuji.String()].SubnetID.String(),
+		ID:          sc.Networks[models.Testnet.String()].SubnetID.String(),
 		Alias:       sc.Name,
 		Homepage:    homepage,
 		Description: desc,
@@ -435,7 +435,7 @@ func getVMInfo(sc *models.Sidecar) (*types.VM, error) {
 	case sc.VM == models.SubnetEvm:
 		vmID = models.SubnetEvm
 		dl := binutils.NewSubnetEVMDownloader()
-		desc = "Subnet EVM is a simplified version of Coreth VM (C-Chain). It implements the Ethereum Virtual Machine and supports Solidity smart contracts as well as most other Ethereum client functionality"
+		desc = "Subnet EVM is a simplified version of Coreth VM (D-Chain). It implements the Ethereum Virtual Machine and supports Solidity smart contracts as well as most other Ethereum client functionality"
 		maintrs, ver, url, sha, err = getInfoForKnownVMs(
 			sc.VMVersion,
 			constants.SubnetEVMRepoName,
@@ -464,7 +464,7 @@ func getVMInfo(sc *models.Sidecar) (*types.VM, error) {
 
 	vm := &types.VM{
 		ID:            vmID,
-		Alias:         sc.Networks["Fuji"].BlockchainID.String(), // TODO: Do we have to query for this? Or write to sidecar on create?
+		Alias:         sc.Networks["Testnet"].BlockchainID.String(), // TODO: Do we have to query for this? Or write to sidecar on create?
 		Homepage:      "",
 		Description:   desc,
 		Maintainers:   maintrs,
@@ -482,7 +482,7 @@ func getInfoForKnownVMs(
 	strVer, repoName, vmBinDir, vmBin string,
 	dl binutils.GithubDownloader,
 ) ([]string, *version.Semantic, string, string, error) {
-	maintrs := []string{constants.AvaLabsMaintainers}
+	maintrs := []string{constants.DioneProtocolMaintainers}
 	binPath := filepath.Join(vmBinDir, repoName+"-"+strVer, vmBin)
 	sha, err := utils.GetSHA256FromDisk(binPath)
 	if err != nil {

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanchego/genesis"
-	avagoconstants "github.com/ava-labs/avalanchego/utils/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odysseygo/genesis"
+	odygoconstants "github.com/DioneProtocol/odysseygo/utils/constants"
 )
 
 type NetworkKind int64
@@ -16,7 +16,7 @@ type NetworkKind int64
 const (
 	Undefined NetworkKind = iota
 	Mainnet
-	Fuji
+	Testnet
 	Local
 	Devnet
 )
@@ -25,8 +25,8 @@ func (nk NetworkKind) String() string {
 	switch nk {
 	case Mainnet:
 		return "Mainnet"
-	case Fuji:
-		return "Fuji"
+	case Testnet:
+		return "Testnet"
 	case Local:
 		return "Local Network"
 	case Devnet:
@@ -45,8 +45,8 @@ var (
 	UndefinedNetwork = NewNetwork(Undefined, 0, "")
 	LocalNetwork     = NewNetwork(Local, constants.LocalNetworkID, constants.LocalAPIEndpoint)
 	DevnetNetwork    = NewNetwork(Devnet, constants.DevnetNetworkID, constants.DevnetAPIEndpoint)
-	FujiNetwork      = NewNetwork(Fuji, avagoconstants.FujiID, constants.FujiAPIEndpoint)
-	MainnetNetwork   = NewNetwork(Mainnet, avagoconstants.MainnetID, constants.MainnetAPIEndpoint)
+	TestnetNetwork   = NewNetwork(Testnet, odygoconstants.TestnetID, constants.TestnetAPIEndpoint)
+	MainnetNetwork   = NewNetwork(Mainnet, odygoconstants.MainnetID, constants.MainnetAPIEndpoint)
 )
 
 func NewNetwork(kind NetworkKind, id uint32, endpoint string) Network {
@@ -66,8 +66,8 @@ func NetworkFromString(s string) Network {
 	switch s {
 	case Mainnet.String():
 		return MainnetNetwork
-	case Fuji.String():
-		return FujiNetwork
+	case Testnet.String():
+		return TestnetNetwork
 	case Local.String():
 		return LocalNetwork
 	case Devnet.String():
@@ -78,10 +78,10 @@ func NetworkFromString(s string) Network {
 
 func NetworkFromNetworkID(networkID uint32) Network {
 	switch networkID {
-	case avagoconstants.MainnetID:
+	case odygoconstants.MainnetID:
 		return MainnetNetwork
-	case avagoconstants.FujiID:
-		return FujiNetwork
+	case odygoconstants.TestnetID:
+		return TestnetNetwork
 	case constants.LocalNetworkID:
 		return LocalNetwork
 	case constants.DevnetNetworkID:
@@ -94,8 +94,8 @@ func (n Network) Name() string {
 	return n.Kind.String()
 }
 
-func (n Network) CChainEndpoint() string {
-	return fmt.Sprintf("%s/ext/bc/%s/rpc", n.Endpoint, "C")
+func (n Network) DChainEndpoint() string {
+	return fmt.Sprintf("%s/ext/bc/%s/rpc", n.Endpoint, "D")
 }
 
 func (n Network) NetworkIDFlagValue() string {
@@ -104,8 +104,8 @@ func (n Network) NetworkIDFlagValue() string {
 		return fmt.Sprintf("network-%d", n.ID)
 	case Devnet:
 		return fmt.Sprintf("network-%d", n.ID)
-	case Fuji:
-		return "fuji"
+	case Testnet:
+		return "testnet"
 	case Mainnet:
 		return "mainnet"
 	}
@@ -118,8 +118,8 @@ func (n Network) GenesisParams() *genesis.Params {
 		return &genesis.LocalParams
 	case Devnet:
 		return &genesis.LocalParams
-	case Fuji:
-		return &genesis.FujiParams
+	case Testnet:
+		return &genesis.TestnetParams
 	case Mainnet:
 		return &genesis.MainnetParams
 	}

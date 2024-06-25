@@ -9,16 +9,16 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
 func CreateCustomSubnetConfig(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	subnetName string,
 	genesisPath string,
 	useRepo bool,
@@ -86,7 +86,7 @@ func CreateCustomSubnetConfig(
 	return genesisBytes, sc, nil
 }
 
-func loadCustomGenesis(app *application.Avalanche, genesisPath string) ([]byte, error) {
+func loadCustomGenesis(app *application.Odyssey, genesisPath string) ([]byte, error) {
 	var err error
 	if genesisPath == "" {
 		genesisPath, err = app.Prompt.CaptureExistingFilepath("Enter path to custom genesis")
@@ -99,7 +99,7 @@ func loadCustomGenesis(app *application.Avalanche, genesisPath string) ([]byte, 
 	return genesisBytes, err
 }
 
-func SetCustomVMSourceCodeFields(app *application.Avalanche, sc *models.Sidecar, customVMRepoURL string, customVMBranch string, customVMBuildScript string) error {
+func SetCustomVMSourceCodeFields(app *application.Odyssey, sc *models.Sidecar, customVMRepoURL string, customVMBranch string, customVMBuildScript string) error {
 	var err error
 	if customVMRepoURL != "" {
 		ux.Logger.PrintToUser("Checking source code repository URL %s", customVMRepoURL)
@@ -158,7 +158,7 @@ func checkGitIsInstalled() error {
 }
 
 func BuildCustomVM(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	sc *models.Sidecar,
 ) error {
 	if err := checkGitIsInstalled(); err != nil {

@@ -10,20 +10,20 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 )
 
-// Edits an Avalanchego config file or creates one if it doesn't exist. Contains prompts unless forceWrite is set to true.
+// Edits an Odysseygo config file or creates one if it doesn't exist. Contains prompts unless forceWrite is set to true.
 func EditConfigFile(
-	app *application.Avalanche,
+	app *application.Odyssey,
 	subnetID string,
 	network models.Network,
 	configFile string,
 	forceWrite bool,
-	subnetAvagoConfigFile string,
+	subnetOdygoConfigFile string,
 ) error {
 	if !forceWrite {
 		warn := "This will edit your existing config file. This edit is nondestructive,\n" +
@@ -40,39 +40,39 @@ func EditConfigFile(
 	}
 	fileBytes, err := os.ReadFile(configFile)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("failed to load avalanchego config file %s: %w", configFile, err)
+		return fmt.Errorf("failed to load odysseygo config file %s: %w", configFile, err)
 	}
 	if fileBytes == nil {
 		fileBytes = []byte("{}")
 	}
-	var avagoConfig map[string]interface{}
-	if err := json.Unmarshal(fileBytes, &avagoConfig); err != nil {
+	var odygoConfig map[string]interface{}
+	if err := json.Unmarshal(fileBytes, &odygoConfig); err != nil {
 		return fmt.Errorf("failed to unpack the config file %s to JSON: %w", configFile, err)
 	}
 
-	if subnetAvagoConfigFile != "" {
-		subnetAvagoConfigFileBytes, err := os.ReadFile(subnetAvagoConfigFile)
+	if subnetOdygoConfigFile != "" {
+		subnetOdygoConfigFileBytes, err := os.ReadFile(subnetOdygoConfigFile)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("failed to load extra flags from subnet avago config file %s: %w", subnetAvagoConfigFile, err)
+			return fmt.Errorf("failed to load extra flags from subnet odygo config file %s: %w", subnetOdygoConfigFile, err)
 		}
-		var subnetAvagoConfig map[string]interface{}
-		if err := json.Unmarshal(subnetAvagoConfigFileBytes, &subnetAvagoConfig); err != nil {
-			return fmt.Errorf("failed to unpack the config file %s to JSON: %w", subnetAvagoConfigFile, err)
+		var subnetOdygoConfig map[string]interface{}
+		if err := json.Unmarshal(subnetOdygoConfigFileBytes, &subnetOdygoConfig); err != nil {
+			return fmt.Errorf("failed to unpack the config file %s to JSON: %w", subnetOdygoConfigFile, err)
 		}
-		for k, v := range subnetAvagoConfig {
+		for k, v := range subnetOdygoConfig {
 			if k == "track-subnets" || k == "whitelisted-subnets" {
-				ux.Logger.PrintToUser("ignoring configuration setting for %q, a subnet's avago conf should not change it", k)
+				ux.Logger.PrintToUser("ignoring configuration setting for %q, a subnet's odygo conf should not change it", k)
 				continue
 			}
-			avagoConfig[k] = v
+			odygoConfig[k] = v
 		}
 	}
 
 	// Banff.10: "track-subnets" instead of "whitelisted-subnets"
-	oldVal := avagoConfig["track-subnets"]
+	oldVal := odygoConfig["track-subnets"]
 	if oldVal == nil {
 		// check the old key in the config file for tracked-subnets
-		oldVal = avagoConfig["whitelisted-subnets"]
+		oldVal = odygoConfig["whitelisted-subnets"]
 	}
 
 	newVal := ""
@@ -103,11 +103,11 @@ func EditConfigFile(
 	}
 
 	// Banf.10 changes from "whitelisted-subnets" to "track-subnets"
-	delete(avagoConfig, "whitelisted-subnets")
-	avagoConfig["track-subnets"] = newVal
-	avagoConfig["network-id"] = network.NetworkIDFlagValue()
+	delete(odygoConfig, "whitelisted-subnets")
+	odygoConfig["track-subnets"] = newVal
+	odygoConfig["network-id"] = network.NetworkIDFlagValue()
 
-	writeBytes, err := json.MarshalIndent(avagoConfig, "", "  ")
+	writeBytes, err := json.MarshalIndent(odygoConfig, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to pack JSON to bytes for the config file: %w", err)
 	}
@@ -116,7 +116,7 @@ func EditConfigFile(
 	}
 	msg := `The config file has been edited. To use it, make sure to start the node with the '--config-file' option, e.g.
 
-./build/avalanchego --config-file %s
+./build/odysseygo --config-file %s
 
 (using your binary location). The node has to be restarted for the changes to take effect.`
 	ux.Logger.PrintToUser(msg, configFile)

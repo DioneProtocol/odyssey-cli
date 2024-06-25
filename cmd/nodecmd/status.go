@@ -8,15 +8,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/avalanchego/vms/platformvm/status"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm/status"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 	"golang.org/x/exp/slices"
@@ -30,7 +30,7 @@ func newStatusCmd() *cobra.Command {
 		Short: "(ALPHA Warning) Get node bootstrap status",
 		Long: `(ALPHA Warning) This command is currently in experimental mode.
 
-The node status command gets the bootstrap status of all nodes in a cluster with the Primary Network. 
+The node status command gets the bootstrap status of all nodes in a cluster with the Primary Network.
 If no cluster is given, defaults to node list behaviour.
 
 To get the bootstrap status of a node with a Subnet, use --subnet flag`,
@@ -89,7 +89,7 @@ func statusNode(_ *cobra.Command, args []string) error {
 		return err
 	}
 
-	ux.Logger.PrintToUser("Getting avalanchego version of node(s)")
+	ux.Logger.PrintToUser("Getting odysseygo version of node(s)")
 
 	wg := sync.WaitGroup{}
 	wgResults := models.NodeResults{}
@@ -97,25 +97,25 @@ func statusNode(_ *cobra.Command, args []string) error {
 		wg.Add(1)
 		go func(nodeResults *models.NodeResults, host *models.Host) {
 			defer wg.Done()
-			if resp, err := ssh.RunSSHCheckAvalancheGoVersion(host); err != nil {
+			if resp, err := ssh.RunSSHCheckOdysseyGoVersion(host); err != nil {
 				nodeResults.AddResult(host.NodeID, nil, err)
 				return
 			} else {
-				if avalancheGoVersion, err := parseAvalancheGoOutput(resp); err != nil {
+				if odysseyGoVersion, err := parseOdysseyGoOutput(resp); err != nil {
 					nodeResults.AddResult(host.NodeID, nil, err)
 				} else {
-					nodeResults.AddResult(host.NodeID, avalancheGoVersion, err)
+					nodeResults.AddResult(host.NodeID, odysseyGoVersion, err)
 				}
 			}
 		}(&wgResults, host)
 	}
 	wg.Wait()
 	if wgResults.HasErrors() {
-		return fmt.Errorf("failed to get avalanchego version for node(s) %s", wgResults.GetErrorHostMap())
+		return fmt.Errorf("failed to get odysseygo version for node(s) %s", wgResults.GetErrorHostMap())
 	}
-	avalanchegoVersionForNode := map[string]string{}
-	for nodeID, avalanchegoVersion := range wgResults.GetResultMap() {
-		avalanchegoVersionForNode[nodeID] = fmt.Sprintf("%v", avalanchegoVersion)
+	odysseygoVersionForNode := map[string]string{}
+	for nodeID, odysseygoVersion := range wgResults.GetResultMap() {
+		odysseygoVersionForNode[nodeID] = fmt.Sprintf("%v", odysseygoVersion)
 	}
 
 	notSyncedNodes := []string{}
@@ -195,7 +195,7 @@ func statusNode(_ *cobra.Command, args []string) error {
 		ansibleHostIDs,
 		ansibleHosts,
 		nodeIDs,
-		avalanchegoVersionForNode,
+		odysseygoVersionForNode,
 		notHealthyNodes,
 		notBootstrappedNodes,
 		notSyncedNodes,
@@ -213,7 +213,7 @@ func printOutput(
 	ansibleHostIDs []string,
 	ansibleHosts map[string]*models.Host,
 	nodeIDs []string,
-	avagoVersions map[string]string,
+	odygoVersions map[string]string,
 	notHealthyHosts []string,
 	notBootstrappedHosts []string,
 	notSyncedHosts []string,
@@ -238,7 +238,7 @@ func printOutput(
 	ux.Logger.PrintToUser(tit)
 	ux.Logger.PrintToUser(strings.Repeat("=", len(tit)))
 	ux.Logger.PrintToUser("")
-	header := []string{"Cloud ID", "Node ID", "IP", "Network", "Avago Version", "Primary Network", "Healthy"}
+	header := []string{"Cloud ID", "Node ID", "IP", "Network", "Odygo Version", "Primary Network", "Healthy"}
 	if subnetName != "" {
 		header = append(header, "Subnet "+subnetName)
 	}
@@ -246,9 +246,9 @@ func printOutput(
 	table.SetHeader(header)
 	table.SetRowLine(true)
 	for i, ansibleHostID := range ansibleHostIDs {
-		boostrappedStatus := logging.Green.Wrap("BOOTSTRAPPED")
+		bootstrappedStatus := logging.Green.Wrap("BOOTSTRAPPED")
 		if slices.Contains(notBootstrappedHosts, ansibleHostID) {
-			boostrappedStatus = logging.Red.Wrap("NOT_BOOTSTRAPPED")
+			bootstrappedStatus = logging.Red.Wrap("NOT_BOOTSTRAPPED")
 		}
 		healthyStatus := logging.Green.Wrap("OK")
 		if slices.Contains(notHealthyHosts, ansibleHostID) {
@@ -259,8 +259,8 @@ func printOutput(
 			nodeIDs[i],
 			ansibleHosts[ansibleHostID].IP,
 			clustersConfig.Clusters[clusterName].Network.Name(),
-			avagoVersions[ansibleHostID],
-			boostrappedStatus,
+			odygoVersions[ansibleHostID],
+			bootstrappedStatus,
 			healthyStatus,
 		}
 		if subnetName != "" {

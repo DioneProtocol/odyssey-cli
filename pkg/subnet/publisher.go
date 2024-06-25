@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
@@ -87,7 +87,7 @@ func (p *publisherImpl) Publish(
 
 	ux.Logger.PrintToUser("Committing resources to local git repo...")
 	now := time.Now()
-	commitStr := fmt.Sprintf("avalanche-commit-%s", now.String())
+	commitStr := fmt.Sprintf("odyssey-commit-%s", now.String())
 
 	// use the global git config to try identifying the author
 	conf, err := config.LoadConfig(config.GlobalScope)

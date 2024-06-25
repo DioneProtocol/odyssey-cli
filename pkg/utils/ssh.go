@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"golang.org/x/crypto/ssh/agent"
 )
 

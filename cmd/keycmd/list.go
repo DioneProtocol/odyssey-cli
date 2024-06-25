@@ -9,16 +9,16 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/key"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanchego/ids"
-	ledger "github.com/ava-labs/avalanchego/utils/crypto/ledger"
-	"github.com/ava-labs/avalanchego/utils/formatting/address"
-	"github.com/ava-labs/avalanchego/utils/units"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
-	"github.com/ava-labs/coreth/ethclient"
+	"github.com/DioneProtocol/coreth/ethclient"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/key"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odysseygo/ids"
+	ledger "github.com/DioneProtocol/odysseygo/utils/crypto/ledger"
+	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
+	"github.com/DioneProtocol/odysseygo/utils/units"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -26,13 +26,12 @@ import (
 
 const (
 	localFlag         = "local"
-	fujiFlag          = "fuji"
 	testnetFlag       = "testnet"
 	mainnetFlag       = "mainnet"
 	allFlag           = "all-networks"
-	cchainFlag        = "cchain"
+	dchainFlag        = "dchain"
 	ledgerIndicesFlag = "ledger"
-	useNanoAvaxFlag   = "use-nano-avax"
+	useNanoDioneFlag  = "use-nano-dione"
 )
 
 var (
@@ -40,12 +39,12 @@ var (
 	testnet       bool
 	mainnet       bool
 	all           bool
-	cchain        bool
-	useNanoAvax   bool
+	dchain        bool
+	useNanoDione  bool
 	ledgerIndices []uint
 )
 
-// avalanche subnet list
+// odyssey subnet list
 func newListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
@@ -67,7 +66,7 @@ keys or for the ledger addresses associated to certain indices.`,
 		testnetFlag,
 		"t",
 		false,
-		"list testnet (fuji) network addresses",
+		"list testnet network addresses",
 	)
 	cmd.Flags().BoolVarP(
 		&mainnet,
@@ -84,18 +83,18 @@ keys or for the ledger addresses associated to certain indices.`,
 		"list all network addresses",
 	)
 	cmd.Flags().BoolVarP(
-		&cchain,
-		cchainFlag,
-		"c",
+		&dchain,
+		dchainFlag,
+		"d",
 		true,
-		"list C-Chain addresses",
+		"list D-Chain addresses",
 	)
 	cmd.Flags().BoolVarP(
-		&useNanoAvax,
-		useNanoAvaxFlag,
+		&useNanoDione,
+		useNanoDioneFlag,
 		"n",
 		false,
-		"use nano Avax for balances",
+		"use nano Dione for balances",
 	)
 	cmd.Flags().UintSliceVarP(
 		&ledgerIndices,
@@ -107,24 +106,24 @@ keys or for the ledger addresses associated to certain indices.`,
 	return cmd
 }
 
-func getClients(networks []models.Network, cchain bool) (
-	map[models.Network]platformvm.Client,
+func getClients(networks []models.Network, dchain bool) (
+	map[models.Network]omegavm.Client,
 	map[models.Network]ethclient.Client,
 	error,
 ) {
 	var err error
-	pClients := map[models.Network]platformvm.Client{}
-	cClients := map[models.Network]ethclient.Client{}
+	oClients := map[models.Network]omegavm.Client{}
+	dClients := map[models.Network]ethclient.Client{}
 	for _, network := range networks {
-		pClients[network] = platformvm.NewClient(network.Endpoint)
-		if cchain {
-			cClients[network], err = ethclient.Dial(network.CChainEndpoint())
+		oClients[network] = omegavm.NewClient(network.Endpoint)
+		if dchain {
+			dClients[network], err = ethclient.Dial(network.DChainEndpoint())
 			if err != nil {
 				return nil, nil, err
 			}
 		}
 	}
-	return pClients, cClients, nil
+	return oClients, dClients, nil
 }
 
 type addressInfo struct {
@@ -143,7 +142,7 @@ func listKeys(*cobra.Command, []string) error {
 		networks = append(networks, models.LocalNetwork)
 	}
 	if testnet || all {
-		networks = append(networks, models.FujiNetwork)
+		networks = append(networks, models.TestnetNetwork)
 	}
 	if mainnet || all {
 		networks = append(networks, models.MainnetNetwork)
@@ -152,7 +151,7 @@ func listKeys(*cobra.Command, []string) error {
 		// no flag was set, prompt user
 		networkStr, err := app.Prompt.CaptureList(
 			"Choose network for which to list addresses",
-			[]string{models.Mainnet.String(), models.Fuji.String(), models.Local.String()},
+			[]string{models.Mainnet.String(), models.Testnet.String(), models.Local.String()},
 		)
 		if err != nil {
 			return err
@@ -162,9 +161,9 @@ func listKeys(*cobra.Command, []string) error {
 	}
 	queryLedger := len(ledgerIndices) > 0
 	if queryLedger {
-		cchain = false
+		dchain = false
 	}
-	pClients, cClients, err := getClients(networks, cchain)
+	oClients, dClients, err := getClients(networks, dchain)
 	if err != nil {
 		return err
 	}
@@ -173,12 +172,12 @@ func listKeys(*cobra.Command, []string) error {
 		for _, index := range ledgerIndices {
 			ledgerIndicesU32 = append(ledgerIndicesU32, uint32(index))
 		}
-		addrInfos, err = getLedgerIndicesInfo(pClients, ledgerIndicesU32, networks)
+		addrInfos, err = getLedgerIndicesInfo(oClients, ledgerIndicesU32, networks)
 		if err != nil {
 			return err
 		}
 	} else {
-		addrInfos, err = getStoredKeysInfo(pClients, cClients, networks, cchain)
+		addrInfos, err = getStoredKeysInfo(oClients, dClients, networks, dchain)
 		if err != nil {
 			return err
 		}
@@ -188,10 +187,10 @@ func listKeys(*cobra.Command, []string) error {
 }
 
 func getStoredKeysInfo(
-	pClients map[models.Network]platformvm.Client,
-	cClients map[models.Network]ethclient.Client,
+	oClients map[models.Network]omegavm.Client,
+	dClients map[models.Network]ethclient.Client,
 	networks []models.Network,
-	cchain bool,
+	dchain bool,
 ) ([]addressInfo, error) {
 	files, err := os.ReadDir(app.GetKeyDir())
 	if err != nil {
@@ -205,7 +204,7 @@ func getStoredKeysInfo(
 	}
 	addrInfos := []addressInfo{}
 	for _, keyPath := range keyPaths {
-		keyAddrInfos, err := getStoredKeyInfo(pClients, cClients, networks, keyPath, cchain)
+		keyAddrInfos, err := getStoredKeyInfo(oClients, dClients, networks, keyPath, dchain)
 		if err != nil {
 			return nil, err
 		}
@@ -215,11 +214,11 @@ func getStoredKeysInfo(
 }
 
 func getStoredKeyInfo(
-	pClients map[models.Network]platformvm.Client,
-	cClients map[models.Network]ethclient.Client,
+	oClients map[models.Network]omegavm.Client,
+	dClients map[models.Network]ethclient.Client,
 	networks []models.Network,
 	keyPath string,
-	cchain bool,
+	dchain bool,
 ) ([]addressInfo, error) {
 	addrInfos := []addressInfo{}
 	for _, network := range networks {
@@ -228,17 +227,17 @@ func getStoredKeyInfo(
 		if err != nil {
 			return nil, err
 		}
-		if cchain {
-			cChainAddr := sk.C()
-			addrInfo, err := getCChainAddrInfo(cClients, network, cChainAddr, "stored", keyName)
+		if dchain {
+			dChainAddr := sk.D()
+			addrInfo, err := getDChainAddrInfo(dClients, network, dChainAddr, "stored", keyName)
 			if err != nil {
 				return nil, err
 			}
 			addrInfos = append(addrInfos, addrInfo)
 		}
-		pChainAddrs := sk.P()
-		for _, pChainAddr := range pChainAddrs {
-			addrInfo, err := getPChainAddrInfo(pClients, network, pChainAddr, "stored", keyName)
+		oChainAddrs := sk.O()
+		for _, oChainAddr := range oChainAddrs {
+			addrInfo, err := getOChainAddrInfo(oClients, network, oChainAddr, "stored", keyName)
 			if err != nil {
 				return nil, err
 			}
@@ -249,7 +248,7 @@ func getStoredKeyInfo(
 }
 
 func getLedgerIndicesInfo(
-	pClients map[models.Network]platformvm.Client,
+	oClients map[models.Network]omegavm.Client,
 	ledgerIndices []uint32,
 	networks []models.Network,
 ) ([]addressInfo, error) {
@@ -267,7 +266,7 @@ func getLedgerIndicesInfo(
 	addrInfos := []addressInfo{}
 	for i, index := range ledgerIndices {
 		addr := addresses[i]
-		ledgerAddrInfos, err := getLedgerIndexInfo(pClients, index, networks, addr)
+		ledgerAddrInfos, err := getLedgerIndexInfo(oClients, index, networks, addr)
 		if err != nil {
 			return []addressInfo{}, err
 		}
@@ -277,21 +276,21 @@ func getLedgerIndicesInfo(
 }
 
 func getLedgerIndexInfo(
-	pClients map[models.Network]platformvm.Client,
+	oClients map[models.Network]omegavm.Client,
 	index uint32,
 	networks []models.Network,
 	addr ids.ShortID,
 ) ([]addressInfo, error) {
 	addrInfos := []addressInfo{}
 	for _, network := range networks {
-		pChainAddr, err := address.Format("P", key.GetHRP(network.ID), addr[:])
+		oChainAddr, err := address.Format("O", key.GetHRP(network.ID), addr[:])
 		if err != nil {
 			return nil, err
 		}
-		addrInfo, err := getPChainAddrInfo(
-			pClients,
+		addrInfo, err := getOChainAddrInfo(
+			oClients,
 			network,
-			pChainAddr,
+			oChainAddr,
 			"ledger",
 			fmt.Sprintf("index %d", index),
 		)
@@ -303,14 +302,14 @@ func getLedgerIndexInfo(
 	return addrInfos, nil
 }
 
-func getPChainAddrInfo(
-	pClients map[models.Network]platformvm.Client,
+func getOChainAddrInfo(
+	oClients map[models.Network]omegavm.Client,
 	network models.Network,
-	pChainAddr string,
+	oChainAddr string,
 	kind string,
 	name string,
 ) (addressInfo, error) {
-	balance, err := getPChainBalanceStr(pClients[network], pChainAddr)
+	balance, err := getOChainBalanceStr(oClients[network], oChainAddr)
 	if err != nil {
 		// just ignore local network errors
 		if network.Kind != models.Local {
@@ -320,21 +319,21 @@ func getPChainAddrInfo(
 	return addressInfo{
 		kind:    kind,
 		name:    name,
-		chain:   "P-Chain (Bech32 format)",
-		address: pChainAddr,
+		chain:   "O-Chain (Bech32 format)",
+		address: oChainAddr,
 		balance: balance,
 		network: network.Name(),
 	}, nil
 }
 
-func getCChainAddrInfo(
-	cClients map[models.Network]ethclient.Client,
+func getDChainAddrInfo(
+	dClients map[models.Network]ethclient.Client,
 	network models.Network,
-	cChainAddr string,
+	dChainAddr string,
 	kind string,
 	name string,
 ) (addressInfo, error) {
-	cChainBalance, err := getCChainBalanceStr(cClients[network], cChainAddr)
+	dChainBalance, err := getDChainBalanceStr(dClients[network], dChainAddr)
 	if err != nil {
 		// just ignore local network errors
 		if network.Kind != models.Local {
@@ -344,9 +343,9 @@ func getCChainAddrInfo(
 	return addressInfo{
 		kind:    kind,
 		name:    name,
-		chain:   "C-Chain (Ethereum hex format)",
-		address: cChainAddr,
-		balance: cChainBalance,
+		chain:   "D-Chain (Ethereum hex format)",
+		address: dChainAddr,
+		balance: dChainBalance,
 		network: network.Name(),
 	}, nil
 }
@@ -370,35 +369,35 @@ func printAddrInfos(addrInfos []addressInfo) {
 	table.Render()
 }
 
-func getCChainBalanceStr(cClient ethclient.Client, addrStr string) (string, error) {
+func getDChainBalanceStr(dClient ethclient.Client, addrStr string) (string, error) {
 	addr := common.HexToAddress(addrStr)
 	ctx, cancel := utils.GetAPIContext()
-	balance, err := cClient.BalanceAt(ctx, addr, nil)
+	balance, err := dClient.BalanceAt(ctx, addr, nil)
 	cancel()
 	if err != nil {
 		return "", err
 	}
-	// convert to nAvax
-	balance = balance.Div(balance, big.NewInt(int64(units.Avax)))
+	// convert to nDione
+	balance = balance.Div(balance, big.NewInt(int64(units.Dione)))
 	if balance.Cmp(big.NewInt(0)) == 0 {
 		return "0", nil
 	}
 	balanceStr := ""
-	if useNanoAvax {
+	if useNanoDione {
 		balanceStr = fmt.Sprintf("%9d", balance.Uint64())
 	} else {
-		balanceStr = fmt.Sprintf("%.9f", float64(balance.Uint64())/float64(units.Avax))
+		balanceStr = fmt.Sprintf("%.9f", float64(balance.Uint64())/float64(units.Dione))
 	}
 	return balanceStr, nil
 }
 
-func getPChainBalanceStr(pClient platformvm.Client, addr string) (string, error) {
+func getOChainBalanceStr(oClient omegavm.Client, addr string) (string, error) {
 	pID, err := address.ParseToID(addr)
 	if err != nil {
 		return "", err
 	}
 	ctx, cancel := utils.GetAPIContext()
-	resp, err := pClient.GetBalance(ctx, []ids.ShortID{pID})
+	resp, err := oClient.GetBalance(ctx, []ids.ShortID{pID})
 	cancel()
 	if err != nil {
 		return "", err
@@ -407,10 +406,10 @@ func getPChainBalanceStr(pClient platformvm.Client, addr string) (string, error)
 		return "0", nil
 	}
 	balanceStr := ""
-	if useNanoAvax {
+	if useNanoDione {
 		balanceStr = fmt.Sprintf("%9d", resp.Balance)
 	} else {
-		balanceStr = fmt.Sprintf("%.9f", float64(resp.Balance)/float64(units.Avax))
+		balanceStr = fmt.Sprintf("%.9f", float64(resp.Balance)/float64(units.Dione))
 	}
 	return balanceStr, nil
 }

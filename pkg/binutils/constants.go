@@ -11,7 +11,7 @@ const (
 	gRPCServerEndpoint = "localhost" + gRPCServerPort
 	gRPCDialTimeout    = 10 * time.Second
 
-	avalanchegoBinPrefix = "avalanchego-"
-	subnetEVMBinPrefix   = "subnet-evm-"
-	maxCopy              = 2147483648 // 2 GB
+	odysseygoBinPrefix = "odysseygo-"
+	subnetEVMBinPrefix = "subnet-evm-"
+	maxCopy            = 2147483648 // 2 GB
 )

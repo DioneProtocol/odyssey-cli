@@ -18,72 +18,72 @@ import (
 	"strings"
 	"sync"
 
-	awsAPI "github.com/ava-labs/avalanche-cli/pkg/cloud/aws"
+	awsAPI "github.com/DioneProtocol/odyssey-cli/pkg/cloud/aws"
 
-	"github.com/ava-labs/avalanche-cli/cmd/flags"
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/ssh"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/vm"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/staking"
+	"github.com/DioneProtocol/odyssey-cli/cmd/flags"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ssh"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/vm"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/staking"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
 
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/semver"
 )
 
 const (
-	avalancheGoReferenceChoiceLatest = "latest"
-	avalancheGoReferenceChoiceSubnet = "subnet"
-	avalancheGoReferenceChoiceCustom = "custom"
+	odysseyGoReferenceChoiceLatest = "latest"
+	odysseyGoReferenceChoiceSubnet = "subnet"
+	odysseyGoReferenceChoiceCustom = "custom"
 )
 
 var (
-	createOnFuji                    bool
-	createDevnet                    bool
-	createOnMainnet                 bool
-	useAWS                          bool
-	useGCP                          bool
-	cmdLineRegion                   []string
-	authorizeAccess                 bool
-	numNodes                        []int
-	nodeType                        string
-	existingMonitoringInstance      string
-	useLatestAvalanchegoVersion     bool
-	useCustomAvalanchegoVersion     string
-	useAvalanchegoVersionFromSubnet string
-	cmdLineGCPCredentialsPath       string
-	cmdLineGCPProjectName           string
-	cmdLineAlternativeKeyPairName   string
-	useSSHAgent                     bool
-	sshIdentity                     string
-	setUpMonitoring                 bool
-	skipMonitoring                  bool
+	createOnTestnet               bool
+	createDevnet                  bool
+	createOnMainnet               bool
+	useAWS                        bool
+	useGCP                        bool
+	cmdLineRegion                 []string
+	authorizeAccess               bool
+	numNodes                      []int
+	nodeType                      string
+	existingMonitoringInstance    string
+	useLatestOdysseygoVersion     bool
+	useCustomOdysseygoVersion     string
+	useOdysseygoVersionFromSubnet string
+	cmdLineGCPCredentialsPath     string
+	cmdLineGCPProjectName         string
+	cmdLineAlternativeKeyPairName string
+	useSSHAgent                   bool
+	sshIdentity                   string
+	setUpMonitoring               bool
+	skipMonitoring                bool
 )
 
 func newCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create [clusterName]",
 		Short: "(ALPHA Warning) Create a new validator on cloud server",
-		Long: `(ALPHA Warning) This command is currently in experimental mode. 
+		Long: `(ALPHA Warning) This command is currently in experimental mode.
 
-The node create command sets up a validator on a cloud server of your choice. 
-The validator will be validating the Avalanche Primary Network and Subnet 
-of your choice. By default, the command runs an interactive wizard. It 
+The node create command sets up a validator on a cloud server of your choice.
+The validator will be validating the Odyssey Primary Network and Subnet
+of your choice. By default, the command runs an interactive wizard. It
 walks you through all the steps you need to set up a validator.
 Once this command is completed, you will have to wait for the validator
 to finish bootstrapping on the primary network before running further
 commands on it, e.g. validating a Subnet. You can check the bootstrapping
-status by running avalanche node status 
+status by running odyssey node status
 
-The created node will be part of group of validators called <clusterName> 
+The created node will be part of group of validators called <clusterName>
 and users can call node commands with <clusterName> so that the command
 will apply to all nodes in the cluster`,
 		SilenceUsage: true,
@@ -97,14 +97,14 @@ will apply to all nodes in the cluster`,
 	cmd.Flags().BoolVar(&authorizeAccess, "authorize-access", false, "authorize CLI to create cloud resources")
 	cmd.Flags().IntSliceVar(&numNodes, "num-nodes", []int{}, "number of nodes to create per region(s). Use comma to separate multiple numbers for each region in the same order as --region flag")
 	cmd.Flags().StringVar(&nodeType, "node-type", "", "cloud instance type. Use 'default' to use recommended default instance type")
-	cmd.Flags().BoolVar(&useLatestAvalanchegoVersion, "latest-avalanchego-version", false, "install latest avalanchego version on node/s")
-	cmd.Flags().StringVar(&useCustomAvalanchegoVersion, "custom-avalanchego-version", "", "install given avalanchego version on node/s")
-	cmd.Flags().StringVar(&useAvalanchegoVersionFromSubnet, "avalanchego-version-from-subnet", "", "install latest avalanchego version, that is compatible with the given subnet, on node/s")
+	cmd.Flags().BoolVar(&useLatestOdysseygoVersion, "latest-odysseygo-version", false, "install latest odysseygo version on node/s")
+	cmd.Flags().StringVar(&useCustomOdysseygoVersion, "custom-odysseygo-version", "", "install given odysseygo version on node/s")
+	cmd.Flags().StringVar(&useOdysseygoVersionFromSubnet, "odysseygo-version-from-subnet", "", "install latest odysseygo version, that is compatible with the given subnet, on node/s")
 	cmd.Flags().StringVar(&cmdLineGCPCredentialsPath, "gcp-credentials", "", "use given GCP credentials")
 	cmd.Flags().StringVar(&cmdLineGCPProjectName, "gcp-project", "", "use given GCP project")
 	cmd.Flags().StringVar(&cmdLineAlternativeKeyPairName, "alternative-key-pair-name", "", "key pair name to use if default one generates conflicts")
 	cmd.Flags().StringVar(&awsProfile, "aws-profile", constants.AWSDefaultCredential, "aws profile to use")
-	cmd.Flags().BoolVar(&createOnFuji, "fuji", false, "create node/s in Fuji Network")
+	cmd.Flags().BoolVar(&createOnTestnet, "testnet", false, "create node/s in Testnet Network")
 	cmd.Flags().BoolVar(&createDevnet, "devnet", false, "create node/s into a new Devnet")
 	cmd.Flags().BoolVar(&useSSHAgent, "use-ssh-agent", false, "use ssh agent(ex: Yubikey) for ssh auth")
 	cmd.Flags().StringVar(&sshIdentity, "ssh-agent-identity", "", "use given ssh identity(only for ssh agent). If not set, default will be used.")
@@ -115,8 +115,8 @@ will apply to all nodes in the cluster`,
 }
 
 func preCreateChecks() error {
-	if !flags.EnsureMutuallyExclusive([]bool{useLatestAvalanchegoVersion, useAvalanchegoVersionFromSubnet != "", useCustomAvalanchegoVersion != ""}) {
-		return fmt.Errorf("latest avalanchego version, custom avalanchego version and avalanchego version based on given subnet, are mutually exclusive options")
+	if !flags.EnsureMutuallyExclusive([]bool{useLatestOdysseygoVersion, useOdysseygoVersionFromSubnet != "", useCustomOdysseygoVersion != ""}) {
+		return fmt.Errorf("latest odysseygo version, custom odysseygo version and odysseygo version based on given subnet, are mutually exclusive options")
 	}
 	if useAWS && useGCP {
 		return fmt.Errorf("could not use both AWS and GCP cloud options")
@@ -152,11 +152,11 @@ func createNodes(_ *cobra.Command, args []string) error {
 	network, err := subnetcmd.GetNetworkFromCmdLineFlags(
 		false,
 		createDevnet,
-		createOnFuji,
+		createOnTestnet,
 		createOnMainnet,
 		"",
 		false,
-		[]models.NetworkKind{models.Fuji, models.Devnet},
+		[]models.NetworkKind{models.Testnet, models.Devnet},
 	)
 	if err != nil {
 		return err
@@ -325,11 +325,11 @@ func createNodes(_ *cobra.Command, args []string) error {
 				}
 			}
 			if separateMonitoringInstance {
-				networkName := fmt.Sprintf("%s-network", usr.Username+constants.AvalancheCLISuffix)
+				networkName := fmt.Sprintf("%s-network", usr.Username+constants.OdysseyCLISuffix)
 				firewallName := fmt.Sprintf("%s-%s-monitoring", networkName, strings.ReplaceAll(monitoringNodeConfig.PublicIPs[0], ".", ""))
 				ports := []string{
-					strconv.Itoa(constants.AvalanchegoMachineMetricsPort), strconv.Itoa(constants.AvalanchegoAPIPort),
-					strconv.Itoa(constants.AvalanchegoMonitoringPort), strconv.Itoa(constants.AvalanchegoGrafanaPort),
+					strconv.Itoa(constants.OdysseygoMachineMetricsPort), strconv.Itoa(constants.OdysseygoAPIPort),
+					strconv.Itoa(constants.OdysseygoMonitoringPort), strconv.Itoa(constants.OdysseygoGrafanaPort),
 				}
 				if err = gcpClient.AddFirewall(
 					monitoringNodeConfig.PublicIPs[0],
@@ -355,7 +355,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 	}
 
 	inventoryPath := app.GetAnsibleInventoryDirPath(clusterName)
-	avalancheGoVersion, err := getAvalancheGoVersion()
+	odysseyGoVersion, err := getOdysseyGoVersion()
 	if err != nil {
 		return err
 	}
@@ -389,7 +389,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 		}
 		return fmt.Errorf("failed to provision node(s) %s", failedHosts.GetNodeList())
 	}
-	ux.Logger.PrintToUser("Installing AvalancheGo and Avalanche-CLI and starting bootstrap process on the newly created Avalanche node(s) ...")
+	ux.Logger.PrintToUser("Installing OdysseyGo and Odyssey-CLI and starting bootstrap process on the newly created Odyssey node(s) ...")
 	wg := sync.WaitGroup{}
 	wgResults := models.NodeResults{}
 	for _, host := range hosts {
@@ -404,7 +404,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 				nodeResults.AddResult(host.NodeID, nil, err)
 				return
 			}
-			if err := ssh.RunSSHSetupNode(host, app.Conf.GetConfigPath(), avalancheGoVersion, network.Kind == models.Devnet); err != nil {
+			if err := ssh.RunSSHSetupNode(host, app.Conf.GetConfigPath(), odysseyGoVersion, network.Kind == models.Devnet); err != nil {
 				nodeResults.AddResult(host.NodeID, nil, err)
 				return
 			}
@@ -443,18 +443,18 @@ func createNodes(_ *cobra.Command, args []string) error {
 		monitoringHost := monitoringHosts[0]
 		// remove monitoring host from created hosts list
 		hosts = utils.Filter(hosts, func(h *models.Host) bool { return h.NodeID != monitoringHost.NodeID })
-		avalancheGoPorts := []string{}
+		odysseyGoPorts := []string{}
 		machinePorts := []string{}
 		inventoryHosts, err := ansible.GetInventoryFromAnsibleInventoryFile(app.GetAnsibleInventoryDirPath(clusterName))
 		if err != nil {
 			return err
 		}
 		for _, host := range inventoryHosts {
-			avalancheGoPorts = append(avalancheGoPorts, fmt.Sprintf("'%s:%s'", host.IP, strconv.Itoa(constants.AvalanchegoAPIPort)))
-			machinePorts = append(machinePorts, fmt.Sprintf("'%s:%s'", host.IP, strconv.Itoa(constants.AvalanchegoMachineMetricsPort)))
+			odysseyGoPorts = append(odysseyGoPorts, fmt.Sprintf("'%s:%s'", host.IP, strconv.Itoa(constants.OdysseygoAPIPort)))
+			machinePorts = append(machinePorts, fmt.Sprintf("'%s:%s'", host.IP, strconv.Itoa(constants.OdysseygoMachineMetricsPort)))
 		}
 		if existingMonitoringInstance != "" {
-			if err := ssh.RunSSHUpdatePrometheusConfig(monitoringHost, strings.Join(avalancheGoPorts, ","), strings.Join(machinePorts, ",")); err != nil {
+			if err := ssh.RunSSHUpdatePrometheusConfig(monitoringHost, strings.Join(odysseyGoPorts, ","), strings.Join(machinePorts, ",")); err != nil {
 				return err
 			}
 		} else {
@@ -464,7 +464,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 			if err := ssh.RunSSHCopyMonitoringDashboards(monitoringHost, app.GetMonitoringDashboardDir()+"/"); err != nil {
 				return err
 			}
-			if err := ssh.RunSSHSetupSeparateMonitoring(monitoringHost, app.GetMonitoringScriptFile(), strings.Join(avalancheGoPorts, ","), strings.Join(machinePorts, ",")); err != nil {
+			if err := ssh.RunSSHSetupSeparateMonitoring(monitoringHost, app.GetMonitoringScriptFile(), strings.Join(odysseyGoPorts, ","), strings.Join(machinePorts, ",")); err != nil {
 				return err
 			}
 		}
@@ -480,7 +480,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 			wg.Add(1)
 			go func(nodeResults *models.NodeResults, host *models.Host) {
 				defer wg.Done()
-				nodeDirPath := app.GetNodeInstanceAvaGoConfigDirPath(host.NodeID)
+				nodeDirPath := app.GetNodeInstanceOdygoConfigDirPath(host.NodeID)
 				if err := ssh.RunSSHDownloadNodeMonitoringConfig(host, nodeDirPath); err != nil {
 					nodeResults.AddResult(host.NodeID, nil, err)
 					return
@@ -511,7 +511,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 		}
 	}
 	ux.Logger.PrintToUser("======================================")
-	ux.Logger.PrintToUser("AVALANCHE NODE(S) STATUS")
+	ux.Logger.PrintToUser("ODYSSEY NODE(S) STATUS")
 	ux.Logger.PrintToUser("======================================")
 	ux.Logger.PrintToUser("")
 	for _, node := range hosts {
@@ -536,7 +536,7 @@ func createNodes(_ *cobra.Command, args []string) error {
 			monitoringPublicIP = monitoringNodeConfig.PublicIPs[0]
 		}
 		printResults(cloudConfigMap, publicIPMap, ansibleHostIDs, monitoringPublicIP)
-		ux.Logger.PrintToUser("AvalancheGo and Avalanche-CLI installed and node(s) are bootstrapping!")
+		ux.Logger.PrintToUser("OdysseyGo and Odyssey-CLI installed and node(s) are bootstrapping!")
 	}
 	return nil
 }
@@ -562,8 +562,8 @@ func promptSetUpMonitoring() (bool, bool, error) {
 	return setUpMonitoring, separateMonitoringInstance, nil
 }
 
-// createClusterNodeConfig creates node config and save it in .avalanche-cli/nodes/{instanceID}
-// also creates cluster config in .avalanche-cli/nodes storing various key pair and security group info for all clusters
+// createClusterNodeConfig creates node config and save it in .odyssey-cli/nodes/{instanceID}
+// also creates cluster config in .odyssey-cli/nodes storing various key pair and security group info for all clusters
 func createClusterNodeConfig(network models.Network, cloudConfigMap models.CloudConfig, monitorCloudConfig models.RegionConfig, monitoringHostRegion, clusterName, cloudService string, separateMonitoringInstance bool) error {
 	for region, cloudConfig := range cloudConfigMap {
 		for i := range cloudConfig.InstanceIDs {
@@ -827,36 +827,36 @@ func getIPAddress() (string, error) {
 	return "", errors.New("no IP address found")
 }
 
-// getAvalancheGoVersion asks users whether they want to install the newest Avalanche Go version
-// or if they want to use the newest Avalanche Go Version that is still compatible with Subnet EVM
+// getOdysseyGoVersion asks users whether they want to install the newest Odyssey Go version
+// or if they want to use the newest Odyssey Go Version that is still compatible with Subnet EVM
 // version of their choice
-func getAvalancheGoVersion() (string, error) {
+func getOdysseyGoVersion() (string, error) {
 	version := ""
 	subnet := ""
-	if useLatestAvalanchegoVersion { //nolint: gocritic
+	if useLatestOdysseygoVersion { //nolint: gocritic
 		version = "latest"
-	} else if useCustomAvalanchegoVersion != "" {
-		if !semver.IsValid(useCustomAvalanchegoVersion) {
-			return "", errors.New("custom avalanchego version must be a legal semantic version (ex: v1.1.1)")
+	} else if useCustomOdysseygoVersion != "" {
+		if !semver.IsValid(useCustomOdysseygoVersion) {
+			return "", errors.New("custom odysseygo version must be a legal semantic version (ex: v1.10.10)")
 		}
-		version = useCustomAvalanchegoVersion
-	} else if useAvalanchegoVersionFromSubnet != "" {
-		subnet = useAvalanchegoVersionFromSubnet
+		version = useCustomOdysseygoVersion
+	} else if useOdysseygoVersionFromSubnet != "" {
+		subnet = useOdysseygoVersionFromSubnet
 	} else {
-		choice, subnetChoice, err := promptAvalancheGoReferenceChoice()
+		choice, subnetChoice, err := promptOdysseyGoReferenceChoice()
 		if err != nil {
 			return "", err
 		}
 		switch choice {
-		case avalancheGoReferenceChoiceLatest:
+		case odysseyGoReferenceChoiceLatest:
 			version = "latest"
-		case avalancheGoReferenceChoiceCustom:
-			customVersion, err := app.Prompt.CaptureVersion("Which version of AvalancheGo would you like to install? (Use format v1.10.13)")
+		case odysseyGoReferenceChoiceCustom:
+			customVersion, err := app.Prompt.CaptureVersion("Which version of OdysseyGo would you like to install? (Use format v1.10.10)")
 			if err != nil {
 				return "", err
 			}
 			version = customVersion
-		case avalancheGoReferenceChoiceSubnet:
+		case odysseyGoReferenceChoiceSubnet:
 			subnet = subnetChoice
 		}
 	}
@@ -865,7 +865,7 @@ func getAvalancheGoVersion() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		version, err = GetLatestAvagoVersionForRPC(sc.RPCVersion)
+		version, err = GetLatestOdygoVersionForRPC(sc.RPCVersion)
 		if err != nil {
 			return "", err
 		}
@@ -873,21 +873,21 @@ func getAvalancheGoVersion() (string, error) {
 	return version, nil
 }
 
-func GetLatestAvagoVersionForRPC(configuredRPCVersion int) (string, error) {
-	desiredAvagoVersion, err := vm.GetLatestAvalancheGoByProtocolVersion(
-		app, configuredRPCVersion, constants.AvalancheGoCompatibilityURL)
+func GetLatestOdygoVersionForRPC(configuredRPCVersion int) (string, error) {
+	desiredOdygoVersion, err := vm.GetLatestOdysseyGoByProtocolVersion(
+		app, configuredRPCVersion, constants.OdysseyGoCompatibilityURL)
 	if err != nil {
 		return "", err
 	}
-	return desiredAvagoVersion, nil
+	return desiredOdygoVersion, nil
 }
 
-// promptAvalancheGoReferenceChoice returns user's choice of either using the latest Avalanche Go
-// version or using the latest Avalanche Go version that is still compatible with the subnet that user
+// promptOdysseyGoReferenceChoice returns user's choice of either using the latest Odyssey Go
+// version or using the latest Odyssey Go version that is still compatible with the subnet that user
 // wants the cloud server to track
-func promptAvalancheGoReferenceChoice() (string, string, error) {
-	defaultVersion := "Use latest Avalanche Go Version"
-	txt := "What version of Avalanche Go would you like to install in the node?"
+func promptOdysseyGoReferenceChoice() (string, string, error) {
+	defaultVersion := "Use latest Odyssey Go Version"
+	txt := "What version of Odyssey Go would you like to install in the node?"
 	versionOptions := []string{defaultVersion, "Use the deployed Subnet's VM version that the node will be validating", "Custom"}
 	versionOption, err := app.Prompt.CaptureList(txt, versionOptions)
 	if err != nil {
@@ -896,18 +896,18 @@ func promptAvalancheGoReferenceChoice() (string, string, error) {
 
 	switch versionOption {
 	case defaultVersion:
-		return avalancheGoReferenceChoiceLatest, "", nil
+		return odysseyGoReferenceChoiceLatest, "", nil
 	case "Custom":
-		return avalancheGoReferenceChoiceCustom, "", nil
+		return odysseyGoReferenceChoiceCustom, "", nil
 	default:
 		for {
-			subnetName, err := app.Prompt.CaptureString("Which Subnet would you like to use to choose the avalanche go version?")
+			subnetName, err := app.Prompt.CaptureString("Which Subnet would you like to use to choose the odyssey go version?")
 			if err != nil {
 				return "", "", err
 			}
 			_, err = subnetcmd.ValidateSubnetNameAndGetChains([]string{subnetName})
 			if err == nil {
-				return avalancheGoReferenceChoiceSubnet, subnetName, nil
+				return odysseyGoReferenceChoiceSubnet, subnetName, nil
 			}
 			ux.Logger.PrintToUser(fmt.Sprintf("no subnet named %s found", subnetName))
 		}
@@ -921,7 +921,7 @@ func setCloudService() (string, error) {
 	if useGCP {
 		return constants.GCPCloudService, nil
 	}
-	txt := "Which cloud service would you like to launch your Avalanche Node(s) in?"
+	txt := "Which cloud service would you like to launch your Odyssey Node(s) in?"
 	cloudOptions := []string{constants.AWSCloudService, constants.GCPCloudService}
 	chosenCloudService, err := app.Prompt.CaptureList(txt, cloudOptions)
 	if err != nil {
@@ -965,7 +965,7 @@ func setCloudInstanceType(cloudService string) (string, error) {
 		}
 		nodeTypeStr = strings.ReplaceAll(nodeTypeStr, defaultStr, "") // remove (default) if any
 		if nodeTypeStr == customNodeType {
-			nodeTypeStr, err = app.Prompt.CaptureString("What instance type would you like to use? Please refer to https://docs.avax.network/nodes/run/node-manually#hardware-and-os-requirements for minimum hardware requirements")
+			nodeTypeStr, err = app.Prompt.CaptureString("What instance type would you like to use? Please refer to https://docs.dione.network/nodes/run/node-manually#hardware-and-os-requirements for minimum hardware requirements")
 			if err != nil {
 				ux.Logger.PrintToUser("Failed to capture custom node type with error: %s", err.Error())
 				return "", err
@@ -978,7 +978,7 @@ func setCloudInstanceType(cloudService string) (string, error) {
 
 func printResults(cloudConfigMap models.CloudConfig, publicIPMap map[string]string, ansibleHostIDs []string, monitoringHostIP string) {
 	ux.Logger.PrintToUser("======================================")
-	ux.Logger.PrintToUser("AVALANCHE NODE(S) SUCCESSFULLY SET UP!")
+	ux.Logger.PrintToUser("ODYSSEY NODE(S) SUCCESSFULLY SET UP!")
 	ux.Logger.PrintToUser("======================================")
 	ux.Logger.PrintToUser("Please wait until the node(s) are successfully bootstrapped to run further commands on the node(s)")
 	ux.Logger.PrintToUser("")
@@ -1039,12 +1039,12 @@ func waitForHosts(hosts []*models.Host) *models.NodeResults {
 
 // requestCloudAuth makes sure user agree to
 func requestCloudAuth(cloudName string) error {
-	ux.Logger.PrintToUser("Do you authorize Avalanche-CLI to access your %s account?", cloudName)
-	ux.Logger.PrintToUser("By clicking yes, you are authorizing Avalanche-CLI to:")
+	ux.Logger.PrintToUser("Do you authorize Odyssey-CLI to access your %s account?", cloudName)
+	ux.Logger.PrintToUser("By clicking yes, you are authorizing Odyssey-CLI to:")
 	ux.Logger.PrintToUser("- Create Cloud instance(s) and other components (such as elastic IPs)")
-	ux.Logger.PrintToUser("- Start/Stop Cloud instance(s) and other components (such as elastic IPs) previously created by Avalanche-CLI")
-	ux.Logger.PrintToUser("- Delete Cloud instance(s) and other components (such as elastic IPs) previously created by Avalanche-CLI")
-	yes, err := app.Prompt.CaptureYesNo(fmt.Sprintf("I authorize Avalanche-CLI to access my %s account", cloudName))
+	ux.Logger.PrintToUser("- Start/Stop Cloud instance(s) and other components (such as elastic IPs) previously created by Odyssey-CLI")
+	ux.Logger.PrintToUser("- Delete Cloud instance(s) and other components (such as elastic IPs) previously created by Odyssey-CLI")
+	yes, err := app.Prompt.CaptureYesNo(fmt.Sprintf("I authorize Odyssey-CLI to access my %s account", cloudName))
 	if err != nil {
 		return err
 	}
@@ -1052,7 +1052,7 @@ func requestCloudAuth(cloudName string) error {
 		return err
 	}
 	if !yes {
-		return fmt.Errorf("user did not give authorization to Avalanche-CLI to access %s account", cloudName)
+		return fmt.Errorf("user did not give authorization to Odyssey-CLI to access %s account", cloudName)
 	}
 	return nil
 }

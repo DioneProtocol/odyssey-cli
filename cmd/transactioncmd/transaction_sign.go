@@ -6,14 +6,14 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/txutils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/txutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +28,7 @@ var (
 	errNoSubnetID = errors.New("failed to find the subnet ID for this subnet, has it been deployed/created on this network?")
 )
 
-// avalanche transaction sign
+// odyssey transaction sign
 func newTransactionSignCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:          "sign [subnetName]",
@@ -40,8 +40,8 @@ func newTransactionSignCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&inputTxPath, inputTxPathFlag, "", "Path to the transaction file for signing")
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji only]")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji)")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet only]")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 	return cmd
 }
@@ -64,7 +64,7 @@ func signTx(_ *cobra.Command, args []string) error {
 	}
 
 	if useLedger && keyName != "" {
-		return subnetcmd.ErrMutuallyExlusiveKeyLedger
+		return subnetcmd.ErrMutuallyExclusiveKeyLedger
 	}
 
 	// we need network to decide if ledger is forced (mainnet)
@@ -73,9 +73,9 @@ func signTx(_ *cobra.Command, args []string) error {
 		return err
 	}
 	switch network.Kind {
-	case models.Fuji, models.Local:
+	case models.Testnet, models.Local:
 		if !useLedger && keyName == "" {
-			useLedger, keyName, err = prompts.GetFujiKeyOrLedger(app.Prompt, "sign transaction", app.GetKeyDir())
+			useLedger, keyName, err = prompts.GetTestnetKeyOrLedger(app.Prompt, "sign transaction", app.GetKeyDir())
 			if err != nil {
 				return err
 			}

@@ -7,17 +7,17 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/keychain"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanche-cli/pkg/subnet"
-	"github.com/ava-labs/avalanche-cli/pkg/txutils"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
-	avagoconstants "github.com/ava-labs/avalanchego/utils/constants"
-	"github.com/ava-labs/avalanchego/vms/platformvm"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/keychain"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odyssey-cli/pkg/subnet"
+	"github.com/DioneProtocol/odyssey-cli/pkg/txutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
+	odygoconstants "github.com/DioneProtocol/odysseygo/utils/constants"
+	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +37,7 @@ var (
 	errMutuallyExclusiveWeightOptions   = errors.New("--use-default-validator-params and --weight are mutually exclusive")
 )
 
-// avalanche subnet deploy
+// odyssey subnet deploy
 func newAddValidatorCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "addValidator [subnetName]",
@@ -50,17 +50,17 @@ the subnetName and the validator's unique NodeID. The command then prompts
 for the validation start time, duration, and stake weight. You can bypass
 these prompts by providing the values with flags.
 
-This command currently only works on Subnets deployed to either the Fuji
+This command currently only works on Subnets deployed to either the Testnet
 Testnet or Mainnet.`,
 		SilenceUsage: true,
 		RunE:         addValidator,
 		Args:         cobra.ExactArgs(1),
 	}
-	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [fuji/devnet only]")
+	cmd.Flags().StringVarP(&keyName, "key", "k", "", "select the key to use [testnet/devnet only]")
 	cmd.Flags().StringVar(&nodeIDStr, "nodeID", "", "set the NodeID of the validator to add")
 	cmd.Flags().Uint64Var(&weight, "weight", 0, "set the staking weight of the validator to add")
 
-	cmd.Flags().BoolVar(&useDefaultStartTime, "default-start-time", false, "use default start time for subnet validator (5 minutes later for fuji & mainnet, 30 seconds later for devnet)")
+	cmd.Flags().BoolVar(&useDefaultStartTime, "default-start-time", false, "use default start time for subnet validator (5 minutes later for testnet & mainnet, 30 seconds later for devnet)")
 	cmd.Flags().StringVar(&startTimeStr, "start-time", "", "UTC start time when this validator starts validating, in 'YYYY-MM-DD HH:MM:SS' format")
 
 	cmd.Flags().BoolVar(&useDefaultDuration, "default-duration", false, "set duration so as to validate until primary validator ends its period")
@@ -71,13 +71,12 @@ Testnet or Mainnet.`,
 	cmd.Flags().StringVar(&endpoint, "endpoint", "", "use the given endpoint for network operations")
 	cmd.Flags().BoolVar(&deployLocal, "local", false, "add subnet validator on `local`")
 	cmd.Flags().BoolVar(&deployDevnet, "devnet", false, "add subnet validator on `devnet`")
-	cmd.Flags().BoolVar(&deployTestnet, "fuji", false, "add subnet validator on `fuji` (alias for `testnet`)")
-	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "add subnet validator on `testnet` (alias for `fuji`)")
+	cmd.Flags().BoolVar(&deployTestnet, "testnet", false, "add subnet validator on `testnet`")
 	cmd.Flags().BoolVar(&deployMainnet, "mainnet", false, "add subnet validator on `mainnet`")
 	cmd.Flags().StringSliceVar(&subnetAuthKeys, "subnet-auth-keys", nil, "control keys that will be used to authenticate add validator tx")
 	cmd.Flags().StringVar(&outputTxPath, "output-tx-path", "", "file path of the add validator tx")
-	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [fuji/devnet only]")
-	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on fuji/devnet)")
+	cmd.Flags().BoolVarP(&useEwoq, "ewoq", "e", false, "use ewoq key [testnet/devnet only]")
+	cmd.Flags().BoolVarP(&useLedger, "ledger", "g", false, "use ledger instead of key (always true on mainnet, defaults to false on testnet/devnet)")
 	cmd.Flags().StringSliceVar(&ledgerAddresses, "ledger-addrs", []string{}, "use the given ledger addresses")
 	return cmd
 }
@@ -90,7 +89,7 @@ func addValidator(_ *cobra.Command, args []string) error {
 		deployMainnet,
 		endpoint,
 		true,
-		[]models.NetworkKind{models.Local, models.Devnet, models.Fuji, models.Mainnet},
+		[]models.NetworkKind{models.Local, models.Devnet, models.Testnet, models.Mainnet},
 	)
 	if err != nil {
 		return err
@@ -177,7 +176,7 @@ func CallAddValidator(
 		return err
 	}
 
-	kcKeys, err := kc.PChainFormattedStrAddresses()
+	kcKeys, err := kc.OChainFormattedStrAddresses()
 	if err != nil {
 		return err
 	}
@@ -254,8 +253,8 @@ func PromptDuration(start time.Time, network models.Network) (time.Duration, err
 		txt := "How long should this validator be validating? Enter a duration, e.g. 8760h. Valid time units are \"ns\", \"us\" (or \"µs\"), \"ms\", \"s\", \"m\", \"h\""
 		var d time.Duration
 		var err error
-		if network.Kind == models.Fuji {
-			d, err = app.Prompt.CaptureFujiDuration(txt)
+		if network.Kind == models.Testnet {
+			d, err = app.Prompt.CaptureTestnetDuration(txt)
 		} else {
 			d, err = app.Prompt.CaptureMainnetDuration(txt)
 		}
@@ -277,8 +276,8 @@ func PromptDuration(start time.Time, network models.Network) (time.Duration, err
 func getMaxValidationTime(network models.Network, nodeID ids.NodeID, startTime time.Time) (time.Duration, error) {
 	ctx, cancel := utils.GetAPIContext()
 	defer cancel()
-	platformCli := platformvm.NewClient(network.Endpoint)
-	vs, err := platformCli.GetCurrentValidators(ctx, avagoconstants.PrimaryNetworkID, nil)
+	omegaCli := omegavm.NewClient(network.Endpoint)
+	vs, err := omegaCli.GetCurrentValidators(ctx, odygoconstants.PrimaryNetworkID, nil)
 	cancel()
 	if err != nil {
 		return 0, err
@@ -388,7 +387,7 @@ func promptStart() (time.Time, error) {
 func PromptNodeID() (ids.NodeID, error) {
 	ux.Logger.PrintToUser("Next, we need the NodeID of the validator you want to whitelist.")
 	ux.Logger.PrintToUser("")
-	ux.Logger.PrintToUser("Check https://docs.avax.network/apis/avalanchego/apis/info#infogetnodeid for instructions about how to query the NodeID from your node")
+	ux.Logger.PrintToUser("Check https://docs.dione.network/apis/odysseygo/apis/info#infogetnodeid for instructions about how to query the NodeID from your node")
 	ux.Logger.PrintToUser("(Edit host IP address and port to match your deployment, if needed).")
 
 	txt := "What is the NodeID of the validator you'd like to whitelist?"

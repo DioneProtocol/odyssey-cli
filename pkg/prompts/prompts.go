@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanchego/ids"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odysseygo/ids"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/manifoldco/promptui"
 	"golang.org/x/exp/slices"
@@ -86,7 +86,7 @@ type Prompter interface {
 	CaptureEmail(promptStr string) (string, error)
 	CaptureIndex(promptStr string, options []any) (int, error)
 	CaptureVersion(promptStr string) (string, error)
-	CaptureFujiDuration(promptStr string) (time.Duration, error)
+	CaptureTestnetDuration(promptStr string) (time.Duration, error)
 	CaptureMainnetDuration(promptStr string) (time.Duration, error)
 	CaptureDate(promptStr string) (time.Time, error)
 	CaptureNodeID(promptStr string) (ids.NodeID, error)
@@ -98,7 +98,7 @@ type Prompter interface {
 	CaptureUint64(promptStr string) (uint64, error)
 	CaptureFloat(promptStr string, validator func(float64) error) (float64, error)
 	CaptureUint64Compare(promptStr string, comparators []Comparator) (uint64, error)
-	CapturePChainAddress(promptStr string, network models.Network) (string, error)
+	CaptureOChainAddress(promptStr string, network models.Network) (string, error)
 	CaptureFutureDate(promptStr string, minDate time.Time) (time.Time, error)
 	ChooseKeyOrLedger(goal string) (bool, error)
 }
@@ -111,7 +111,7 @@ func NewPrompter() Prompter {
 }
 
 // CaptureListDecision runs a for loop and continuously asks the
-// user for a specific input (currently only `CapturePChainAddress`
+// user for a specific input (currently only `CaptureOChainAddress`
 // and `CaptureAddress` is supported) until the user cancels or
 // chooses `Done`. It does also offer an optional `info` to print
 // (if provided) and a preview. Items can also be removed.
@@ -184,7 +184,7 @@ func CaptureListDecision[T comparable](
 	}
 }
 
-func (*realPrompter) CaptureFujiDuration(promptStr string) (time.Duration, error) {
+func (*realPrompter) CaptureTestnetDuration(promptStr string) (time.Duration, error) {
 	prompt := promptui.Prompt{
 		Label:    promptStr,
 		Validate: validateTestnetValidatorStakingDuration,
@@ -413,10 +413,10 @@ func (*realPrompter) CapturePositiveBigInt(promptStr string) (*big.Int, error) {
 	return amountInt, nil
 }
 
-func (*realPrompter) CapturePChainAddress(promptStr string, network models.Network) (string, error) {
+func (*realPrompter) CaptureOChainAddress(promptStr string, network models.Network) (string, error) {
 	prompt := promptui.Prompt{
 		Label:    promptStr,
-		Validate: getPChainValidationFunc(network),
+		Validate: getOChainValidationFunc(network),
 	}
 
 	return prompt.Run()
@@ -786,7 +786,7 @@ func GetSubnetAuthKeys(prompt Prompter, walletKeys []string, controlKeys []strin
 	return subnetAuthKeys, nil
 }
 
-func GetFujiKeyOrLedger(prompt Prompter, goal string, keyDir string) (bool, string, error) {
+func GetTestnetKeyOrLedger(prompt Prompter, goal string, keyDir string) (bool, string, error) {
 	useStoredKey, err := prompt.ChooseKeyOrLedger(goal)
 	if err != nil {
 		return false, "", err
@@ -797,7 +797,7 @@ func GetFujiKeyOrLedger(prompt Prompter, goal string, keyDir string) (bool, stri
 	keyName, err := captureKeyName(prompt, goal, keyDir)
 	if err != nil {
 		if errors.Is(err, errNoKeys) {
-			ux.Logger.PrintToUser("No private keys have been found. Create a new one with `avalanche key create`")
+			ux.Logger.PrintToUser("No private keys have been found. Create a new one with `odyssey key create`")
 		}
 		return false, "", err
 	}

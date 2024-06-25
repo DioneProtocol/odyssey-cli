@@ -3,10 +3,10 @@
 package networkcmd
 
 import (
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
-	"github.com/ava-labs/avalanche-network-runner/server"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-network-runner/server"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +14,7 @@ func newStatusCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "status",
 		Short: "Prints the status of the local network",
-		Long: `The network status command prints whether or not a local Avalanche
+		Long: `The network status command prints whether or not a local Odyssey
 network is running and some basic stats about the network.`,
 
 		RunE:         networkStatus,

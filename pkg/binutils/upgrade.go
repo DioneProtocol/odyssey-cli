@@ -5,11 +5,11 @@ package binutils
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
 )
 
-func UpgradeVM(app *application.Avalanche, vmID string, vmBinPath string) error {
+func UpgradeVM(app *application.Odyssey, vmID string, vmBinPath string) error {
 	installer := NewPluginBinaryDownloader(app)
 	if err := installer.UpgradeVM(vmID, vmBinPath); err != nil {
 		return fmt.Errorf("failed to upgrade vm: %w", err)
@@ -19,7 +19,7 @@ func UpgradeVM(app *application.Avalanche, vmID string, vmBinPath string) error 
 }
 
 // update the RPC version of the VM in the sidecar file
-func UpdateLocalSidecarRPC(app *application.Avalanche, sc models.Sidecar, rpcVersion int) error {
+func UpdateLocalSidecarRPC(app *application.Odyssey, sc models.Sidecar, rpcVersion int) error {
 	// find local network deployment info in sidecar
 	networkData, ok := sc.Networks[models.Local.String()]
 	if !ok {

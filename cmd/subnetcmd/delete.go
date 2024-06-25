@@ -8,11 +8,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
 	"github.com/spf13/cobra"
 )
 
-// avalanche subnet delete
+// odyssey subnet delete
 func newDeleteCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "delete",
@@ -51,10 +51,9 @@ func deleteSubnet(_ *cobra.Command, args []string) error {
 	}
 
 	// TODO this method does not delete the imported VM binary if this
-	// is an APM subnet. We can't naively delete the binary because it
+	// is an OPM subnet. We can't naively delete the binary because it
 	// may be used by multiple subnets. We should delete this binary,
 	// but only if no other subnet is using it.
-	// More info: https://github.com/ava-labs/avalanche-cli/issues/246
 
 	if _, err := os.Stat(subnetDir); err != nil {
 		if !errors.Is(err, fs.ErrNotExist) {

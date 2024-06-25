@@ -8,34 +8,34 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ava-labs/avalanche-cli/pkg/utils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/utils"
 
-	"github.com/ava-labs/apm/apm"
-	"github.com/ava-labs/avalanche-cli/pkg/config"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/monitoring"
-	"github.com/ava-labs/avalanche-cli/pkg/prompts"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/subnet-evm/core"
+	"github.com/DioneProtocol/odyssey-cli/pkg/config"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/monitoring"
+	"github.com/DioneProtocol/odyssey-cli/pkg/prompts"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/opm/opm"
+	"github.com/DioneProtocol/subnet-evm/core"
 )
 
-type Avalanche struct {
+type Odyssey struct {
 	Log        logging.Logger
 	baseDir    string
 	Conf       *config.Config
 	Prompt     prompts.Prompter
-	Apm        *apm.APM
-	ApmDir     string
+	Opm        *opm.OPM
+	OpmDir     string
 	Downloader Downloader
 }
 
-func New() *Avalanche {
-	return &Avalanche{}
+func New() *Odyssey {
+	return &Odyssey{}
 }
 
-func (app *Avalanche) Setup(baseDir string, log logging.Logger, conf *config.Config, prompt prompts.Prompter, downloader Downloader) {
+func (app *Odyssey) Setup(baseDir string, log logging.Logger, conf *config.Config, prompt prompts.Prompter, downloader Downloader) {
 	app.baseDir = baseDir
 	app.Log = log
 	app.Conf = conf
@@ -43,44 +43,44 @@ func (app *Avalanche) Setup(baseDir string, log logging.Logger, conf *config.Con
 	app.Downloader = downloader
 }
 
-func (app *Avalanche) GetRunFile() string {
+func (app *Odyssey) GetRunFile() string {
 	return filepath.Join(app.GetRunDir(), constants.ServerRunFile)
 }
 
-func (app *Avalanche) GetSnapshotsDir() string {
+func (app *Odyssey) GetSnapshotsDir() string {
 	return filepath.Join(app.baseDir, constants.SnapshotsDirName)
 }
 
-func (app *Avalanche) GetBaseDir() string {
+func (app *Odyssey) GetBaseDir() string {
 	return app.baseDir
 }
 
-func (app *Avalanche) GetSubnetDir() string {
+func (app *Odyssey) GetSubnetDir() string {
 	return filepath.Join(app.baseDir, constants.SubnetDir)
 }
 
-func (app *Avalanche) GetNodesDir() string {
+func (app *Odyssey) GetNodesDir() string {
 	return filepath.Join(app.baseDir, constants.NodesDir)
 }
 
-func (app *Avalanche) GetReposDir() string {
+func (app *Odyssey) GetReposDir() string {
 	return filepath.Join(app.baseDir, constants.ReposDir)
 }
 
-func (app *Avalanche) GetRunDir() string {
+func (app *Odyssey) GetRunDir() string {
 	return filepath.Join(app.baseDir, constants.RunDir)
 }
 
-func (app *Avalanche) GetCustomVMDir() string {
+func (app *Odyssey) GetCustomVMDir() string {
 	return filepath.Join(app.baseDir, constants.CustomVMDir)
 }
 
-func (app *Avalanche) GetPluginsDir() string {
+func (app *Odyssey) GetPluginsDir() string {
 	return filepath.Join(app.baseDir, constants.PluginDir)
 }
 
 // Remove all plugins from plugin dir
-func (app *Avalanche) ResetPluginsDir() error {
+func (app *Odyssey) ResetPluginsDir() error {
 	pluginDir := app.GetPluginsDir()
 	installedPlugins, err := os.ReadDir(pluginDir)
 	if err != nil {
@@ -94,67 +94,67 @@ func (app *Avalanche) ResetPluginsDir() error {
 	return nil
 }
 
-func (app *Avalanche) GetAvalanchegoBinDir() string {
-	return filepath.Join(app.baseDir, constants.AvalancheCliBinDir, constants.AvalancheGoInstallDir)
+func (app *Odyssey) GetOdysseygoBinDir() string {
+	return filepath.Join(app.baseDir, constants.OdysseyCliBinDir, constants.OdysseyGoInstallDir)
 }
 
-func (app *Avalanche) GetSubnetEVMBinDir() string {
-	return filepath.Join(app.baseDir, constants.AvalancheCliBinDir, constants.SubnetEVMInstallDir)
+func (app *Odyssey) GetSubnetEVMBinDir() string {
+	return filepath.Join(app.baseDir, constants.OdysseyCliBinDir, constants.SubnetEVMInstallDir)
 }
 
-func (app *Avalanche) GetUpgradeBytesFilepath(subnetName string) string {
+func (app *Odyssey) GetUpgradeBytesFilepath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.UpgradeBytesFileName)
 }
 
-func (app *Avalanche) GetCustomVMPath(subnetName string) string {
+func (app *Odyssey) GetCustomVMPath(subnetName string) string {
 	return filepath.Join(app.GetCustomVMDir(), subnetName)
 }
 
-func (app *Avalanche) GetAPMVMPath(vmid string) string {
-	return filepath.Join(app.GetAPMPluginDir(), vmid)
+func (app *Odyssey) GetOPMVMPath(vmid string) string {
+	return filepath.Join(app.GetOPMPluginDir(), vmid)
 }
 
-func (app *Avalanche) GetGenesisPath(subnetName string) string {
+func (app *Odyssey) GetGenesisPath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.GenesisFileName)
 }
 
-func (app *Avalanche) GetAvagoNodeConfigPath(subnetName string) string {
+func (app *Odyssey) GetOdygoNodeConfigPath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.NodeConfigFileName)
 }
 
-func (app *Avalanche) GetChainConfigPath(subnetName string) string {
+func (app *Odyssey) GetChainConfigPath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.ChainConfigFileName)
 }
 
-func (app *Avalanche) GetAvagoSubnetConfigPath(subnetName string) string {
+func (app *Odyssey) GetOdygoSubnetConfigPath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.SubnetConfigFileName)
 }
 
-func (app *Avalanche) GetSidecarPath(subnetName string) string {
+func (app *Odyssey) GetSidecarPath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.SidecarFileName)
 }
 
-func (app *Avalanche) GetNodeConfigPath(nodeName string) string {
+func (app *Odyssey) GetNodeConfigPath(nodeName string) string {
 	return filepath.Join(app.GetNodesDir(), nodeName, constants.NodeCloudConfigFileName)
 }
 
-func (app *Avalanche) GetNodeInstanceDirPath(nodeName string) string {
+func (app *Odyssey) GetNodeInstanceDirPath(nodeName string) string {
 	return filepath.Join(app.GetNodesDir(), nodeName)
 }
 
-func (app *Avalanche) GetNodeInstanceAvaGoConfigDirPath(nodeName string) string {
+func (app *Odyssey) GetNodeInstanceOdygoConfigDirPath(nodeName string) string {
 	return filepath.Join(app.GetAnsibleDir(), nodeName)
 }
 
-func (app *Avalanche) GetAnsibleDir() string {
+func (app *Odyssey) GetAnsibleDir() string {
 	return filepath.Join(app.GetNodesDir(), constants.AnsibleDir)
 }
 
-func (app *Avalanche) GetMonitoringDir() string {
+func (app *Odyssey) GetMonitoringDir() string {
 	return filepath.Join(app.GetNodesDir(), constants.MonitoringDir)
 }
 
-func (app *Avalanche) CreateAnsibleDir() error {
+func (app *Odyssey) CreateAnsibleDir() error {
 	ansibleDir := app.GetAnsibleDir()
 	if _, err := os.Stat(ansibleDir); os.IsNotExist(err) {
 		err = os.Mkdir(ansibleDir, constants.DefaultPerms755)
@@ -165,7 +165,7 @@ func (app *Avalanche) CreateAnsibleDir() error {
 	return nil
 }
 
-func (app *Avalanche) CreateAnsibleInventoryDir() error {
+func (app *Odyssey) CreateAnsibleInventoryDir() error {
 	inventoriesDir := filepath.Join(app.GetNodesDir(), constants.AnsibleInventoryDir)
 	if _, err := os.Stat(inventoriesDir); os.IsNotExist(err) {
 		err = os.Mkdir(inventoriesDir, constants.DefaultPerms755)
@@ -176,157 +176,157 @@ func (app *Avalanche) CreateAnsibleInventoryDir() error {
 	return nil
 }
 
-func (app *Avalanche) GetClustersConfigPath() string {
+func (app *Odyssey) GetClustersConfigPath() string {
 	return filepath.Join(app.GetNodesDir(), constants.ClustersConfigFileName)
 }
 
-func (app *Avalanche) GetNodeBLSSecretKeyPath(instanceID string) string {
+func (app *Odyssey) GetNodeBLSSecretKeyPath(instanceID string) string {
 	return filepath.Join(app.GetNodeInstanceDirPath(instanceID), constants.BLSKeyFileName)
 }
 
-func (app *Avalanche) GetElasticSubnetConfigPath(subnetName string) string {
+func (app *Odyssey) GetElasticSubnetConfigPath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.ElasticSubnetConfigFileName)
 }
 
-func (app *Avalanche) GetKeyDir() string {
+func (app *Odyssey) GetKeyDir() string {
 	return filepath.Join(app.baseDir, constants.KeyDir)
 }
 
-func (*Avalanche) GetTmpPluginDir() string {
+func (*Odyssey) GetTmpPluginDir() string {
 	return os.TempDir()
 }
 
-func (app *Avalanche) GetAPMBaseDir() string {
-	return filepath.Join(app.baseDir, "apm")
+func (app *Odyssey) GetOPMBaseDir() string {
+	return filepath.Join(app.baseDir, "opm")
 }
 
-func (app *Avalanche) GetAPMLog() string {
-	return filepath.Join(app.baseDir, constants.LogDir, constants.APMLogName)
+func (app *Odyssey) GetOPMLog() string {
+	return filepath.Join(app.baseDir, constants.LogDir, constants.OPMLogName)
 }
 
-func (app *Avalanche) GetAPMPluginDir() string {
-	return filepath.Join(app.baseDir, constants.APMPluginDir)
+func (app *Odyssey) GetOPMPluginDir() string {
+	return filepath.Join(app.baseDir, constants.OPMPluginDir)
 }
 
-func (app *Avalanche) GetKeyPath(keyName string) string {
+func (app *Odyssey) GetKeyPath(keyName string) string {
 	return filepath.Join(app.baseDir, constants.KeyDir, keyName+constants.KeySuffix)
 }
 
-func (app *Avalanche) GetUpgradeBytesFilePath(subnetName string) string {
+func (app *Odyssey) GetUpgradeBytesFilePath(subnetName string) string {
 	return filepath.Join(app.GetSubnetDir(), subnetName, constants.UpgradeBytesFileName)
 }
 
-func (app *Avalanche) GetDownloader() Downloader {
+func (app *Odyssey) GetDownloader() Downloader {
 	return app.Downloader
 }
 
-func (*Avalanche) GetAvalanchegoCompatibilityURL() string {
-	return constants.AvalancheGoCompatibilityURL
+func (*Odyssey) GetOdysseygoCompatibilityURL() string {
+	return constants.OdysseyGoCompatibilityURL
 }
 
-func (app *Avalanche) ReadUpgradeFile(subnetName string) ([]byte, error) {
+func (app *Odyssey) ReadUpgradeFile(subnetName string) ([]byte, error) {
 	upgradeBytesFilePath := app.GetUpgradeBytesFilePath(subnetName)
 
 	return app.readFile(upgradeBytesFilePath)
 }
 
-func (app *Avalanche) ReadLockUpgradeFile(subnetName string) ([]byte, error) {
+func (app *Odyssey) ReadLockUpgradeFile(subnetName string) ([]byte, error) {
 	upgradeBytesLockFilePath := app.GetUpgradeBytesFilePath(subnetName) + constants.UpgradeBytesLockExtension
 
 	return app.readFile(upgradeBytesLockFilePath)
 }
 
-func (app *Avalanche) WriteUpgradeFile(subnetName string, bytes []byte) error {
+func (app *Odyssey) WriteUpgradeFile(subnetName string, bytes []byte) error {
 	upgradeBytesFilePath := app.GetUpgradeBytesFilePath(subnetName)
 
 	return app.writeFile(upgradeBytesFilePath, bytes)
 }
 
-func (app *Avalanche) WriteLockUpgradeFile(subnetName string, bytes []byte) error {
+func (app *Odyssey) WriteLockUpgradeFile(subnetName string, bytes []byte) error {
 	upgradeBytesLockFilePath := app.GetUpgradeBytesFilePath(subnetName) + constants.UpgradeBytesLockExtension
 
 	return app.writeFile(upgradeBytesLockFilePath, bytes)
 }
 
-func (app *Avalanche) WriteGenesisFile(subnetName string, genesisBytes []byte) error {
+func (app *Odyssey) WriteGenesisFile(subnetName string, genesisBytes []byte) error {
 	genesisPath := app.GetGenesisPath(subnetName)
 
 	return app.writeFile(genesisPath, genesisBytes)
 }
 
-func (app *Avalanche) WriteAvagoNodeConfigFile(subnetName string, bs []byte) error {
-	path := app.GetAvagoNodeConfigPath(subnetName)
+func (app *Odyssey) WriteOdygoNodeConfigFile(subnetName string, bs []byte) error {
+	path := app.GetOdygoNodeConfigPath(subnetName)
 	return app.writeFile(path, bs)
 }
 
-func (app *Avalanche) WriteChainConfigFile(subnetName string, bs []byte) error {
+func (app *Odyssey) WriteChainConfigFile(subnetName string, bs []byte) error {
 	path := app.GetChainConfigPath(subnetName)
 	return app.writeFile(path, bs)
 }
 
-func (app *Avalanche) WriteAvagoSubnetConfigFile(subnetName string, bs []byte) error {
-	path := app.GetAvagoSubnetConfigPath(subnetName)
+func (app *Odyssey) WriteOdygoSubnetConfigFile(subnetName string, bs []byte) error {
+	path := app.GetOdygoSubnetConfigPath(subnetName)
 	return app.writeFile(path, bs)
 }
 
-func (app *Avalanche) WriteNetworkUpgradesFile(subnetName string, bs []byte) error {
+func (app *Odyssey) WriteNetworkUpgradesFile(subnetName string, bs []byte) error {
 	path := app.GetUpgradeBytesFilepath(subnetName)
 	return app.writeFile(path, bs)
 }
 
-func (app *Avalanche) GenesisExists(subnetName string) bool {
+func (app *Odyssey) GenesisExists(subnetName string) bool {
 	genesisPath := app.GetGenesisPath(subnetName)
 	_, err := os.Stat(genesisPath)
 	return err == nil
 }
 
-func (app *Avalanche) AvagoNodeConfigExists(subnetName string) bool {
-	path := app.GetAvagoNodeConfigPath(subnetName)
+func (app *Odyssey) OdygoNodeConfigExists(subnetName string) bool {
+	path := app.GetOdygoNodeConfigPath(subnetName)
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func (app *Avalanche) ChainConfigExists(subnetName string) bool {
+func (app *Odyssey) ChainConfigExists(subnetName string) bool {
 	path := app.GetChainConfigPath(subnetName)
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func (app *Avalanche) AvagoSubnetConfigExists(subnetName string) bool {
-	path := app.GetAvagoSubnetConfigPath(subnetName)
+func (app *Odyssey) OdygoSubnetConfigExists(subnetName string) bool {
+	path := app.GetOdygoSubnetConfigPath(subnetName)
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func (app *Avalanche) NetworkUpgradeExists(subnetName string) bool {
+func (app *Odyssey) NetworkUpgradeExists(subnetName string) bool {
 	path := app.GetUpgradeBytesFilepath(subnetName)
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-func (app *Avalanche) ClustersConfigExists() bool {
+func (app *Odyssey) ClustersConfigExists() bool {
 	_, err := os.Stat(app.GetClustersConfigPath())
 	return err == nil
 }
 
-func (app *Avalanche) SidecarExists(subnetName string) bool {
+func (app *Odyssey) SidecarExists(subnetName string) bool {
 	sidecarPath := app.GetSidecarPath(subnetName)
 	_, err := os.Stat(sidecarPath)
 	return err == nil
 }
 
-func (app *Avalanche) SubnetConfigExists(subnetName string) bool {
+func (app *Odyssey) SubnetConfigExists(subnetName string) bool {
 	// There's always a sidecar, but imported subnets don't have a genesis right now
 	return app.SidecarExists(subnetName)
 }
 
-func (app *Avalanche) KeyExists(keyName string) bool {
+func (app *Odyssey) KeyExists(keyName string) bool {
 	keyPath := app.GetKeyPath(keyName)
 	_, err := os.Stat(keyPath)
 	return err == nil
 }
 
-func (app *Avalanche) CopyGenesisFile(inputFilename string, subnetName string) error {
+func (app *Odyssey) CopyGenesisFile(inputFilename string, subnetName string) error {
 	genesisBytes, err := os.ReadFile(inputFilename)
 	if err != nil {
 		return err
@@ -339,7 +339,7 @@ func (app *Avalanche) CopyGenesisFile(inputFilename string, subnetName string) e
 	return os.WriteFile(genesisPath, genesisBytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) CopyVMBinary(inputFilename string, subnetName string) error {
+func (app *Odyssey) CopyVMBinary(inputFilename string, subnetName string) error {
 	vmBytes, err := os.ReadFile(inputFilename)
 	if err != nil {
 		return err
@@ -348,7 +348,7 @@ func (app *Avalanche) CopyVMBinary(inputFilename string, subnetName string) erro
 	return os.WriteFile(vmPath, vmBytes, constants.DefaultPerms755)
 }
 
-func (app *Avalanche) CopyKeyFile(inputFilename string, keyName string) error {
+func (app *Odyssey) CopyKeyFile(inputFilename string, keyName string) error {
 	keyBytes, err := os.ReadFile(inputFilename)
 	if err != nil {
 		return err
@@ -357,7 +357,7 @@ func (app *Avalanche) CopyKeyFile(inputFilename string, keyName string) error {
 	return os.WriteFile(keyPath, keyBytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) LoadEvmGenesis(subnetName string) (core.Genesis, error) {
+func (app *Odyssey) LoadEvmGenesis(subnetName string) (core.Genesis, error) {
 	genesisPath := app.GetGenesisPath(subnetName)
 	jsonBytes, err := os.ReadFile(genesisPath)
 	if err != nil {
@@ -369,28 +369,28 @@ func (app *Avalanche) LoadEvmGenesis(subnetName string) (core.Genesis, error) {
 	return gen, err
 }
 
-func (app *Avalanche) LoadRawGenesis(subnetName string) ([]byte, error) {
+func (app *Odyssey) LoadRawGenesis(subnetName string) ([]byte, error) {
 	genesisPath := app.GetGenesisPath(subnetName)
 	return os.ReadFile(genesisPath)
 }
 
-func (app *Avalanche) LoadRawAvagoNodeConfig(subnetName string) ([]byte, error) {
-	return os.ReadFile(app.GetAvagoNodeConfigPath(subnetName))
+func (app *Odyssey) LoadRawOdygoNodeConfig(subnetName string) ([]byte, error) {
+	return os.ReadFile(app.GetOdygoNodeConfigPath(subnetName))
 }
 
-func (app *Avalanche) LoadRawChainConfig(subnetName string) ([]byte, error) {
+func (app *Odyssey) LoadRawChainConfig(subnetName string) ([]byte, error) {
 	return os.ReadFile(app.GetChainConfigPath(subnetName))
 }
 
-func (app *Avalanche) LoadRawAvagoSubnetConfig(subnetName string) ([]byte, error) {
-	return os.ReadFile(app.GetAvagoSubnetConfigPath(subnetName))
+func (app *Odyssey) LoadRawOdygoSubnetConfig(subnetName string) ([]byte, error) {
+	return os.ReadFile(app.GetOdygoSubnetConfigPath(subnetName))
 }
 
-func (app *Avalanche) LoadRawNetworkUpgrades(subnetName string) ([]byte, error) {
+func (app *Odyssey) LoadRawNetworkUpgrades(subnetName string) ([]byte, error) {
 	return os.ReadFile(app.GetUpgradeBytesFilepath(subnetName))
 }
 
-func (app *Avalanche) CreateSidecar(sc *models.Sidecar) error {
+func (app *Odyssey) CreateSidecar(sc *models.Sidecar) error {
 	if sc.TokenName == "" {
 		sc.TokenName = constants.DefaultTokenName
 	}
@@ -410,7 +410,7 @@ func (app *Avalanche) CreateSidecar(sc *models.Sidecar) error {
 	return os.WriteFile(sidecarPath, scBytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) LoadSidecar(subnetName string) (models.Sidecar, error) {
+func (app *Odyssey) LoadSidecar(subnetName string) (models.Sidecar, error) {
 	sidecarPath := app.GetSidecarPath(subnetName)
 	jsonBytes, err := os.ReadFile(sidecarPath)
 	if err != nil {
@@ -427,7 +427,7 @@ func (app *Avalanche) LoadSidecar(subnetName string) (models.Sidecar, error) {
 	return sc, err
 }
 
-func (app *Avalanche) UpdateSidecar(sc *models.Sidecar) error {
+func (app *Odyssey) UpdateSidecar(sc *models.Sidecar) error {
 	sc.Version = constants.SidecarVersion
 	scBytes, err := json.MarshalIndent(sc, "", "    ")
 	if err != nil {
@@ -438,7 +438,7 @@ func (app *Avalanche) UpdateSidecar(sc *models.Sidecar) error {
 	return os.WriteFile(sidecarPath, scBytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) UpdateSidecarNetworks(
+func (app *Odyssey) UpdateSidecarNetworks(
 	sc *models.Sidecar,
 	network models.Network,
 	subnetID ids.ID,
@@ -458,12 +458,12 @@ func (app *Avalanche) UpdateSidecarNetworks(
 	return nil
 }
 
-func (app *Avalanche) UpdateSidecarElasticSubnet(
+func (app *Odyssey) UpdateSidecarElasticSubnet(
 	sc *models.Sidecar,
 	network models.Network,
 	subnetID ids.ID,
 	assetID ids.ID,
-	pchainTXID ids.ID,
+	oChainTxID ids.ID,
 	tokenName string,
 	tokenSymbol string,
 ) error {
@@ -474,7 +474,7 @@ func (app *Avalanche) UpdateSidecarElasticSubnet(
 	sc.ElasticSubnet[network.Name()] = models.ElasticSubnet{
 		SubnetID:    subnetID,
 		AssetID:     assetID,
-		PChainTXID:  pchainTXID,
+		OChainTXID:  oChainTxID,
 		TokenName:   tokenName,
 		TokenSymbol: tokenSymbol,
 		Txs:         partialTxs,
@@ -485,7 +485,7 @@ func (app *Avalanche) UpdateSidecarElasticSubnet(
 	return nil
 }
 
-func (app *Avalanche) UpdateSidecarPermissionlessValidator(
+func (app *Odyssey) UpdateSidecarPermissionlessValidator(
 	sc *models.Sidecar,
 	network models.Network,
 	nodeID string,
@@ -503,7 +503,7 @@ func (app *Avalanche) UpdateSidecarPermissionlessValidator(
 	return nil
 }
 
-func (app *Avalanche) UpdateSidecarElasticSubnetPartialTx(
+func (app *Odyssey) UpdateSidecarElasticSubnetPartialTx(
 	sc *models.Sidecar,
 	network models.Network,
 	txName string,
@@ -523,7 +523,7 @@ func (app *Avalanche) UpdateSidecarElasticSubnetPartialTx(
 	return app.UpdateSidecar(sc)
 }
 
-func (app *Avalanche) GetTokenName(subnetName string) string {
+func (app *Odyssey) GetTokenName(subnetName string) string {
 	sidecar, err := app.LoadSidecar(subnetName)
 	if err != nil {
 		return constants.DefaultTokenName
@@ -531,7 +531,7 @@ func (app *Avalanche) GetTokenName(subnetName string) string {
 	return sidecar.TokenName
 }
 
-func (app *Avalanche) GetSidecarNames() ([]string, error) {
+func (app *Odyssey) GetSidecarNames() ([]string, error) {
 	matches, err := os.ReadDir(app.GetSubnetDir())
 	if err != nil {
 		return nil, err
@@ -550,7 +550,7 @@ func (app *Avalanche) GetSidecarNames() ([]string, error) {
 	return names, nil
 }
 
-func (*Avalanche) readFile(path string) ([]byte, error) {
+func (*Odyssey) readFile(path string) ([]byte, error) {
 	if err := os.MkdirAll(filepath.Dir(path), constants.DefaultPerms755); err != nil {
 		return nil, err
 	}
@@ -558,7 +558,7 @@ func (*Avalanche) readFile(path string) ([]byte, error) {
 	return os.ReadFile(path)
 }
 
-func (*Avalanche) writeFile(path string, bytes []byte) error {
+func (*Odyssey) writeFile(path string, bytes []byte) error {
 	if err := os.MkdirAll(filepath.Dir(path), constants.DefaultPerms755); err != nil {
 		return err
 	}
@@ -566,7 +566,7 @@ func (*Avalanche) writeFile(path string, bytes []byte) error {
 	return os.WriteFile(path, bytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) CreateNodeCloudConfigFile(nodeName string, nodeConfig *models.NodeConfig) error {
+func (app *Odyssey) CreateNodeCloudConfigFile(nodeName string, nodeConfig *models.NodeConfig) error {
 	nodeConfigPath := app.GetNodeConfigPath(nodeName)
 	if err := os.MkdirAll(filepath.Dir(nodeConfigPath), constants.DefaultPerms755); err != nil {
 		return err
@@ -580,7 +580,7 @@ func (app *Avalanche) CreateNodeCloudConfigFile(nodeName string, nodeConfig *mod
 	return os.WriteFile(nodeConfigPath, esBytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) CreateElasticSubnetConfig(subnetName string, es *models.ElasticSubnetConfig) error {
+func (app *Odyssey) CreateElasticSubnetConfig(subnetName string, es *models.ElasticSubnetConfig) error {
 	elasticSubetConfigPath := app.GetElasticSubnetConfigPath(subnetName)
 	if err := os.MkdirAll(filepath.Dir(elasticSubetConfigPath), constants.DefaultPerms755); err != nil {
 		return err
@@ -594,7 +594,7 @@ func (app *Avalanche) CreateElasticSubnetConfig(subnetName string, es *models.El
 	return os.WriteFile(elasticSubetConfigPath, esBytes, constants.WriteReadReadPerms)
 }
 
-func (app *Avalanche) LoadElasticSubnetConfig(subnetName string) (models.ElasticSubnetConfig, error) {
+func (app *Odyssey) LoadElasticSubnetConfig(subnetName string) (models.ElasticSubnetConfig, error) {
 	elasticSubnetConfigPath := app.GetElasticSubnetConfigPath(subnetName)
 	jsonBytes, err := os.ReadFile(elasticSubnetConfigPath)
 	if err != nil {
@@ -607,7 +607,7 @@ func (app *Avalanche) LoadElasticSubnetConfig(subnetName string) (models.Elastic
 	return esc, err
 }
 
-func (app *Avalanche) LoadClusterNodeConfig(nodeName string) (models.NodeConfig, error) {
+func (app *Odyssey) LoadClusterNodeConfig(nodeName string) (models.NodeConfig, error) {
 	nodeConfigPath := app.GetNodeConfigPath(nodeName)
 	jsonBytes, err := os.ReadFile(nodeConfigPath)
 	if err != nil {
@@ -618,7 +618,7 @@ func (app *Avalanche) LoadClusterNodeConfig(nodeName string) (models.NodeConfig,
 	return nodeConfig, err
 }
 
-func (app *Avalanche) LoadClustersConfig() (models.ClustersConfig, error) {
+func (app *Odyssey) LoadClustersConfig() (models.ClustersConfig, error) {
 	clustersConfigPath := app.GetClustersConfigPath()
 	jsonBytes, err := os.ReadFile(clustersConfigPath)
 	if err != nil {
@@ -643,7 +643,7 @@ func (app *Avalanche) LoadClustersConfig() (models.ClustersConfig, error) {
 		for clusterName, nodes := range clustersConfigV0.Clusters {
 			clustersConfig.Clusters[clusterName] = models.ClusterConfig{
 				Nodes:   nodes,
-				Network: models.FujiNetwork,
+				Network: models.TestnetNetwork,
 			}
 		}
 		return clustersConfig, err
@@ -657,7 +657,7 @@ func (app *Avalanche) LoadClustersConfig() (models.ClustersConfig, error) {
 	return models.ClustersConfig{}, fmt.Errorf("unsupported clusters config version %s", v)
 }
 
-func (app *Avalanche) WriteClustersConfigFile(clustersConfig *models.ClustersConfig) error {
+func (app *Odyssey) WriteClustersConfigFile(clustersConfig *models.ClustersConfig) error {
 	clustersConfigPath := app.GetClustersConfigPath()
 	if err := os.MkdirAll(filepath.Dir(clustersConfigPath), constants.DefaultPerms755); err != nil {
 		return err
@@ -672,7 +672,7 @@ func (app *Avalanche) WriteClustersConfigFile(clustersConfig *models.ClustersCon
 	return os.WriteFile(clustersConfigPath, clustersConfigBytes, constants.WriteReadReadPerms)
 }
 
-func (*Avalanche) GetSSHCertFilePath(certName string) (string, error) {
+func (*Odyssey) GetSSHCertFilePath(certName string) (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -680,7 +680,7 @@ func (*Avalanche) GetSSHCertFilePath(certName string) (string, error) {
 	return filepath.Join(homeDir, ".ssh", certName), nil
 }
 
-func (app *Avalanche) CheckCertInSSHDir(certName string) (bool, error) {
+func (app *Odyssey) CheckCertInSSHDir(certName string) (bool, error) {
 	certPath, err := app.GetSSHCertFilePath(certName)
 	if err != nil {
 		return false, err
@@ -695,7 +695,7 @@ func (app *Avalanche) CheckCertInSSHDir(certName string) (bool, error) {
 	return true, nil
 }
 
-func (app *Avalanche) CreateMonitoringDir() error {
+func (app *Odyssey) CreateMonitoringDir() error {
 	monitoringDir := app.GetMonitoringDir()
 	if !utils.DirectoryExists(monitoringDir) {
 		err := os.MkdirAll(monitoringDir, constants.DefaultPerms755)
@@ -706,7 +706,7 @@ func (app *Avalanche) CreateMonitoringDir() error {
 	return nil
 }
 
-func (app *Avalanche) CreateMonitoringDashboardDir() error {
+func (app *Odyssey) CreateMonitoringDashboardDir() error {
 	monitoringDashboardDir := app.GetMonitoringDashboardDir()
 	if !utils.DirectoryExists(monitoringDashboardDir) {
 		err := os.MkdirAll(monitoringDashboardDir, constants.DefaultPerms755)
@@ -717,28 +717,28 @@ func (app *Avalanche) CreateMonitoringDashboardDir() error {
 	return nil
 }
 
-func (app *Avalanche) GetAnsibleInventoryDirPath(clusterName string) string {
+func (app *Odyssey) GetAnsibleInventoryDirPath(clusterName string) string {
 	return filepath.Join(app.GetNodesDir(), constants.AnsibleInventoryDir, clusterName)
 }
 
-// CreateAnsibleNodeConfigDir creates the ansible node config directory specific for nodeID inside .avalanche-cli
-func (app *Avalanche) CreateAnsibleNodeConfigDir(nodeID string) error {
+// CreateAnsibleNodeConfigDir creates the ansible node config directory specific for nodeID inside .odyssey-cli
+func (app *Odyssey) CreateAnsibleNodeConfigDir(nodeID string) error {
 	return os.MkdirAll(filepath.Join(app.GetAnsibleDir(), nodeID), constants.DefaultPerms755)
 }
 
-func (app *Avalanche) GetNodeConfigJSONFile(nodeID string) string {
+func (app *Odyssey) GetNodeConfigJSONFile(nodeID string) string {
 	return filepath.Join(app.GetAnsibleDir(), nodeID, constants.NodeConfigJSONFile)
 }
 
-func (app *Avalanche) GetMonitoringScriptFile() string {
+func (app *Odyssey) GetMonitoringScriptFile() string {
 	return filepath.Join(app.GetMonitoringDir(), constants.MonitoringScriptFile)
 }
 
-func (app *Avalanche) GetMonitoringDashboardDir() string {
+func (app *Odyssey) GetMonitoringDashboardDir() string {
 	return filepath.Join(app.GetMonitoringDir(), constants.DashboardsDir)
 }
 
-func (app *Avalanche) SetupMonitoringEnv() error {
+func (app *Odyssey) SetupMonitoringEnv() error {
 	err := os.RemoveAll(app.GetMonitoringDir())
 	if err != nil {
 		return err

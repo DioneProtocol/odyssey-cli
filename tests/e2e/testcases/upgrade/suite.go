@@ -1,7 +1,7 @@
 // Copyright (C) 2022, Ava Labs, Inc. All rights reserved.
 // See the file LICENSE for licensing terms.
 
-package apm
+package opm
 
 import (
 	"encoding/json"
@@ -12,17 +12,17 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd/upgradecmd"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanche-cli/pkg/binutils"
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/commands"
-	"github.com/ava-labs/avalanche-cli/tests/e2e/utils"
-	anr_utils "github.com/ava-labs/avalanche-network-runner/utils"
-	"github.com/ava-labs/avalanchego/ids"
-	"github.com/ava-labs/avalanchego/utils/logging"
-	"github.com/ava-labs/subnet-evm/params"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd/upgradecmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odyssey-cli/pkg/binutils"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/commands"
+	"github.com/DioneProtocol/odyssey-cli/tests/e2e/utils"
+	onrutils "github.com/DioneProtocol/odyssey-network-runner/utils"
+	"github.com/DioneProtocol/odysseygo/ids"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
+	"github.com/DioneProtocol/subnet-evm/params"
 	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 )
@@ -34,10 +34,10 @@ const (
 	subnetEVMVersion1 = "v0.5.5"
 	subnetEVMVersion2 = "v0.5.6"
 
-	avagoRPC1Version = "v1.10.11"
-	avagoRPC2Version = "v1.10.12"
+	odygoRPC1Version = "v1.10.11"
+	odygoRPC2Version = "v1.10.12"
 
-	controlKeys = "P-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
+	controlKeys = "O-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
 	keyName     = "ewoq"
 
 	upgradeBytesPath = "tests/e2e/assets/test_upgrade.json"
@@ -102,7 +102,7 @@ var _ = ginkgo.Describe("[Upgrade public network]", ginkgo.Ordered, func() {
 	ginkgo.It("can create and apply to public node", func() {
 		commands.CreateSubnetEvmConfig(subnetName, utils.SubnetEvmGenesisPath)
 
-		// simulate as if this had already been deployed to fuji
+		// simulate as if this had already been deployed to testnet
 		// by just entering fake data into the struct
 		app := application.New()
 		app.Setup(utils.GetBaseDir(), logging.NoLog{}, nil, nil, nil)
@@ -112,7 +112,7 @@ var _ = ginkgo.Describe("[Upgrade public network]", ginkgo.Ordered, func() {
 
 		blockchainID := ids.GenerateTestID()
 		sc.Networks = make(map[string]models.NetworkData)
-		sc.Networks[models.Fuji.String()] = models.NetworkData{
+		sc.Networks[models.Testnet.String()] = models.NetworkData{
 			SubnetID:     ids.GenerateTestID(),
 			BlockchainID: blockchainID,
 		}
@@ -125,17 +125,17 @@ var _ = ginkgo.Describe("[Upgrade public network]", ginkgo.Ordered, func() {
 
 		// we'll set a fake chain config dir to not mess up with a potential real one
 		// in the system
-		avalanchegoConfigDir, err := os.MkdirTemp("", "cli-tmp-avago-conf-dir")
+		odysseygoConfigDir, err := os.MkdirTemp("", "cli-tmp-odygo-conf-dir")
 		gomega.Expect(err).Should(gomega.BeNil())
-		defer os.RemoveAll(avalanchegoConfigDir)
+		defer os.RemoveAll(odysseygoConfigDir)
 
 		// now we try to apply
-		_, err = commands.ApplyUpgradeToPublicNode(subnetName, avalanchegoConfigDir)
+		_, err = commands.ApplyUpgradeToPublicNode(subnetName, odysseygoConfigDir)
 		gomega.Expect(err).Should(gomega.BeNil())
 
 		// we expect the file to be present at the expected location and being
 		// the same content as the original one
-		expectedPath := filepath.Join(avalanchegoConfigDir, blockchainID.String(), constants.UpgradeBytesFileName)
+		expectedPath := filepath.Join(odysseygoConfigDir, blockchainID.String(), constants.UpgradeBytesFileName)
 		gomega.Expect(expectedPath).Should(gomega.BeARegularFile())
 		ori, err := os.ReadFile(upgradeBytesPath)
 		gomega.Expect(err).Should(gomega.BeNil())
@@ -281,7 +281,7 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		// check running version
 		// remove string suffix starting with /ext
 		nodeURI := strings.Split(rpcs[0], "/ext")[0]
-		vmid, err := anr_utils.VMID(subnetName)
+		vmid, err := onrutils.VMID(subnetName)
 		gomega.Expect(err).Should(gomega.BeNil())
 		version, err := utils.GetNodeVMVersion(nodeURI, vmid.String())
 		gomega.Expect(err).Should(gomega.BeNil())
@@ -313,8 +313,8 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 
 		// create and deploy
 		commands.CreateCustomVMConfig(subnetName, utils.SubnetEvmGenesisPath, customVMPath1)
-		// need to set avago version manually since VMs are custom
-		commands.StartNetworkWithVersion(avagoRPC1Version)
+		// need to set odygo version manually since VMs are custom
+		commands.StartNetworkWithVersion(odygoRPC1Version)
 		deployOutput := commands.DeploySubnetLocally(subnetName)
 		rpcs, err := utils.ParseRPCsFromOutput(deployOutput)
 		if err != nil {
@@ -324,7 +324,7 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		// check running version
 		// remove string suffix starting with /ext from rpc url to get node uri
 		nodeURI := strings.Split(rpcs[0], "/ext")[0]
-		vmid, err := anr_utils.VMID(subnetName)
+		vmid, err := onrutils.VMID(subnetName)
 		gomega.Expect(err).Should(gomega.BeNil())
 		version, err := utils.GetNodeVMVersion(nodeURI, vmid.String())
 		gomega.Expect(err).Should(gomega.BeNil())
@@ -337,7 +337,7 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		commands.UpgradeCustomVMLocal(subnetName, customVMPath2)
 
 		// restart network
-		commands.StartNetworkWithVersion(avagoRPC2Version)
+		commands.StartNetworkWithVersion(odygoRPC2Version)
 
 		// check running version
 		version, err = utils.GetNodeVMVersion(nodeURI, vmid.String())
@@ -384,11 +384,11 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 	})
 
 	ginkgo.It("can upgrade subnet-evm on public deployment", func() {
-		_ = commands.StartNetworkWithVersion(binaryToVersion[utils.SoloAvagoKey])
+		_ = commands.StartNetworkWithVersion(binaryToVersion[utils.SoloOdygoKey])
 		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, binaryToVersion[utils.SoloSubnetEVMKey1])
 
-		// Simulate fuji deployment
-		s := commands.SimulateFujiDeploy(subnetName, keyName, controlKeys)
+		// Simulate testnet deployment
+		s := commands.SimulateTestnetDeploy(subnetName, keyName, controlKeys)
 		subnetID, err := utils.ParsePublicDeployOutput(s)
 		gomega.Expect(err).Should(gomega.BeNil())
 		// add validators to subnet
@@ -396,11 +396,11 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 		for _, nodeInfo := range nodeInfos {
 			start := time.Now().Add(time.Second * 30).UTC().Format("2006-01-02 15:04:05")
-			_ = commands.SimulateFujiAddValidator(subnetName, keyName, nodeInfo.ID, start, "24h", "20")
+			_ = commands.SimulateTestnetAddValidator(subnetName, keyName, nodeInfo.ID, start, "24h", "20")
 		}
 		// join to copy vm binary and update config file
 		for _, nodeInfo := range nodeInfos {
-			_ = commands.SimulateFujiJoin(subnetName, nodeInfo.ConfigFile, nodeInfo.PluginDir, nodeInfo.ID)
+			_ = commands.SimulateTestnetJoin(subnetName, nodeInfo.ConfigFile, nodeInfo.PluginDir, nodeInfo.ID)
 		}
 		// get and check whitelisted subnets from config file
 		var whitelistedSubnets string
@@ -420,7 +420,7 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		var originalHash string
 
 		// upgrade the vm on each node
-		vmid, err := anr_utils.VMID(subnetName)
+		vmid, err := onrutils.VMID(subnetName)
 		gomega.Expect(err).Should(gomega.BeNil())
 
 		for _, nodeInfo := range nodeInfos {

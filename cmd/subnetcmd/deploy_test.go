@@ -6,21 +6,21 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ava-labs/avalanche-cli/cmd/flags"
-	"github.com/ava-labs/avalanche-cli/internal/mocks"
-	"github.com/ava-labs/avalanche-cli/pkg/application"
-	"github.com/ava-labs/avalanchego/utils/logging"
+	"github.com/DioneProtocol/odyssey-cli/cmd/flags"
+	"github.com/DioneProtocol/odyssey-cli/internal/mocks"
+	"github.com/DioneProtocol/odyssey-cli/pkg/application"
+	"github.com/DioneProtocol/odysseygo/utils/logging"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	testAvagoVersion1      = "v1.9.2"
-	testAvagoVersion2      = "v1.9.1"
-	testLatestAvagoVersion = "latest"
+	testOdygoVersion1      = "v1.9.2"
+	testOdygoVersion2      = "v1.9.1"
+	testLatestOdygoVersion = "latest"
 )
 
-var testAvagoCompat = []byte("{\"19\": [\"v1.9.2\"],\"18\": [\"v1.9.1\"],\"17\": [\"v1.9.0\",\"v1.8.0\"]}")
+var testOdygoCompat = []byte("{\"19\": [\"v1.9.2\"],\"18\": [\"v1.9.1\"],\"17\": [\"v1.9.0\",\"v1.8.0\"]}")
 
 func TestMutuallyExclusive(t *testing.T) {
 	require := require.New(t)
@@ -92,7 +92,7 @@ func TestMutuallyExclusive(t *testing.T) {
 	}
 }
 
-func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
+func TestCheckForInvalidDeployAndSetOdygoVersion(t *testing.T) {
 	type test struct {
 		name            string
 		networkRPC      int
@@ -111,21 +111,21 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 		{
 			name:            "network already running, rpc matches",
 			networkRPC:      18,
-			networkVersion:  testAvagoVersion1,
+			networkVersion:  testOdygoVersion1,
 			networkErr:      nil,
 			desiredRPC:      18,
-			desiredVersion:  testLatestAvagoVersion,
+			desiredVersion:  testLatestOdygoVersion,
 			expectError:     false,
-			expectedVersion: testAvagoVersion1,
+			expectedVersion: testOdygoVersion1,
 			networkUp:       true,
 		},
 		{
 			name:            "network already running, rpc mismatch",
 			networkRPC:      18,
-			networkVersion:  testAvagoVersion1,
+			networkVersion:  testOdygoVersion1,
 			networkErr:      nil,
 			desiredRPC:      19,
-			desiredVersion:  testLatestAvagoVersion,
+			desiredVersion:  testLatestOdygoVersion,
 			expectError:     true,
 			expectedVersion: "",
 			networkUp:       true,
@@ -133,10 +133,10 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 		{
 			name:            "network already running, version mismatch",
 			networkRPC:      18,
-			networkVersion:  testAvagoVersion1,
+			networkVersion:  testOdygoVersion1,
 			networkErr:      nil,
 			desiredRPC:      19,
-			desiredVersion:  testAvagoVersion2,
+			desiredVersion:  testOdygoVersion2,
 			expectError:     true,
 			expectedVersion: "",
 			networkUp:       true,
@@ -147,10 +147,10 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 			networkVersion:  "",
 			networkErr:      nil,
 			desiredRPC:      19,
-			desiredVersion:  testLatestAvagoVersion,
+			desiredVersion:  testLatestOdygoVersion,
 			expectError:     false,
-			expectedVersion: testAvagoVersion1,
-			compatData:      testAvagoCompat,
+			expectedVersion: testOdygoVersion1,
+			compatData:      testOdygoCompat,
 			compatError:     nil,
 			networkUp:       false,
 		},
@@ -160,9 +160,9 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 			networkVersion:  "",
 			networkErr:      nil,
 			desiredRPC:      19,
-			desiredVersion:  testLatestAvagoVersion,
+			desiredVersion:  testLatestOdygoVersion,
 			expectError:     true,
-			expectedVersion: testAvagoVersion1,
+			expectedVersion: testOdygoVersion1,
 			compatData:      nil,
 			compatError:     errors.New("no compat"),
 			networkUp:       false,
@@ -173,10 +173,10 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 			networkVersion:  "",
 			networkErr:      errors.New("unable to determine rpc version"),
 			desiredRPC:      19,
-			desiredVersion:  testLatestAvagoVersion,
+			desiredVersion:  testLatestOdygoVersion,
 			expectError:     true,
-			expectedVersion: testAvagoVersion1,
-			compatData:      testAvagoCompat,
+			expectedVersion: testOdygoVersion1,
+			compatData:      testOdygoCompat,
 			compatError:     nil,
 			networkUp:       true,
 		},
@@ -189,7 +189,7 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 			mockSC := mocks.StatusChecker{}
 			mockSC.On("GetCurrentNetworkVersion").Return(tt.networkVersion, tt.networkRPC, tt.networkUp, tt.networkErr)
 
-			userProvidedAvagoVersion = tt.desiredVersion
+			userProvidedOdygoVersion = tt.desiredVersion
 
 			mockDownloader := &mocks.Downloader{}
 			mockDownloader.On("Download", mock.Anything).Return(tt.compatData, nil)
@@ -199,13 +199,13 @@ func TestCheckForInvalidDeployAndSetAvagoVersion(t *testing.T) {
 			app.Log = logging.NoLog{}
 			app.Downloader = mockDownloader
 
-			desiredAvagoVersion, err := CheckForInvalidDeployAndGetAvagoVersion(&mockSC, tt.desiredRPC)
+			desiredOdygoVersion, err := CheckForInvalidDeployAndGetOdygoVersion(&mockSC, tt.desiredRPC)
 
 			if tt.expectError {
 				require.Error(err)
 			} else {
 				require.NoError(err)
-				require.Equal(tt.expectedVersion, desiredAvagoVersion)
+				require.Equal(tt.expectedVersion, desiredOdygoVersion)
 			}
 		})
 	}

@@ -8,16 +8,16 @@ import (
 	"os"
 	"strings"
 
-	gcpAPI "github.com/ava-labs/avalanche-cli/pkg/cloud/gcp"
+	gcpAPI "github.com/DioneProtocol/odyssey-cli/pkg/cloud/gcp"
 	"golang.org/x/exp/maps"
 	"golang.org/x/net/context"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 
-	awsAPI "github.com/ava-labs/avalanche-cli/pkg/cloud/aws"
+	awsAPI "github.com/DioneProtocol/odyssey-cli/pkg/cloud/aws"
 
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 
 	"github.com/spf13/cobra"
 )
@@ -78,7 +78,7 @@ func getDeleteConfigConfirmation() error {
 		return err
 	}
 	if !yes {
-		return errors.New("abort avalanche stop node command")
+		return errors.New("abort odyssey stop node command")
 	}
 	return nil
 }

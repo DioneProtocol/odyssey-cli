@@ -6,7 +6,7 @@ package commands
 import (
 	"os/exec"
 
-	"github.com/ava-labs/avalanche-cli/pkg/constants"
+	"github.com/DioneProtocol/odyssey-cli/pkg/constants"
 	"github.com/onsi/gomega"
 )
 

@@ -5,10 +5,10 @@ package nodecmd
 import (
 	"fmt"
 
-	"github.com/ava-labs/avalanche-cli/cmd/subnetcmd"
-	"github.com/ava-labs/avalanche-cli/pkg/ansible"
-	"github.com/ava-labs/avalanche-cli/pkg/models"
-	"github.com/ava-labs/avalanche-cli/pkg/ux"
+	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ansible"
+	"github.com/DioneProtocol/odyssey-cli/pkg/models"
+	"github.com/DioneProtocol/odyssey-cli/pkg/ux"
 	"github.com/spf13/cobra"
 )
 
@@ -56,7 +56,7 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 	if len(notHealthyNodes) > 0 {
 		return fmt.Errorf("node(s) %s are not healthy yet, please try again later", notHealthyNodes)
 	}
-	incompatibleNodes, err := checkAvalancheGoVersionCompatible(hosts, subnetName)
+	incompatibleNodes, err := checkOdysseyGoVersionCompatible(hosts, subnetName)
 	if err != nil {
 		return err
 	}
@@ -65,16 +65,16 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		ux.Logger.PrintToUser("Either modify your Avalanche Go version or modify your VM version")
-		ux.Logger.PrintToUser("To modify your Avalanche Go version: https://docs.avax.network/nodes/maintain/upgrade-your-avalanchego-node")
+		ux.Logger.PrintToUser("Either modify your Odyssey Go version or modify your VM version")
+		ux.Logger.PrintToUser("To modify your Odyssey Go version: https://docs.dione.network/nodes/maintain/upgrade-your-odysseygo-node")
 		switch sc.VM {
 		case models.SubnetEvm:
-			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.avax.network/build/subnet/upgrade/upgrade-subnet-vm")
+			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.dione.network/build/subnet/upgrade/upgrade-subnet-vm")
 		case models.CustomVM:
-			ux.Logger.PrintToUser("To modify your Custom VM binary: avalanche subnet upgrade vm %s --config", subnetName)
+			ux.Logger.PrintToUser("To modify your Custom VM binary: odyssey subnet upgrade vm %s --config", subnetName)
 		}
-		ux.Logger.PrintToUser("Yoy can use \"avalanche node upgrade\" to upgrade Avalanche Go and/or Subnet-EVM to their latest versions")
-		return fmt.Errorf("the Avalanche Go version of node(s) %s is incompatible with VM RPC version of %s", incompatibleNodes, subnetName)
+		ux.Logger.PrintToUser("You can use \"odyssey node upgrade\" to upgrade Odyssey Go and/or Subnet-EVM to their latest versions")
+		return fmt.Errorf("the Odyssey Go version of node(s) %s is incompatible with VM RPC version of %s", incompatibleNodes, subnetName)
 	}
 
 	deployLocal := false
