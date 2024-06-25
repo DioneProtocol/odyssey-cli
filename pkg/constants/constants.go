@@ -186,7 +186,7 @@ const (
 	GCPNodeAnsiblePrefix         = "gcp_node"
 	CustomVMDir                  = "vms"
 	GCPStaticIPPrefix            = "static-ip"
-	DioneProtocolOrg             = "dioneprotocol"
+	DioneProtocolOrg             = "DioneProtocol"
 	OdysseyGoRepoName            = "odysseygo"
 	SubnetEVMRepoName            = "subnet-evm"
 	CliRepoName                  = "odyssey-cli"

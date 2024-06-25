@@ -5,14 +5,14 @@ package mocks
 import (
 	big "math/big"
 
-	ids "github.com/ava-labs/avalanchego/ids"
+	ids "github.com/DioneProtocol/odysseygo/ids"
 	common "github.com/ethereum/go-ethereum/common"
 
 	mock "github.com/stretchr/testify/mock"
 
-	models "github.com/ava-labs/avalanche-cli/pkg/models"
+	models "github.com/DioneProtocol/odyssey-cli/pkg/models"
 
-	prompts "github.com/ava-labs/avalanche-cli/pkg/prompts"
+	prompts "github.com/DioneProtocol/odyssey-cli/pkg/prompts"
 
 	time "time"
 
@@ -146,8 +146,8 @@ func (_m *Prompter) CaptureFloat(promptStr string, validator func(float64) error
 	return r0, r1
 }
 
-// CaptureFujiDuration provides a mock function with given fields: promptStr
-func (_m *Prompter) CaptureFujiDuration(promptStr string) (time.Duration, error) {
+// CaptureTestnetDuration provides a mock function with given fields: promptStr
+func (_m *Prompter) CaptureTestnetDuration(promptStr string) (time.Duration, error) {
 	ret := _m.Called(promptStr)
 
 	var r0 time.Duration
@@ -416,8 +416,8 @@ func (_m *Prompter) CaptureNodeID(promptStr string) (ids.NodeID, error) {
 	return r0, r1
 }
 
-// CapturePChainAddress provides a mock function with given fields: promptStr, network
-func (_m *Prompter) CapturePChainAddress(promptStr string, network models.Network) (string, error) {
+// CaptureOChainAddress provides a mock function with given fields: promptStr, network
+func (_m *Prompter) CaptureOChainAddress(promptStr string, network models.Network) (string, error) {
 	ret := _m.Called(promptStr, network)
 
 	var r0 string
