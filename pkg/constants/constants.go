@@ -60,7 +60,7 @@ const (
 	SimulatePublicNetwork = "SIMULATE_PUBLIC_NETWORK"
 
 	TestnetAPIEndpoint = "https://testnode.dioneprotocol.com"
-	MainnetAPIEndpoint = "https://mainnode.dioneprotocol.com"
+	MainnetAPIEndpoint = "https://testnode.dioneprotocol.com"
 
 	// this depends on bootstrap snapshot
 	LocalAPIEndpoint = "http://127.0.0.1:9650"
