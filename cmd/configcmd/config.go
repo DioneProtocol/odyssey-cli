@@ -28,7 +28,6 @@ func NewCmd(injectedApp *application.Odyssey) *cobra.Command {
 	// set user metrics collection preferences cmd
 	cmd.AddCommand(newMetricsCmd())
 	cmd.AddCommand(newMigrateCmd())
-	cmd.AddCommand(newSingleNodeCmd())
 	cmd.AddCommand(newAutorizeCloudAccessCmd())
 	return cmd
 }

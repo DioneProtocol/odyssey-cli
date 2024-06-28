@@ -79,8 +79,6 @@ const (
 
 	DefaultSnapshotName = "default-1654102509"
 
-	Cortina17Version = "v1.10.17"
-
 	BootstrapSnapshotRawBranch = "https://github.com/DioneProtocol/odyssey-cli/raw/main/"
 
 	CurrentBootstrapNamePath = "currentBootstrapName.txt"
@@ -94,16 +92,6 @@ const (
 	BootstrapSnapshotSingleNodeLocalPath   = "assets/" + BootstrapSnapshotSingleNodeArchiveName
 	BootstrapSnapshotSingleNodeURL         = BootstrapSnapshotRawBranch + BootstrapSnapshotSingleNodeLocalPath
 	BootstrapSnapshotSingleNodeSHA256URL   = BootstrapSnapshotRawBranch + "assets/sha256sumSingleNode.txt"
-
-	BootstrapSnapshotPreCortina17ArchiveName = "bootstrapSnapshot.PreCortina17.tar.gz"
-	BootstrapSnapshotPreCortina17LocalPath   = "assets/" + BootstrapSnapshotPreCortina17ArchiveName
-	BootstrapSnapshotPreCortina17URL         = BootstrapSnapshotRawBranch + BootstrapSnapshotPreCortina17LocalPath
-	BootstrapSnapshotPreCortina17SHA256URL   = BootstrapSnapshotRawBranch + "assets/sha256sum.PreCortina17.txt"
-
-	BootstrapSnapshotSingleNodePreCortina17ArchiveName = "bootstrapSnapshotSingleNode.PreCortina17.tar.gz"
-	BootstrapSnapshotSingleNodePreCortina17LocalPath   = "assets/" + BootstrapSnapshotSingleNodePreCortina17ArchiveName
-	BootstrapSnapshotSingleNodePreCortina17URL         = BootstrapSnapshotRawBranch + BootstrapSnapshotSingleNodePreCortina17LocalPath
-	BootstrapSnapshotSingleNodePreCortina17SHA256URL   = BootstrapSnapshotRawBranch + "assets/sha256sumSingleNode.PreCortina17.txt"
 
 	CliInstallationURL      = "https://raw.githubusercontent.com/DioneProtocol/odyssey-cli/main/scripts/install.sh"
 	ExpectedCliInstallErr   = "resource temporarily unavailable"
@@ -172,7 +160,6 @@ const (
 	ConfigNodeConfigKey          = "node-config"
 	ConfigMetricsEnabledKey      = "MetricsEnabled"
 	ConfigAutorizeCloudAccessKey = "AutorizeCloudAccess"
-	ConfigSingleNodeEnabledKey   = "SingleNodeEnabled"
 	OldConfigFileName            = ".odyssey-cli.json"
 	OldMetricsConfigFileName     = ".odyssey-cli/config"
 	DefaultConfigFileName        = ".odyssey-cli/config.json"
@@ -238,7 +225,7 @@ const (
 
 	GitRepoCommitName        = "Odyssey-CLI"
 	GitRepoCommitEmail       = "info@dione.network"
-	DioneProtocolMaintainers = "dioneprotocol"
+	DioneProtocolMaintainers = "DioneProtocol"
 
 	UpgradeBytesFileName      = "upgrade.json"
 	UpgradeBytesLockExtension = ".lock"
@@ -247,8 +234,8 @@ const (
 
 	OdysseyGoVersionUnknown            = "n/a"
 	OdysseyGoCompatibilityVersionAdded = "v1.9.2"
-	OdysseyGoCompatibilityURL          = "https://raw.githubusercontent.com/DioneProtocol/odysseygo/master/version/compatibility.json"
-	SubnetEVMRPCCompatibilityURL       = "https://raw.githubusercontent.com/DioneProtocol/subnet-evm/master/compatibility.json"
+	OdysseyGoCompatibilityURL          = "https://raw.githubusercontent.com/DioneProtocol/odysseygo/develop/version/compatibility.json"
+	SubnetEVMRPCCompatibilityURL       = "https://raw.githubusercontent.com/DioneProtocol/subnet-evm/develop/compatibility.json"
 
 	YesLabel = "Yes"
 	NoLabel  = "No"

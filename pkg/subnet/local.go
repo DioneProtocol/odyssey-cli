@@ -17,7 +17,6 @@ import (
 	"strings"
 
 	"golang.org/x/exp/maps"
-	"golang.org/x/mod/semver"
 
 	"github.com/DioneProtocol/coreth/params"
 	"github.com/DioneProtocol/odyssey-cli/pkg/application"
@@ -87,7 +86,7 @@ func NewLocalDeployer(
 
 type getGRPCClientFunc func(...binutils.GRPCClientOpOption) (client.Client, error)
 
-type setDefaultSnapshotFunc func(string, bool, string, bool) (bool, error)
+type setDefaultSnapshotFunc func(string, bool, string) (bool, error)
 
 // DeployToLocalNetwork does the heavy lifting:
 // * it checks the gRPC is running, if not, it starts it
@@ -631,8 +630,7 @@ func (d *LocalDeployer) SetupLocalEnv() (bool, string, error) {
 		odysseyGoBinPath = filepath.Join(odygoDir, "odysseygo")
 	}
 
-	configSingleNodeEnabled := d.app.Conf.GetConfigBoolValue(constants.ConfigSingleNodeEnabledKey)
-	needsRestart, err := d.setDefaultSnapshot(d.app.GetSnapshotsDir(), false, odygoVersion, configSingleNodeEnabled)
+	needsRestart, err := d.setDefaultSnapshot(d.app.GetSnapshotsDir(), false, odygoVersion)
 	if err != nil {
 		return false, "", fmt.Errorf("failed setting up snapshots: %w", err)
 	}
@@ -724,41 +722,16 @@ func (d *LocalDeployer) removeInstalledPlugin(
 	return d.binaryDownloader.RemoveVM(vmID.String())
 }
 
-func getSnapshotLocs(isSingleNode bool, isPreCortina17 bool) (string, string, string, string) {
-	bootstrapSnapshotArchiveName := ""
-	url := ""
-	shaSumURL := ""
-	pathInShaSum := ""
-	if isSingleNode {
-		if isPreCortina17 {
-			bootstrapSnapshotArchiveName = constants.BootstrapSnapshotSingleNodePreCortina17ArchiveName
-			url = constants.BootstrapSnapshotSingleNodePreCortina17URL
-			shaSumURL = constants.BootstrapSnapshotSingleNodePreCortina17SHA256URL
-			pathInShaSum = constants.BootstrapSnapshotSingleNodePreCortina17LocalPath
-		} else {
-			bootstrapSnapshotArchiveName = constants.BootstrapSnapshotSingleNodeArchiveName
-			url = constants.BootstrapSnapshotSingleNodeURL
-			shaSumURL = constants.BootstrapSnapshotSingleNodeSHA256URL
-			pathInShaSum = constants.BootstrapSnapshotSingleNodeLocalPath
-		}
-	} else {
-		if isPreCortina17 {
-			bootstrapSnapshotArchiveName = constants.BootstrapSnapshotPreCortina17ArchiveName
-			url = constants.BootstrapSnapshotPreCortina17URL
-			shaSumURL = constants.BootstrapSnapshotPreCortina17SHA256URL
-			pathInShaSum = constants.BootstrapSnapshotPreCortina17LocalPath
-		} else {
-			bootstrapSnapshotArchiveName = constants.BootstrapSnapshotArchiveName
-			url = constants.BootstrapSnapshotURL
-			shaSumURL = constants.BootstrapSnapshotSHA256URL
-			pathInShaSum = constants.BootstrapSnapshotLocalPath
-		}
-	}
+func getSnapshotLocs() (string, string, string, string) {
+	bootstrapSnapshotArchiveName := constants.BootstrapSnapshotArchiveName
+	url := constants.BootstrapSnapshotURL
+	shaSumURL := constants.BootstrapSnapshotSHA256URL
+	pathInShaSum := constants.BootstrapSnapshotLocalPath
 	return bootstrapSnapshotArchiveName, url, shaSumURL, pathInShaSum
 }
 
-func getExpectedDefaultSnapshotSHA256Sum(isSingleNode bool, isPreCortina17 bool) (string, error) {
-	_, _, url, path := getSnapshotLocs(isSingleNode, isPreCortina17)
+func getExpectedDefaultSnapshotSHA256Sum() (string, error) {
+	_, _, url, path := getSnapshotLocs()
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", fmt.Errorf("failed downloading sha256 sums: %w", err)
@@ -780,12 +753,8 @@ func getExpectedDefaultSnapshotSHA256Sum(isSingleNode bool, isPreCortina17 bool)
 
 // Initialize default snapshot with bootstrap snapshot archive
 // If force flag is set to true, overwrite the default snapshot if it exists
-func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, odygoVersion string, isSingleNode bool) (bool, error) {
-	var isPreCortina17 bool
-	if odygoVersion != "" {
-		isPreCortina17 = semver.Compare(odygoVersion, constants.Cortina17Version) < 0
-	}
-	bootstrapSnapshotArchiveName, url, _, _ := getSnapshotLocs(isSingleNode, isPreCortina17)
+func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, odygoVersion string) (bool, error) {
+	bootstrapSnapshotArchiveName, url, _, _ := getSnapshotLocs()
 	currentBootstrapNamePath := filepath.Join(snapshotsDir, constants.CurrentBootstrapNamePath)
 	exists, err := storage.FileExists(currentBootstrapNamePath)
 	if err != nil {
@@ -813,6 +782,7 @@ func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, odygoVer
 	}
 	// will download either if file not exists or if sha256 sum is not the same
 	downloadSnapshot := false
+	fmt.Println(bootstrapSnapshotArchivePath)
 	if _, err := os.Stat(bootstrapSnapshotArchivePath); os.IsNotExist(err) {
 		downloadSnapshot = true
 	} else {
@@ -820,7 +790,7 @@ func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, odygoVer
 		if err != nil {
 			return false, err
 		}
-		expectedSum, err := getExpectedDefaultSnapshotSHA256Sum(isSingleNode, isPreCortina17)
+		expectedSum, err := getExpectedDefaultSnapshotSHA256Sum()
 		if err != nil {
 			ux.Logger.PrintToUser("Warning: failure verifying that the local snapshot is the latest one: %s", err)
 		} else if gotSum != expectedSum {
