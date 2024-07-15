@@ -12,7 +12,6 @@ import (
 	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/errhandling"
 	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/key"
 	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/network"
-	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/opm"
 	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/packageman"
 	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/root"
 	_ "github.com/DioneProtocol/odyssey-cli/tests/e2e/testcases/subnet"

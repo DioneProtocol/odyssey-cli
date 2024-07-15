@@ -656,7 +656,8 @@ func transformValidatorsToPermissionlessLocal(sc models.Sidecar, subnetID ids.ID
 
 func handleRemoveAndAddValidators(sc models.Sidecar, subnetID ids.ID, validator ids.NodeID, stakedAmount uint64) error {
 	startTime := time.Now().Add(constants.StakingMinimumLeadTime).UTC()
-	endTime := startTime.Add(genesis.MainnetParams.MinValidatorStakeDuration)
+	duration = 24 * 50 * time.Hour
+	endTime := uint64(startTime.Add(duration).Unix())
 	testKey := genesis.EWOQKey
 	keyChain := secp256k1fx.NewKeychain(testKey)
 	_, err := subnet.IssueRemoveSubnetValidatorTx(keyChain, subnetID, validator)
@@ -665,7 +666,7 @@ func handleRemoveAndAddValidators(sc models.Sidecar, subnetID ids.ID, validator 
 	}
 	ux.Logger.PrintToUser(fmt.Sprintf("Validator %s removed", validator.String()))
 	assetID := sc.ElasticSubnet[models.Local.String()].AssetID
-	txID, err := subnet.IssueAddPermissionlessValidatorTx(keyChain, subnetID, validator, stakedAmount, assetID, uint64(startTime.Unix()), uint64(endTime.Unix()))
+	txID, err := subnet.IssueAddPermissionlessValidatorTx(keyChain, subnetID, validator, stakedAmount, assetID, uint64(startTime.Unix()), endTime)
 	if err != nil {
 		return err
 	}

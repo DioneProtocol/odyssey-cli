@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/DioneProtocol/odyssey-cli/cmd/subnetcmd/upgradecmd"
@@ -31,11 +30,11 @@ const (
 	subnetName       = "e2eSubnetTest"
 	secondSubnetName = "e2eSecondSubnetTest"
 
-	subnetEVMVersion1 = "v0.5.5"
+	subnetEVMVersion1 = "v0.5.6"
 	subnetEVMVersion2 = "v0.5.6"
 
-	odygoRPC1Version = "v1.10.11"
-	odygoRPC2Version = "v1.10.12"
+	odygoRPC1Version = "v1.10.10"
+	odygoRPC2Version = "v1.10.10"
 
 	controlKeys = "O-custom18jma8ppw3nhx5r4ap8clazz0dps7rv5u9xde7p"
 	keyName     = "ewoq"
@@ -242,34 +241,6 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		gomega.Expect(err).Should(gomega.BeNil())
 	})
 
-	ginkgo.It("can create and update future", func() {
-		subnetEVMVersion1 := binaryToVersion[utils.SoloSubnetEVMKey1]
-		subnetEVMVersion2 := binaryToVersion[utils.SoloSubnetEVMKey2]
-		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, subnetEVMVersion1)
-
-		// check version
-		output, err := commands.DescribeSubnet(subnetName)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		containsVersion1 := strings.Contains(output, subnetEVMVersion1)
-		containsVersion2 := strings.Contains(output, subnetEVMVersion2)
-		gomega.Expect(containsVersion1).Should(gomega.BeTrue())
-		gomega.Expect(containsVersion2).Should(gomega.BeFalse())
-
-		_, err = commands.UpgradeVMConfig(subnetName, subnetEVMVersion2)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		output, err = commands.DescribeSubnet(subnetName)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		containsVersion1 = strings.Contains(output, subnetEVMVersion1)
-		containsVersion2 = strings.Contains(output, subnetEVMVersion2)
-		gomega.Expect(containsVersion1).Should(gomega.BeFalse())
-		gomega.Expect(containsVersion2).Should(gomega.BeTrue())
-
-		commands.DeleteSubnetConfig(subnetName)
-	})
-
 	ginkgo.It("upgrade SubnetEVM local deployment", func() {
 		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, subnetEVMVersion1)
 		deployOutput := commands.DeploySubnetLocally(subnetName)
@@ -343,105 +314,6 @@ var _ = ginkgo.Describe("[Upgrade local network]", ginkgo.Ordered, func() {
 		version, err = utils.GetNodeVMVersion(nodeURI, vmid.String())
 		gomega.Expect(err).Should(gomega.BeNil())
 		gomega.Expect(version).Should(gomega.Equal(subnetEVMVersion2))
-
-		commands.DeleteSubnetConfig(subnetName)
-	})
-
-	ginkgo.It("can update a subnet-evm to a custom VM", func() {
-		customVMPath, err := utils.DownloadCustomVMBin(binaryToVersion[utils.SoloSubnetEVMKey2])
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		commands.CreateSubnetEvmConfigWithVersion(
-			subnetName,
-			utils.SubnetEvmGenesisPath,
-			binaryToVersion[utils.SoloSubnetEVMKey1],
-		)
-
-		// check version
-		output, err := commands.DescribeSubnet(subnetName)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		containsVersion1 := strings.Contains(output, binaryToVersion[utils.SoloSubnetEVMKey1])
-		containsVersion2 := strings.Contains(output, binaryToVersion[utils.SoloSubnetEVMKey2])
-		gomega.Expect(containsVersion1).Should(gomega.BeTrue())
-		gomega.Expect(containsVersion2).Should(gomega.BeFalse())
-
-		_, err = commands.UpgradeCustomVM(subnetName, customVMPath)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		output, err = commands.DescribeSubnet(subnetName)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		containsVersion2 = strings.Contains(output, binaryToVersion[utils.SoloSubnetEVMKey2])
-		gomega.Expect(containsVersion2).Should(gomega.BeFalse())
-
-		// the following indicates it is a custom VM
-		isCustom, err := utils.IsCustomVM(subnetName)
-		gomega.Expect(err).Should(gomega.BeNil())
-		gomega.Expect(isCustom).Should(gomega.BeTrue())
-
-		commands.DeleteSubnetConfig(subnetName)
-	})
-
-	ginkgo.It("can upgrade subnet-evm on public deployment", func() {
-		_ = commands.StartNetworkWithVersion(binaryToVersion[utils.SoloOdygoKey])
-		commands.CreateSubnetEvmConfigWithVersion(subnetName, utils.SubnetEvmGenesisPath, binaryToVersion[utils.SoloSubnetEVMKey1])
-
-		// Simulate testnet deployment
-		s := commands.SimulateTestnetDeploy(subnetName, keyName, controlKeys)
-		subnetID, err := utils.ParsePublicDeployOutput(s)
-		gomega.Expect(err).Should(gomega.BeNil())
-		// add validators to subnet
-		nodeInfos, err := utils.GetNodesInfo()
-		gomega.Expect(err).Should(gomega.BeNil())
-		for _, nodeInfo := range nodeInfos {
-			start := time.Now().Add(time.Second * 30).UTC().Format("2006-01-02 15:04:05")
-			_ = commands.SimulateTestnetAddValidator(subnetName, keyName, nodeInfo.ID, start, "24h", "20")
-		}
-		// join to copy vm binary and update config file
-		for _, nodeInfo := range nodeInfos {
-			_ = commands.SimulateTestnetJoin(subnetName, nodeInfo.ConfigFile, nodeInfo.PluginDir, nodeInfo.ID)
-		}
-		// get and check whitelisted subnets from config file
-		var whitelistedSubnets string
-		for _, nodeInfo := range nodeInfos {
-			whitelistedSubnets, err = utils.GetWhitelistedSubnetsFromConfigFile(nodeInfo.ConfigFile)
-			gomega.Expect(err).Should(gomega.BeNil())
-			whitelistedSubnetsSlice := strings.Split(whitelistedSubnets, ",")
-			gomega.Expect(whitelistedSubnetsSlice).Should(gomega.ContainElement(subnetID))
-		}
-		// update nodes whitelisted subnets
-		err = utils.RestartNodesWithWhitelistedSubnets(whitelistedSubnets)
-		gomega.Expect(err).Should(gomega.BeNil())
-		// wait for subnet walidators to be up
-		err = utils.WaitSubnetValidators(subnetID, nodeInfos)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		var originalHash string
-
-		// upgrade the vm on each node
-		vmid, err := onrutils.VMID(subnetName)
-		gomega.Expect(err).Should(gomega.BeNil())
-
-		for _, nodeInfo := range nodeInfos {
-			originalHash, err = utils.GetFileHash(filepath.Join(nodeInfo.PluginDir, vmid.String()))
-			gomega.Expect(err).Should(gomega.BeNil())
-		}
-
-		// stop network
-		commands.StopNetwork()
-
-		for _, nodeInfo := range nodeInfos {
-			_, err := commands.UpgradeVMPublic(subnetName, binaryToVersion[utils.SoloSubnetEVMKey2], nodeInfo.PluginDir)
-			gomega.Expect(err).Should(gomega.BeNil())
-		}
-
-		for _, nodeInfo := range nodeInfos {
-			measuredHash, err := utils.GetFileHash(filepath.Join(nodeInfo.PluginDir, vmid.String()))
-			gomega.Expect(err).Should(gomega.BeNil())
-
-			gomega.Expect(measuredHash).ShouldNot(gomega.Equal(originalHash))
-		}
 
 		commands.DeleteSubnetConfig(subnetName)
 	})

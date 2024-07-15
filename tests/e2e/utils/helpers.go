@@ -688,6 +688,7 @@ func GetNodeVMVersion(nodeURI string, vmid string) (string, error) {
 	}
 
 	for vm, version := range versionInfo.VMVersions {
+		version = strings.Split(version, "@")[0]
 		if vm == vmid {
 			return version, nil
 		}

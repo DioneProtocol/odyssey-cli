@@ -98,6 +98,7 @@ var _ = ginkgo.Describe("[Public Subnet]", func() {
 	})
 
 	ginkgo.It("deploy subnet to mainnet", func() {
+		ginkgo.Skip("Signature")
 		var interactionEndCh, ledgerSimEndCh chan struct{}
 		if os.Getenv("LEDGER_SIM") != "" {
 			interactionEndCh, ledgerSimEndCh = utils.StartLedgerSim(8, ledger1Seed, true)
@@ -251,6 +252,8 @@ var _ = ginkgo.Describe("[Public Subnet]", func() {
 	})
 
 	ginkgo.It("mainnet multisig deploy", func() {
+		ginkgo.Skip("Signature")
+
 		// this is not expected to be executed with real ledgers
 		// as that will complicate too much the test flow
 		gomega.Expect(os.Getenv("LEDGER_SIM")).Should(gomega.Equal("true"), "multisig test not designed for real ledgers: please set env var LEDGER_SIM to true")

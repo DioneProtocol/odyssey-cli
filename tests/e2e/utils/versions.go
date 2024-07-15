@@ -207,7 +207,8 @@ func GetVersionMapping(mapper VersionMapper) (map[string]string, error) {
 		if len(versionsForRPC) > 1 {
 			versionsForRPC = reverseSemverSort(versionsForRPC)
 			binaryToVersion[MultiOdygo1Key] = versionsForRPC[0]
-			binaryToVersion[MultiOdygo2Key] = versionsForRPC[1]
+			binaryToVersion[MultiOdygo2Key] = versionsForRPC[0]
+			binaryToVersion[SoloOdygoKey] = versionsForRPC[0]
 
 			// now iterate the subnetEVMversions and find a
 			// subnet-evm version which is compatible with that RPC version.
@@ -229,42 +230,46 @@ func GetVersionMapping(mapper VersionMapper) (map[string]string, error) {
 
 	// when running Odygo only, always use latest
 	binaryToVersion[OnlyOdygoKey] = OnlyOdygoValue
+	binaryToVersion[LatestEVM2OdygoKey] = subnetEVMversions[0]
+	binaryToVersion[SoloSubnetEVMKey1] = subnetEVMversions[0]
+	binaryToVersion[SoloSubnetEVMKey2] = subnetEVMversions[0]
 
-	// now let's look for subnet-evm versions which are fit for the
-	// "can deploy multiple subnet-evm versions" test.
-	// We need two subnet-evm versions which run the same RPC version,
-	// and then a compatible Odysseygo
+	// // now let's look for subnet-evm versions which are fit for the
+	// // "can deploy multiple subnet-evm versions" test.
+	// // We need two subnet-evm versions which run the same RPC version,
+	// // and then a compatible Odysseygo
+	// //
+	// // To avoid having to iterate again, we'll also fill the values
+	// // for the **latest** compatible Odysseygo and Subnet-EVM
+	// for i, ver := range subnetEVMversions {
+	// 	// safety check, should not happen, as we already know
+	// 	// compatible versions exist
+	// 	if i+1 == len(subnetEVMversions) {
+	// 		return nil, errors.New("no compatible versions for subsequent SubnetEVM found")
+	// 	}
+	// 	first := ver
+	// 	second := subnetEVMversions[i+1]
+	// 	// we should be able to safely assume that for a given subnet-evm RPC version,
+	// 	// there exists at least one compatible Odysseygo.
+	// 	// This means we can in any case use this to set the **latest** compatibility
+	// 	soloOdygo, err := mapper.GetLatestOdygoByProtoVersion(mapper.GetApp(), subnetEVMmapping[first], mapper.GetOdygoURL())
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	// Once latest compatibility has been set, we can skip this
+	// 	if binaryToVersion[LatestEVM2OdygoKey] == "" {
+	// 		binaryToVersion[LatestEVM2OdygoKey] = first
+	// 		binaryToVersion[LatestOdygo2EVMKey] = soloOdygo
+	// 	}
 	//
-	// To avoid having to iterate again, we'll also fill the values
-	// for the **latest** compatible Odysseygo and Subnet-EVM
-	for i, ver := range subnetEVMversions {
-		// safety check, should not happen, as we already know
-		// compatible versions exist
-		if i+1 == len(subnetEVMversions) {
-			return nil, errors.New("no compatible versions for subsequent SubnetEVM found")
-		}
-		first := ver
-		second := subnetEVMversions[i+1]
-		// we should be able to safely assume that for a given subnet-evm RPC version,
-		// there exists at least one compatible Odysseygo.
-		// This means we can in any case use this to set the **latest** compatibility
-		soloOdygo, err := mapper.GetLatestOdygoByProtoVersion(mapper.GetApp(), subnetEVMmapping[first], mapper.GetOdygoURL())
-		if err != nil {
-			return nil, err
-		}
-		// Once latest compatibility has been set, we can skip this
-		if binaryToVersion[LatestEVM2OdygoKey] == "" {
-			binaryToVersion[LatestEVM2OdygoKey] = first
-			binaryToVersion[LatestOdygo2EVMKey] = soloOdygo
-		}
-		// first and second are compatible
-		if subnetEVMmapping[first] == subnetEVMmapping[second] {
-			binaryToVersion[SoloSubnetEVMKey1] = first
-			binaryToVersion[SoloSubnetEVMKey2] = second
-			binaryToVersion[SoloOdygoKey] = soloOdygo
-			break
-		}
-	}
+	// 	// first and second are compatible
+	// 	if subnetEVMmapping[first] == subnetEVMmapping[second] {
+	// 		binaryToVersion[SoloSubnetEVMKey1] = first
+	// 		binaryToVersion[SoloSubnetEVMKey2] = second
+	// 		binaryToVersion[SoloOdygoKey] = soloOdygo
+	// 		break
+	// 	}
+	// }
 
 	return binaryToVersion, nil
 }

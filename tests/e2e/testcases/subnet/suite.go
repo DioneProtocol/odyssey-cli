@@ -31,7 +31,7 @@ var _ = ginkgo.Describe("[Subnet]", ginkgo.Ordered, func() {
 
 	ginkgo.It("can create and delete a custom vm subnet config", func() {
 		// let's use a SubnetEVM version which would be compatible with an existing Odygo
-		customVMPath, err := utils.DownloadCustomVMBin(mapping[utils.SoloSubnetEVMKey1])
+		customVMPath, err := utils.DownloadCustomVMBin(mapping[utils.LatestEVM2OdygoKey])
 		gomega.Expect(err).Should(gomega.BeNil())
 
 		commands.CreateCustomVMConfig(subnetName, utils.SubnetEvmGenesisPath, customVMPath)

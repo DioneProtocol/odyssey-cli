@@ -18,24 +18,28 @@ import (
 // default elastic config parameter values are from
 // https://docs.dione.network/subnets/reference-elastic-subnets-parameters#primary-network-parameters-on-mainnet
 const (
-	defaultInitialSupply               = 240_000_000
-	defaultMaximumSupply               = 720_000_000
-	defaultMinConsumptionRate          = 0.1
-	defaultMaxConsumptionRate          = 0.12
-	defaultMinValidatorStake           = 2_000
-	defaultMaxValidatorStake           = 3_000_000
-	defaultMinStakeDurationHours       = 14 * 24
-	defaultMinStakeDurationHoursString = "14 x 24"
-	defaultMaxStakeDurationHours       = 365 * 24
-	defaultMaxStakeDurationHoursString = "365 x 24"
-	defaultMinValidatorStakeDuration   = defaultMinStakeDurationHours * time.Hour
-	defaultMaxValidatorStakeDuration   = defaultMaxStakeDurationHours * time.Hour
-	defaultMinDelegatorStakeDuration   = defaultMinStakeDurationHours * time.Hour
-	defaultMaxDelegatorStakeDuration   = defaultMaxStakeDurationHours * time.Hour
-	defaultMinDelegationFee            = 20_000
-	defaultMinDelegatorStake           = 25
-	defaultMaxValidatorWeightFactor    = 5
-	defaultUptimeRequirement           = 0.8
+	defaultInitialSupply                        = 240_000_000
+	defaultMaximumSupply                        = 720_000_000
+	defaultMinConsumptionRate                   = 0.1
+	defaultMaxConsumptionRate                   = 0.12
+	defaultMinValidatorStake                    = 2_000
+	defaultMaxValidatorStake                    = 3_000_000
+	defaultMinValidatorStakeDurationHours       = 24
+	defaultMinValidatorStakeDurationHoursString = "24"
+	defaultMaxValidatorStakeDurationHours       = 365 * 24
+	defaultMaxValidatorStakeDurationHoursString = "365 x 24"
+	defaultMinDelegatorStakeDurationHours       = 24
+	defaultMinDelegatorStakeDurationHoursString = "24"
+	defaultMaxDelegatorStakeDurationHours       = 365 * 24
+	defaultMaxDelegatorStakeDurationHoursString = "365 x 24"
+	defaultMinValidatorStakeDuration            = defaultMinValidatorStakeDurationHours * time.Hour
+	defaultMaxValidatorStakeDuration            = defaultMaxValidatorStakeDurationHours * time.Hour
+	defaultMinDelegatorStakeDuration            = defaultMinDelegatorStakeDurationHours * time.Hour
+	defaultMaxDelegatorStakeDuration            = defaultMaxDelegatorStakeDurationHours * time.Hour
+	defaultMinDelegationFee                     = 20_000
+	defaultMinDelegatorStake                    = 25
+	defaultMaxValidatorWeightFactor             = 5
+	defaultUptimeRequirement                    = 0.8
 )
 
 func GetElasticSubnetConfig(app *application.Odyssey, tokenSymbol string, useDefaultConfig bool) (models.ElasticSubnetConfig, error) {
@@ -261,7 +265,7 @@ func getValidatorStake(app *application.Odyssey, initialSupply uint64, maximumSu
 
 func getValidatorStakeDuration(app *application.Odyssey) (time.Duration, time.Duration, error) {
 	ux.Logger.PrintToUser("Select the Minimum Stake Duration. Please enter in units of hours")
-	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinStakeDurationHours, defaultMinStakeDurationHoursString))
+	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinValidatorStakeDurationHours, defaultMinValidatorStakeDurationHoursString))
 	minStakeDuration, err := app.Prompt.CaptureUint64Compare(
 		"Minimum Stake Duration",
 		[]prompts.Comparator{
@@ -273,7 +277,7 @@ func getValidatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 			{
 				Label: "Global Max Stake Duration",
 				Type:  prompts.LessThanEq,
-				Value: uint64(defaultMaxStakeDurationHours),
+				Value: uint64(defaultMaxValidatorStakeDurationHours),
 			},
 		},
 	)
@@ -282,7 +286,7 @@ func getValidatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 	}
 
 	ux.Logger.PrintToUser("Select the Maximum Stake Duration")
-	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Stake Duration is %d (%s)", defaultMaxStakeDurationHours, defaultMaxStakeDurationHoursString))
+	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Stake Duration is %d (%s)", defaultMaxValidatorStakeDurationHours, defaultMaxValidatorStakeDurationHoursString))
 	maxStakeDuration, err := app.Prompt.CaptureUint64Compare(
 		"Maximum Stake Duration",
 		[]prompts.Comparator{
@@ -294,7 +298,7 @@ func getValidatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 			{
 				Label: "Global Max Stake Duration",
 				Type:  prompts.LessThanEq,
-				Value: uint64(defaultMaxStakeDurationHours),
+				Value: uint64(defaultMaxValidatorStakeDurationHours),
 			},
 		},
 	)
@@ -307,7 +311,7 @@ func getValidatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 
 func getDelegatorStakeDuration(app *application.Odyssey) (time.Duration, time.Duration, error) {
 	ux.Logger.PrintToUser("Select the Minimum Stake Duration. Please enter in units of hours")
-	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinStakeDurationHours, defaultMinStakeDurationHoursString))
+	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Minimum Stake Duration is %d (%s)", defaultMinDelegatorStakeDurationHours, defaultMinDelegatorStakeDurationHoursString))
 	minStakeDuration, err := app.Prompt.CaptureUint64Compare(
 		"Minimum Stake Duration",
 		[]prompts.Comparator{
@@ -319,7 +323,7 @@ func getDelegatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 			{
 				Label: "Global Max Stake Duration",
 				Type:  prompts.LessThanEq,
-				Value: uint64(defaultMaxStakeDurationHours),
+				Value: uint64(defaultMaxDelegatorStakeDurationHours),
 			},
 		},
 	)
@@ -328,7 +332,7 @@ func getDelegatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 	}
 
 	ux.Logger.PrintToUser("Select the Maximum Stake Duration")
-	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Stake Duration is %d (%s)", defaultMaxStakeDurationHours, defaultMaxStakeDurationHoursString))
+	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Stake Duration is %d (%s)", defaultMaxDelegatorStakeDurationHours, defaultMaxDelegatorStakeDurationHoursString))
 	maxStakeDuration, err := app.Prompt.CaptureUint64Compare(
 		"Maximum Stake Duration",
 		[]prompts.Comparator{
@@ -340,7 +344,7 @@ func getDelegatorStakeDuration(app *application.Odyssey) (time.Duration, time.Du
 			{
 				Label: "Global Max Stake Duration",
 				Type:  prompts.LessThanEq,
-				Value: uint64(defaultMaxStakeDurationHours),
+				Value: uint64(defaultMaxDelegatorStakeDurationHours),
 			},
 		},
 	)
