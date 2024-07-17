@@ -3,11 +3,11 @@ module github.com/DioneProtocol/odyssey-cli
 go 1.20
 
 require (
-	github.com/DioneProtocol/coreth v0.12.9-rc.9
-	github.com/DioneProtocol/odyssey-network-runner v1.7.4-0.20231204182757-5309eeea932f
-	github.com/DioneProtocol/odysseygo v1.10.17
-	github.com/DioneProtocol/opm v0.0.4
-	github.com/DioneProtocol/subnet-evm v0.5.3
+	github.com/DioneProtocol/coreth v0.0.1
+	github.com/DioneProtocol/odyssey-network-runner v0.0.1
+	github.com/DioneProtocol/odysseygo v1.10.10
+	github.com/DioneProtocol/opm v0.0.1
+	github.com/DioneProtocol/subnet-evm v0.5.6
 	github.com/aws/aws-sdk-go-v2 v1.24.0
 	github.com/aws/aws-sdk-go-v2/config v1.25.11
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.139.0
@@ -45,7 +45,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/DataDog/zstd v1.5.2 // indirect
-	github.com/DioneProtocol/ledger-odyssey/go v0.0.0-20231102202641-ae2ebdaeac34 // indirect
+	github.com/DioneProtocol/ledger-odyssey/go v0.0.0-20240716144700-70b2cf851d2f // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230828082145-3c4c8a2d2371 // indirect
@@ -200,15 +200,3 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gotest.tools/v3 v3.3.0 // indirect
 )
-
-replace github.com/DioneProtocol/subnet-evm => ../odyssey-subnet-evm
-
-replace github.com/DioneProtocol/odyssey-network-runner => ../odyssey-network-runner/
-
-replace github.com/DioneProtocol/odysseygo => ../odysseygo/
-
-replace github.com/DioneProtocol/coreth => ../coreth/
-
-replace github.com/DioneProtocol/opm => ../opm/
-
-replace github.com/DioneProtocol/ledger-odyssey/go => ../ledger-odyssey
