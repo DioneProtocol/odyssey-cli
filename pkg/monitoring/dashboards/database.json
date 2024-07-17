@@ -23,7 +23,7 @@
     {
       "icon": "external link",
       "tags": [
-        "Avalanche"
+        "Odyssey"
       ],
       "type": "dashboards"
     }
@@ -122,7 +122,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_read_size_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_read_size_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "hide": false,
           "interval": "",
           "legendFormat": "Bytes Read",
@@ -225,7 +225,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_write_size_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_write_size_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "Write Rate",
           "range": true,
@@ -328,7 +328,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -341,7 +341,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -354,11 +354,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -367,7 +367,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -380,7 +380,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -393,7 +393,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -406,7 +406,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -419,7 +419,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -432,7 +432,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
@@ -536,7 +536,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -549,7 +549,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_get_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_get_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -562,11 +562,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -575,7 +575,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_has_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_has_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -588,7 +588,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_compact_size_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_compact_size_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -601,7 +601,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_batch_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_batch_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -614,7 +614,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_batch_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_batch_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -627,7 +627,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_batch_reset_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_batch_reset_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -640,7 +640,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_db_batch_replay_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_db_batch_replay_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
@@ -655,7 +655,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Measures how many of each database operation is performed each second on X-Chain",
+      "description": "Measures how many of each database operation is performed each second on A-Chain",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -743,7 +743,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -756,7 +756,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -769,11 +769,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -782,7 +782,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -795,7 +795,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -808,7 +808,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -821,7 +821,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -834,7 +834,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -847,14 +847,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_X_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_X_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
           "refId": "I"
         }
       ],
-      "title": "X-Chain Operations per Second",
+      "title": "A-Chain Operations per Second",
       "type": "timeseries"
     },
     {
@@ -862,7 +862,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Measures how long each database operation is taking on average on X-Chain",
+      "description": "Measures how long each database operation is taking on average on A-Chain",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -951,7 +951,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -964,7 +964,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_get_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_get_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -977,11 +977,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -990,7 +990,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_has_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_has_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -1003,7 +1003,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_compact_size_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_compact_size_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -1016,7 +1016,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_batch_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_batch_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -1029,7 +1029,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_batch_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_batch_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -1042,7 +1042,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_batch_reset_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_batch_reset_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -1055,14 +1055,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_X_db_batch_replay_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_X_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_X_db_batch_replay_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_X_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
           "refId": "I"
         }
       ],
-      "title": "X-Chain Operations Latency",
+      "title": "A-Chain Operations Latency",
       "type": "timeseries"
     },
     {
@@ -1070,7 +1070,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Measures how many of each database operation is performed each second on P-Chain",
+      "description": "Measures how many of each database operation is performed each second on O-Chain",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1158,7 +1158,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -1171,7 +1171,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -1184,11 +1184,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -1197,7 +1197,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -1210,7 +1210,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -1223,7 +1223,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -1236,7 +1236,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -1249,7 +1249,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -1262,14 +1262,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_P_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_P_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
           "refId": "I"
         }
       ],
-      "title": "P-Chain Operations per Second",
+      "title": "O-Chain Operations per Second",
       "type": "timeseries"
     },
     {
@@ -1277,7 +1277,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Measures how long each database operation is taking on average on P-Chain",
+      "description": "Measures how long each database operation is taking on average on O-Chain",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1366,7 +1366,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -1379,7 +1379,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_get_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_get_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -1392,11 +1392,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -1405,7 +1405,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_has_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_has_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -1418,7 +1418,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_compact_size_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_compact_size_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -1431,7 +1431,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_batch_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_batch_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -1444,7 +1444,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_batch_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_batch_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -1457,7 +1457,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_batch_reset_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_batch_reset_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -1470,14 +1470,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_P_db_batch_replay_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_P_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_P_db_batch_replay_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_P_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
           "refId": "I"
         }
       ],
-      "title": "P-Chain Operations Latency",
+      "title": "O-Chain Operations Latency",
       "type": "timeseries"
     },
     {
@@ -1573,7 +1573,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -1586,7 +1586,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -1599,11 +1599,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -1612,7 +1612,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -1625,7 +1625,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -1638,7 +1638,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -1651,7 +1651,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -1664,7 +1664,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -1677,14 +1677,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "rate(avalanche_C_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "rate(odyssey_C_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
           "refId": "I"
         }
       ],
-      "title": "C-Chain Operations per Second",
+      "title": "D-Chain Operations per Second",
       "type": "timeseries"
     },
     {
@@ -1692,7 +1692,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Measures how long each database operation is taking on average on C-Chain",
+      "description": "Measures how long each database operation is taking on average on D-Chain",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1781,7 +1781,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "put",
           "range": true,
@@ -1794,7 +1794,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_get_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_get_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_get_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_get_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "get",
           "range": true,
@@ -1807,11 +1807,11 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "delete",
           "range": true,
-          "refId": "C"
+          "refId": "D"
         },
         {
           "datasource": {
@@ -1820,7 +1820,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_has_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_has_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_has_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_has_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "has",
           "range": true,
@@ -1833,7 +1833,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_compact_size_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_compact_size_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_compact_size_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_compact_size_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "compact",
           "range": true,
@@ -1846,7 +1846,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_batch_put_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_batch_put_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_batch_put_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_batch_put_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch put",
           "range": true,
@@ -1859,7 +1859,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_batch_delete_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_batch_delete_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_batch_delete_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_batch_delete_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch delete",
           "range": true,
@@ -1872,7 +1872,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_batch_reset_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_batch_reset_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_batch_reset_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_batch_reset_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch reset",
           "range": true,
@@ -1885,21 +1885,21 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "increase(avalanche_C_db_batch_replay_sum{instance=~\"$host\",job=\"avalanchego\"}[5m])/increase(avalanche_C_db_batch_replay_count{instance=~\"$host\",job=\"avalanchego\"}[5m])",
+          "expr": "increase(odyssey_C_db_batch_replay_sum{instance=~\"$host\",job=\"odysseygo\"}[5m])/increase(odyssey_C_db_batch_replay_count{instance=~\"$host\",job=\"odysseygo\"}[5m])",
           "interval": "",
           "legendFormat": "batch replay",
           "range": true,
           "refId": "I"
         }
       ],
-      "title": "C-Chain Operations Latency",
+      "title": "D-Chain Operations Latency",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 38,
   "tags": [
-    "Avalanche"
+    "Odyssey"
   ],
   "templating": {
     "list": [

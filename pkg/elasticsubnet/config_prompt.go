@@ -16,7 +16,6 @@ import (
 )
 
 // default elastic config parameter values are from
-// https://docs.dione.network/subnets/reference-elastic-subnets-parameters#primary-network-parameters-on-mainnet
 const (
 	defaultInitialSupply                        = 240_000_000
 	defaultMaximumSupply                        = 720_000_000
@@ -86,7 +85,6 @@ func GetElasticSubnetConfig(app *application.Odyssey, tokenSymbol string, useDef
 }
 
 func getCustomElasticSubnetConfig(app *application.Odyssey, tokenSymbol string) (models.ElasticSubnetConfig, error) {
-	ux.Logger.PrintToUser("More info regarding elastic subnet parameters can be found at https://docs.dione.network/subnets/reference-elastic-subnets-parameters")
 	initialSupply, err := getInitialSupply(app, tokenSymbol)
 	if err != nil {
 		return models.ElasticSubnetConfig{}, err
@@ -399,7 +397,6 @@ func getMinDelegatorStake(app *application.Odyssey) (uint64, error) {
 
 func getMaxValidatorWeightFactor(app *application.Odyssey) (byte, error) {
 	ux.Logger.PrintToUser("Select the Maximum Validator Weight Factor. A value of 1 effectively disables delegation")
-	ux.Logger.PrintToUser("More info can be found at https://docs.dione.network/subnets/reference-elastic-subnets-parameters#delegators-weight-checks")
 	ux.Logger.PrintToUser(fmt.Sprintf("Mainnet Maximum Validator Weight Factor is %d", defaultMaxValidatorWeightFactor))
 	maxValidatorWeightFactor, err := app.Prompt.CaptureUint64Compare(
 		"Maximum Validator Weight Factor",

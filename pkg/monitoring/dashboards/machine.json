@@ -30,7 +30,7 @@
     {
       "icon": "external link",
       "tags": [
-        "Avalanche"
+        "Odyssey"
       ],
       "type": "dashboards"
     }
@@ -174,7 +174,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "(1 - avg(irate(node_cpu_seconds_total{instance=~\"$machine\", job=~\"avalanchego-machine\", mode=\"idle\"}[1m])) by (instance)) * 100",
+          "expr": "(1 - avg(irate(node_cpu_seconds_total{instance=~\"$machine\", job=~\"odysseygo-machine\", mode=\"idle\"}[1m])) by (instance)) * 100",
           "interval": "",
           "legendFormat": "CPU",
           "range": true,
@@ -237,7 +237,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "node_hwmon_temp_celsius{chip=\"platform_coretemp_0\"}",
+          "expr": "node_hwmon_temp_celsius{chip=\"omega_coretemp_0\"}",
           "interval": "",
           "legendFormat": "{{sensor}}",
           "range": true,
@@ -280,7 +280,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Include I/O from applications other than AvalancheGo",
+      "description": "Include I/O from applications other than OdysseyGo",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -395,7 +395,7 @@
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
-      "description": "Includes I/O from applications other than AvalancheGo",
+      "description": "Includes I/O from applications other than OdysseyGo",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -631,7 +631,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "100 * (node_memory_MemTotal_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\"} - node_memory_MemFree_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\"} - node_memory_Buffers_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\"} - node_memory_Cached_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\"}) / node_memory_MemTotal_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\"}",
+          "expr": "100 * (node_memory_MemTotal_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\"} - node_memory_MemFree_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\"} - node_memory_Buffers_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\"} - node_memory_Cached_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\"}) / node_memory_MemTotal_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\"}",
           "interval": "",
           "legendFormat": "Memory",
           "range": true,
@@ -769,7 +769,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "max(((node_filesystem_size_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\", fstype=~\"ext4|vfat\"} - node_filesystem_free_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\", fstype=~\"ext4|vfat\"}) / node_filesystem_size_bytes{instance=~\"$machine\",job=~\"avalanchego-machine\", fstype=~\"ext4|vfat\"}) * 100) by (instance)",
+          "expr": "max(((node_filesystem_size_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\", fstype=~\"ext4|vfat\"} - node_filesystem_free_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\", fstype=~\"ext4|vfat\"}) / node_filesystem_size_bytes{instance=~\"$machine\",job=~\"odysseygo-machine\", fstype=~\"ext4|vfat\"}) * 100) by (instance)",
           "interval": "",
           "legendFormat": "Disk",
           "range": true,
@@ -864,7 +864,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avalanche_go_goroutines{instance=~\"$host\",job=~\"avalanchego\"}",
+          "expr": "odyssey_go_goroutines{instance=~\"$host\",job=~\"odysseygo\"}",
           "interval": "",
           "legendFormat": "goroutines",
           "range": true,
@@ -959,7 +959,7 @@
             "type": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avalanche_process_open_fds{instance=~\"$host\",job=~\"avalanchego\"}",
+          "expr": "odyssey_process_open_fds{instance=~\"$host\",job=~\"odysseygo\"}",
           "legendFormat": "Open files",
           "range": true,
           "refId": "A"
@@ -970,7 +970,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avalanche_process_max_fds{instance=~\"$host\",job=~\"avalanchego\"}",
+          "expr": "odyssey_process_max_fds{instance=~\"$host\",job=~\"odysseygo\"}",
           "hide": false,
           "instant": false,
           "legendFormat": "Max number allowed",
@@ -985,7 +985,7 @@
   "refresh": "10s",
   "schemaVersion": 38,
   "tags": [
-    "Avalanche"
+    "Odyssey"
   ],
   "templating": {
     "list": [

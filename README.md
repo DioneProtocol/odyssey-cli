@@ -1,6 +1,6 @@
-# Avalanche-CLI
+# Odyssey-CLI
 
-Avalanche CLI is a command line tool that gives developers access to everything Avalanche. This release specializes in helping developers develop and test subnets.
+Odyssey CLI is a command line tool that gives developers access to everything Odyssey. This release specializes in helping developers develop and test subnets.
 
 ## Installation
 
@@ -13,7 +13,7 @@ The tool has been tested on Linux and Mac. Windows is currently not supported.
 To download a binary for the latest release, run:
 
 ```sh
-curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s
+curl -sSfL https://raw.githubusercontent.com/DioneProtocol/odyssey-cli/develop/scripts/install.sh | sh -s
 ```
 
 The binary will be installed inside the `~/bin` directory.
@@ -31,7 +31,7 @@ To add it to your path permanently, add an export command to your shell initiali
 To download the binary into a specific directory, run:
 
 ```
-curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts/install.sh | sh -s -- -b <relative directory>
+curl -sSfL https://raw.githubusercontent.com/DioneProtocol/odyssey-cli/develop/scripts/install.sh | sh -s -- -b <relative directory>
 ```
 
 ## Quickstart
@@ -39,20 +39,20 @@ curl -sSfL https://raw.githubusercontent.com/ava-labs/avalanche-cli/main/scripts
 After installing, launch your own custom subnet:
 
 ```bash
-avalanche subnet create <subnetName>
-avalanche subnet deploy <subnetName>
+odyssey subnet create <subnetName>
+odyssey subnet deploy <subnetName>
 ```
 
 Shut down your local deployment with:
 
 ```bash
-avalanche network stop
+odyssey network stop
 ```
 
 Restart your local deployment (from where you left off) with:
 
 ```bash
-avalanche network start
+odyssey network start
 ```
 
 ## Notable Features
@@ -60,13 +60,13 @@ avalanche network start
 - Creation of Subnet-EVM, and custom virtual machine subnet configurations
 - Precompile integration and configuration
 - Local deployment of subnets for development and rapid prototyping
-- Fuji Testnet and Avalanche Mainnet deployment of subnets
+- Testnet and Odyssey Mainnet deployment of subnets
 - Ledger support
-- Avalanche Package Manager Integration
+- Odyssey Package Manager Integration
 
 ## Modifying your Subnet Deployment
 
-You can provide a global node config to edit the way your local avalanchego nodes perform under the hood. To provide such a config, you need to create an avalanche-cli config file. By default, a config file is read in from $HOME/.avalanche-cli/config.json If none exists, no error will occur. To provide a config from a custom location, run any command with the flag `--config <pathToConfig>`.
+You can provide a global node config to edit the way your local odysseygo nodes perform under the hood. To provide such a config, you need to create an odyssey-cli config file. By default, a config file is read in from $HOME/.odyssey-cli/config.json If none exists, no error will occur. To provide a config from a custom location, run any command with the flag `--config <pathToConfig>`.
 
 To specify the global node config, provide it as a body for the `node-config` key. Ex:
 
@@ -96,7 +96,7 @@ You may wish to deploy your subnet on a cloud instance and access it remotely. I
 
 ## Building Locally
 
-To build Avalanche-CLI, you'll first need to install golang. Follow the instructions here: <https://go.dev/doc/install>.
+To build Odyssey-CLI, you'll first need to install golang. Follow the instructions here: <https://go.dev/doc/install>.
 
 Once golang is installed, run:
 
@@ -104,11 +104,11 @@ Once golang is installed, run:
 ./scripts/build.sh
 ```
 
-The binary will be called `./bin/avalanche`.
+The binary will be called `./bin/odyssey`.
 
 ### Docker
 
-To make Avalanche CLI work in a docker container, add this
+To make Odyssey CLI work in a docker container, add this
 
 ```json
 {
@@ -185,8 +185,4 @@ continue saving/restoring to it, if not, `default snapshot will be used`.
 
 ### Snapshots dir
 
-- `~/.avalanche-cli/snapshot` will contain all saved snapshots, which can for example be used to pass work around
-
-## Detailed Usage
-
-More detailed information on how to use Avalanche CLI can be found at [here](https://docs.avax.network/subnets/create-a-local-subnet#subnet).
+- `~/.odyssey-cli/snapshot` will contain all saved snapshots, which can for example be used to pass work around
