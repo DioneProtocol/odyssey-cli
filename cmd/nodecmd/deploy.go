@@ -66,10 +66,7 @@ func deploySubnet(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		ux.Logger.PrintToUser("Either modify your Odyssey Go version or modify your VM version")
-		ux.Logger.PrintToUser("To modify your Odyssey Go version: https://docs.dione.network/nodes/maintain/upgrade-your-odysseygo-node")
 		switch sc.VM {
-		case models.SubnetEvm:
-			ux.Logger.PrintToUser("To modify your Subnet-EVM version: https://docs.dione.network/build/subnet/upgrade/upgrade-subnet-vm")
 		case models.CustomVM:
 			ux.Logger.PrintToUser("To modify your Custom VM binary: odyssey subnet upgrade vm %s --config", subnetName)
 		}

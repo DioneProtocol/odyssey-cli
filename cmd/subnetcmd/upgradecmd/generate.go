@@ -75,10 +75,6 @@ func upgradeGenerateCmd(_ *cobra.Command, args []string) error {
 	ux.Logger.PrintToUser(logging.Bold.Wrap(logging.Red.Wrap(
 		"Any mistakes in configuring network upgrades or coordinating them on validators " +
 			"may cause the network to halt and recovering may be difficult.")))
-	ux.Logger.PrintToUser(logging.Reset.Wrap(
-		"Please consult " + logging.Cyan.Wrap(
-			"https://docs.dione.network/subnets/customize-a-subnet#network-upgrades-enabledisable-precompiles ") +
-			logging.Reset.Wrap("for more information")))
 
 	txt := "Press [Enter] to continue, or abort by choosing 'no'"
 	yes, err := app.Prompt.CaptureYesNo(txt)

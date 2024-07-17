@@ -68,8 +68,7 @@ configuration automatically. Alternatively, the command can print the necessary 
 to upgrade your node manually.
 
 After you update your validator's configuration, you need to restart your validator manually.
-If you provide the --odysseygo-chain-config-dir flag, this command attempts to write the upgrade file at that path.
-Refer to https://docs.dione.network/nodes/maintain/chain-config-flags#subnet-chain-configs for related documentation.`,
+If you provide the --odysseygo-chain-config-dir flag, this command attempts to write the upgrade file at that path.`,
 		RunE: applyCmd,
 		Args: cobra.ExactArgs(1),
 	}
@@ -265,7 +264,6 @@ func applyPublicNetworkUpgrade(subnetName, networkKey string, sc *models.Sidecar
 		ux.Logger.PrintToUser("   **************************************************************************************************************")
 		ux.Logger.PrintToUser("   * Upgrades are tricky. The syntactic correctness of the upgrade file is important.                           *")
 		ux.Logger.PrintToUser("   * The sequence of upgrades must be strictly observed.                                                        *")
-		ux.Logger.PrintToUser("   * Make sure you understand https://docs.dione.network/nodes/maintain/chain-config-flags#subnet-chain-configs *")
 		ux.Logger.PrintToUser("   * before applying upgrades manually.                                                                         *")
 		ux.Logger.PrintToUser("   **************************************************************************************************************")
 		return nil

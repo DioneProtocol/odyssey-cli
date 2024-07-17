@@ -965,7 +965,7 @@ func setCloudInstanceType(cloudService string) (string, error) {
 		}
 		nodeTypeStr = strings.ReplaceAll(nodeTypeStr, defaultStr, "") // remove (default) if any
 		if nodeTypeStr == customNodeType {
-			nodeTypeStr, err = app.Prompt.CaptureString("What instance type would you like to use? Please refer to https://docs.dione.network/nodes/run/node-manually#hardware-and-os-requirements for minimum hardware requirements")
+			nodeTypeStr, err = app.Prompt.CaptureString("What instance type would you like to use?")
 			if err != nil {
 				ux.Logger.PrintToUser("Failed to capture custom node type with error: %s", err.Error())
 				return "", err

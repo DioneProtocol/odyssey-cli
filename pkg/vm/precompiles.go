@@ -54,8 +54,7 @@ func configureRewardManager(app *application.Odyssey) (rewardmanager.Config, boo
 	adminPrompt := "Configure reward manager admins"
 	enabledPrompt := "Configure reward manager enabled addresses"
 	info := "\nThis precompile allows to configure the fee reward mechanism " +
-		"on your subnet, including burning or sending fees.\nFor more information visit " +
-		"https://docs.dione.network/subnets/customize-a-subnet#changing-fee-reward-mechanisms\n\n"
+		"on your subnet, including burning or sending fees.\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -126,8 +125,7 @@ func configureContractAllowList(app *application.Odyssey) (deployerallowlist.Con
 	adminPrompt := "Configure contract deployment admin allow list"
 	enabledPrompt := "Configure contract deployment enabled addresses list"
 	info := "\nThis precompile restricts who has the ability to deploy contracts " +
-		"on your subnet.\nFor more information visit " +
-		"https://docs.dione.network/subnets/customize-a-subnet/#restricting-smart-contract-deployers\n\n"
+		"on your subnet.\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -150,8 +148,7 @@ func configureTransactionAllowList(app *application.Odyssey) (txallowlist.Config
 	adminPrompt := "Configure transaction allow list admin addresses"
 	enabledPrompt := "Configure transaction allow list enabled addresses"
 	info := "\nThis precompile restricts who has the ability to issue transactions " +
-		"on your subnet.\nFor more information visit " +
-		"https://docs.dione.network/subnets/customize-a-subnet/#restricting-who-can-submit-transactions\n\n"
+		"on your subnet.\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -195,8 +192,7 @@ func configureMinterList(app *application.Odyssey) (nativeminter.Config, bool, e
 	adminPrompt := "Configure native minting allow list"
 	enabledPrompt := "Configure native minting enabled addresses"
 	info := "\nThis precompile allows admins to permit designated contracts to mint the native token " +
-		"on your subnet.\nFor more information visit " +
-		"https://docs.dione.network/subnets/customize-a-subnet#minting-native-coins\n\n"
+		"on your subnet.\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {
@@ -218,8 +214,7 @@ func configureFeeConfigAllowList(app *application.Odyssey) (feemanager.Config, b
 	adminPrompt := "Configure fee manager allow list"
 	enabledPrompt := "Configure native minting enabled addresses"
 	info := "\nThis precompile allows admins to adjust chain gas and fee parameters without " +
-		"performing a hardfork.\nFor more information visit " +
-		"https://docs.dione.network/subnets/customize-a-subnet#configuring-dynamic-fees\n\n"
+		"performing a hardfork.\n\n"
 
 	admins, enabled, cancelled, err := getAdminAndEnabledAddresses(adminPrompt, enabledPrompt, info, app)
 	if err != nil {

@@ -387,7 +387,6 @@ func promptStart() (time.Time, error) {
 func PromptNodeID() (ids.NodeID, error) {
 	ux.Logger.PrintToUser("Next, we need the NodeID of the validator you want to whitelist.")
 	ux.Logger.PrintToUser("")
-	ux.Logger.PrintToUser("Check https://docs.dione.network/apis/odysseygo/apis/info#infogetnodeid for instructions about how to query the NodeID from your node")
 	ux.Logger.PrintToUser("(Edit host IP address and port to match your deployment, if needed).")
 
 	txt := "What is the NodeID of the validator you'd like to whitelist?"
