@@ -79,7 +79,7 @@ const (
 
 	DefaultSnapshotName = "default-1654102509"
 
-	BootstrapSnapshotRawBranch = "https://github.com/DioneProtocol/odyssey-cli/raw/main/"
+	BootstrapSnapshotRawBranch = "https://github.com/DioneProtocol/odyssey-cli/raw/develop/"
 
 	CurrentBootstrapNamePath = "currentBootstrapName.txt"
 

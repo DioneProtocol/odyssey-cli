@@ -782,7 +782,6 @@ func SetDefaultSnapshot(snapshotsDir string, resetCurrentSnapshot bool, odygoVer
 	}
 	// will download either if file not exists or if sha256 sum is not the same
 	downloadSnapshot := false
-	fmt.Println(bootstrapSnapshotArchivePath)
 	if _, err := os.Stat(bootstrapSnapshotArchivePath); os.IsNotExist(err) {
 		downloadSnapshot = true
 	} else {
