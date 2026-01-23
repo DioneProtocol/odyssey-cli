@@ -55,6 +55,19 @@ Restart your local deployment (from where you left off) with:
 odyssey network start
 ```
 
+## Available Commands
+
+Odyssey-CLI provides the following command groups:
+
+- `odyssey subnet` - Create, deploy, and manage subnets (create, deploy, list, describe, join, addValidator, removeValidator, export, import, publish, upgrade, stats, configure, validators, elastic)
+- `odyssey network` - Manage local network deployments (start, stop, clean, status)
+- `odyssey key` - Create and manage signing keys (create, list, delete, export, transfer)
+- `odyssey node` - Set up and manage validators on cloud services (create, validate, sync, stop, status, list, update, devnet, upgrade, ssh, refresh-ips)
+- `odyssey primary` - Interact with the Primary Network (addValidator)
+- `odyssey transaction` - Sign and execute transactions (sign, commit)
+- `odyssey config` - Modify CLI configuration (metrics, migrate, authorize)
+- `odyssey update` - Check for and install CLI updates
+
 ## Notable Features
 
 - Creation of Subnet-EVM, and custom virtual machine subnet configurations
@@ -63,6 +76,100 @@ odyssey network start
 - Testnet and Odyssey Mainnet deployment of subnets
 - Ledger support
 - Odyssey Package Manager Integration
+- Cross-chain and O-to-O and A-to-A transfers
+
+## Transfer Command
+
+The `odyssey key transfer` command allows you to transfer funds between addresses across different chains (O-Chain, A-Chain, D-Chain) or within the same chain.
+
+### Available Chains
+
+- **O-Chain**: The Oracle Chain
+- **A-Chain**: The Application Chain
+- **D-Chain**: The Data Chain
+
+### Cross-Chain Transfers
+
+For cross-chain transfers and O-chain to O-chain, the process requires two steps:
+1. **Sender** executes an export transaction using the `--send` flag
+2. **Receiver** executes an import transaction using the `--receive` flag
+
+#### Example: Transfer from O-Chain to A-Chain
+
+**Sender (Export):**
+```bash
+odyssey key transfer --send \
+  --source-chain O-Chain \
+  --destination-chain A-Chain \
+  --key <sender-key-name> \
+  --target-addr <receiver-address> \
+  --amount <amount-in-dione> \
+  --local  # or --testnet or --mainnet
+```
+
+**Receiver (Import):**
+```bash
+odyssey key transfer --receive \
+  --source-chain O-Chain \
+  --destination-chain A-Chain \
+  --key <receiver-key-name> \
+  --local  # or --testnet or --mainnet
+```
+
+### O-to-O Transfers
+
+For transfers within the O-Chain, both sender and receiver need to execute commands:
+
+1. **Sender** uses `--send` flag to initiate the transfer
+2. **Receiver** uses `--receive` flag with the `--amount` parameter to complete the transfer
+
+#### Example: O-Chain to O-Chain Transfer
+
+**Sender:**
+```bash
+odyssey key transfer --send \
+  --source-chain O-Chain \
+  --destination-chain O-Chain \
+  --key <sender-key-name> \
+  --target-addr <receiver-address> \
+  --amount <amount-in-dione> \
+  --local  # or --testnet or --mainnet
+```
+
+**Receiver:**
+```bash
+odyssey key transfer --receive \
+  --source-chain O-Chain \
+  --destination-chain O-Chain \
+  --key <receiver-key-name> \
+  --amount <amount-in-dione> \
+  --local  # or --testnet or --mainnet
+```
+
+Use `odyssey key transfer --help` for transfer flags
+
+**Note:** D-chain to D-chain transfer is not supported.
+
+## Transaction Command
+
+The `odyssey transaction` command suite provides utilities for signing and committing multisig transactions.
+
+### Available Commands
+
+- `odyssey transaction sign [subnetName]` - Sign a multisig transaction
+- `odyssey transaction commit [subnetName]` - Commit a fully signed transaction by submitting it to the O-Chain
+
+### Supported Transaction Types
+
+The `odyssey transaction` command supports **limited transaction types** - specifically O-Chain subnet-related transactions only. It does not support all transaction types available on D-Chain, A-Chain, or O-Chain.
+
+#### Supported O-Chain Subnet Transactions
+
+- `CreateChainTx` - Create a new blockchain on a subnet
+- `AddSubnetValidatorTx` - Add a validator to a subnet
+- `RemoveSubnetValidatorTx` - Remove a validator from a subnet
+- `TransformSubnetTx` - Transform subnet properties
+- `AddPermissionlessValidatorTx` - Add a permissionless validator to a subnet
 
 ## Modifying your Subnet Deployment
 
@@ -105,6 +212,16 @@ Once golang is installed, run:
 ```
 
 The binary will be called `./bin/odyssey`.
+
+To add the binary to your path, run
+
+```sh
+export PATH="./bin:$PATH"
+
+source ~/.zshrc or ~/.bashrc
+```
+
+To add it to your path permanently, add an export command to your shell initialization script (ex: .bashrc).
 
 ### Docker
 

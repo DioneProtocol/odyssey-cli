@@ -358,7 +358,7 @@ func (d *PublicDeployer) DeploySubnet(
 		return ids.Empty, err
 	}
 	ux.Logger.PrintToUser("Subnet has been created with ID: %s", subnetID.String())
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	return subnetID, nil
 }
 
@@ -897,6 +897,41 @@ func IssueOFromAImportTx(
 	showLedgerSignatureMsg(usingLedger, hasOnlyOneKey, "A -> O Chain Import Transaction")
 	unsignedTx, err := wallet.O().Builder().NewImportTx(
 		wallet.A().BlockchainID(),
+		owner,
+	)
+	if err != nil {
+		return ids.Empty, fmt.Errorf("error building tx: %w", err)
+	}
+	tx := txs.Tx{Unsigned: unsignedTx}
+	if err := wallet.O().Signer().Sign(context.Background(), &tx); err != nil {
+		return ids.Empty, fmt.Errorf("error signing tx: %w", err)
+	}
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	err = wallet.O().IssueTx(
+		&tx,
+		common.WithContext(ctx),
+	)
+	if err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
+		} else {
+			err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return tx.ID(), err
+	}
+	return tx.ID(), err
+}
+
+func IssueOFromChainImportTx(
+	chainID ids.ID,
+	wallet primary.Wallet,
+	usingLedger bool,
+	hasOnlyOneKey bool,
+	owner *secp256k1fx.OutputOwners,
+) (ids.ID, error) {
+	unsignedTx, err := wallet.O().Builder().NewImportTx(
+		chainID,
 		owner,
 	)
 	if err != nil {

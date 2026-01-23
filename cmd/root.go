@@ -197,8 +197,7 @@ func setupEnv() (string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		// no logger here yet
-		fmt.Printf("unable to get system user %s\n", err)
-		return "", err
+		return "", fmt.Errorf("unable to get system user %s\n", err)
 	}
 	baseDir := filepath.Join(usr.HomeDir, constants.BaseDirName)
 
@@ -206,49 +205,42 @@ func setupEnv() (string, error) {
 	err = os.MkdirAll(baseDir, os.ModePerm)
 	if err != nil {
 		// no logger here yet
-		fmt.Printf("failed creating the basedir %s: %s\n", baseDir, err)
-		return "", err
+		return "", fmt.Errorf("failed creating the basedir %s: %s\n", baseDir, err)
 	}
 
 	// Create snapshots dir if it doesn't exist
 	snapshotsDir := filepath.Join(baseDir, constants.SnapshotsDirName)
 	if err = os.MkdirAll(snapshotsDir, os.ModePerm); err != nil {
-		fmt.Printf("failed creating the snapshots dir %s: %s\n", snapshotsDir, err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed creating the snapshots dir %s: %s\n", snapshotsDir, err)
 	}
 
 	// Create key dir if it doesn't exist
 	keyDir := filepath.Join(baseDir, constants.KeyDir)
 	if err = os.MkdirAll(keyDir, os.ModePerm); err != nil {
-		fmt.Printf("failed creating the key dir %s: %s\n", keyDir, err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed creating the key dir %s: %s\n", keyDir, err)
 	}
 
 	// Create custom vm dir if it doesn't exist
 	vmDir := filepath.Join(baseDir, constants.CustomVMDir)
 	if err = os.MkdirAll(vmDir, os.ModePerm); err != nil {
-		fmt.Printf("failed creating the vm dir %s: %s\n", vmDir, err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed creating the vm dir %s: %s\n", vmDir, err)
 	}
 
 	// Create subnet dir if it doesn't exist
 	subnetDir := filepath.Join(baseDir, constants.SubnetDir)
 	if err = os.MkdirAll(subnetDir, os.ModePerm); err != nil {
-		fmt.Printf("failed creating the subnet dir %s: %s\n", subnetDir, err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed creating the subnet dir %s: %s\n", subnetDir, err)
 	}
 
 	// Create repos dir if it doesn't exist
 	repoDir := filepath.Join(baseDir, constants.ReposDir)
 	if err = os.MkdirAll(repoDir, os.ModePerm); err != nil {
-		fmt.Printf("failed creating the repo dir %s: %s\n", repoDir, err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed creating the repo dir %s: %s\n", repoDir, err)
 	}
 
 	pluginDir := filepath.Join(baseDir, constants.PluginDir)
 	if err = os.MkdirAll(pluginDir, os.ModePerm); err != nil {
-		fmt.Printf("failed creating the plugin dir %s: %s\n", pluginDir, err)
-		os.Exit(1)
+		return "", fmt.Errorf("failed creating the plugin dir %s: %s\n", pluginDir, err)
 	}
 
 	return baseDir, nil
