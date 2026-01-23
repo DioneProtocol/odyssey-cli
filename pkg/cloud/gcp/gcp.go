@@ -235,7 +235,6 @@ func (c *GcpCloud) SetupInstances(
 	numNodes int,
 	forMonitoring bool,
 ) ([]*compute.Instance, error) {
-	parallelism := 8
 	if len(staticIP) > 0 && len(staticIP) != numNodes {
 		return nil, fmt.Errorf("len(staticIPName) != numNodes")
 	}
@@ -245,7 +244,7 @@ func (c *GcpCloud) SetupInstances(
 	automaticRestart := true
 
 	eg := &errgroup.Group{}
-	eg.SetLimit(parallelism)
+	eg.SetLimit(constants.GCPInstanceCreationParallelism)
 	for i := 0; i < numNodes; i++ {
 		currentIndex := i
 		cloudDiskSize := constants.CloudServerStorageSize
