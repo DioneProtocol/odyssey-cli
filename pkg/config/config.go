@@ -31,7 +31,7 @@ func (*Config) SetConfig(log logging.Logger, s string) {
 	if err := viper.ReadInConfig(); err == nil {
 		log.Info("Using config file", zap.String("config-file", s))
 	} else {
-		log.Info("No log file found")
+		log.Info("No config file found")
 	}
 }
 

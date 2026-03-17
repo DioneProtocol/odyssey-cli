@@ -38,6 +38,15 @@ const (
 	amountFlag              = "amount"
 	wrongLedgerIndexVal     = 32768
 	receiveRecoveryStepFlag = "receive-recovery-step"
+
+	sourceChainFlag      = "source-chain"
+	destinationChainFlag = "destination-chain"
+)
+
+const (
+	OChain = "O-Chain"
+	AChain = "A-Chain"
+	DChain = "D-Chain"
 )
 
 var (
@@ -49,6 +58,8 @@ var (
 	receiverAddrStr     string
 	amountFlt           float64
 	receiveRecoveryStep uint64
+	sourceChain         string
+	destinationChain    string
 )
 
 func newTransferCmd() *cobra.Command {
@@ -103,6 +114,20 @@ func newTransferCmd() *cobra.Command {
 		"receive the transfer",
 	)
 	cmd.Flags().StringVarP(
+		&sourceChain,
+		sourceChainFlag,
+		"c",
+		"",
+		fmt.Sprintf("source chain (%s %s %s)", OChain, AChain, DChain),
+	)
+	cmd.Flags().StringVarP(
+		&destinationChain,
+		destinationChainFlag,
+		"d",
+		"",
+		fmt.Sprintf("destination chain (%s %s %s)", OChain, AChain, DChain),
+	)
+	cmd.Flags().StringVarP(
 		&keyName,
 		keyNameFlag,
 		"k",
@@ -135,7 +160,7 @@ func newTransferCmd() *cobra.Command {
 		amountFlag,
 		"o",
 		0,
-		"amount to send or receive (DIONE units)",
+		"amount to send or receive for O-Chain to O-Chain transfer (DIONE units)",
 	)
 	return cmd
 }
@@ -185,6 +210,42 @@ func transferF(*cobra.Command, []string) error {
 		}
 	}
 
+	// Prompt for source chain if not provided
+	if sourceChain == "" {
+		sourceChain, err = app.Prompt.CaptureList(
+			"Source chain",
+			[]string{OChain, AChain, DChain},
+		)
+		if err != nil {
+			return err
+		}
+	} else if sourceChain != OChain && sourceChain != AChain && sourceChain != DChain {
+		return fmt.Errorf("invalid source chain: %s (must be %s %s %s)", sourceChain, OChain, AChain, DChain)
+	}
+
+	// Prompt for destination chain if not provided
+	if destinationChain == "" {
+		destinationChain, err = app.Prompt.CaptureList(
+			"Destination chain",
+			[]string{OChain, AChain, DChain},
+		)
+		if err != nil {
+			return err
+		}
+	} else if destinationChain != OChain && destinationChain != AChain && destinationChain != DChain {
+		return fmt.Errorf("invalid destination chain: %s (must be %s %s %s)", destinationChain, OChain, AChain, DChain)
+	}
+
+	if sourceChain != "" && destinationChain != "" && (sourceChain == DChain && destinationChain == DChain) {
+		return fmt.Errorf("transfer from %s to %s is not supported", sourceChain, destinationChain)
+	}
+
+	if receive {
+		if sourceChain != "" && destinationChain != "" && (sourceChain == destinationChain && (sourceChain == DChain || sourceChain == AChain)) {
+			return fmt.Errorf("receive from same chain for A-Chain or D-Chain is not supported")
+		}
+	}
+
 	if keyName == "" && ledgerIndex == wrongLedgerIndexVal {
 		var useLedger bool
 		goalStr := ""
@@ -209,19 +270,25 @@ func transferF(*cobra.Command, []string) error {
 		var promptStr string
 		if send {
 			promptStr = "Amount to send (DIONE units)"
-		} else {
+		}
+
+		if receive &&  sourceChain == OChain && destinationChain == OChain {
 			promptStr = "Amount to receive (DIONE units)"
 		}
-		amountFlt, err = app.Prompt.CaptureFloat(promptStr, func(v float64) error {
-			if v <= 0 {
-				return fmt.Errorf("value %f must be greater than zero", v)
+
+		if promptStr != "" {
+			amountFlt, err = app.Prompt.CaptureFloat(promptStr, func(v float64) error {
+				if v <= 0 {
+					return fmt.Errorf("value %f must be greater than zero", v)
+				}
+				return nil
+			})
+			if err != nil {
+				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 	}
+
 	amount := uint64(amountFlt * float64(units.Dione))
 
 	fee := network.GenesisParams().TxFee
@@ -274,13 +341,14 @@ func transferF(*cobra.Command, []string) error {
 		if err != nil {
 			return err
 		}
-		if addr == receiverAddr {
+
+		if sourceChain == destinationChain && addr == receiverAddr {
 			return fmt.Errorf("sender addr is the same as receiver addr")
 		}
+
 		ux.Logger.PrintToUser("- send %.9f DIONE from %s to target address %s", float64(amount)/float64(units.Dione), addrStr, receiverAddrStr)
-		ux.Logger.PrintToUser("- take a fee of %.9f DIONE from source address %s", float64(4*fee)/float64(units.Dione), addrStr)
 	} else {
-		ux.Logger.PrintToUser("- receive %.9f DIONE at target address %s", float64(amount)/float64(units.Dione), receiverAddrStr)
+		ux.Logger.PrintToUser("- receive DIONE at target address %s", receiverAddrStr)
 	}
 	ux.Logger.PrintToUser("")
 
@@ -302,6 +370,316 @@ func transferF(*cobra.Command, []string) error {
 	}
 
 	if send {
+		return sendF(amount, fee, kc, to, network)
+	}
+	
+	return receiveF(amount, fee, kc, to, network)
+}
+
+func sendF(
+	amount uint64,
+	fee uint64,
+	kc keychain.Keychain,
+	to secp256k1fx.OutputOwners,
+	network models.Network,
+) error {
+	if sourceChain == OChain && destinationChain == AChain {
+		return oToA(amount, fee, kc, to, network)
+	} else if sourceChain == OChain && destinationChain == DChain {
+		return oToD(amount, fee, kc, to, network)
+	} else if sourceChain == AChain && destinationChain == OChain {
+		return aToO(amount, fee, kc, to, network)
+	} else if sourceChain == AChain && destinationChain == DChain {
+		return aToD(amount, fee, kc, to, network)
+	} else if sourceChain == DChain && destinationChain == OChain {
+		return dToO(amount, fee, kc, to, network)
+	} else if sourceChain == DChain && destinationChain == AChain {
+		return dToA(amount, fee, kc, to, network)
+	} else if sourceChain == OChain && destinationChain == OChain {
+		return oToO(amount, fee, kc, to, network)
+	} else if sourceChain == AChain && destinationChain == AChain {
+		return aToA(amount, kc, to, network)
+	} else {
+		return fmt.Errorf("invalid source and destination chains: %s to %s", sourceChain, destinationChain)
+	}
+}
+
+func receiveF(
+	amount uint64,
+	fee uint64,
+	kc keychain.Keychain,
+	to secp256k1fx.OutputOwners,
+	network models.Network,
+) error {
+	if sourceChain == OChain && destinationChain == OChain {
+		return receiveOFromO(amount, fee, kc, to, network)
+	} else if sourceChain == OChain && destinationChain == AChain {
+		return receiveAFromO(kc, to, network)
+	} else if sourceChain == OChain && destinationChain == DChain {
+		return receiveDFromO(kc, network)
+	} else if sourceChain == DChain && destinationChain == OChain {
+		return receiveOFromD(kc, to, network)
+	} else if sourceChain == DChain && destinationChain == AChain {
+		return receiveAFromD(kc, to, network)
+	} else if sourceChain == AChain && destinationChain == OChain {
+		return receiveOFromA(kc, to, network)
+	} else if sourceChain == AChain && destinationChain == DChain {
+		return receiveDFromA(kc, network)
+	} else {
+		return fmt.Errorf("invalid source and destination chains: %s to %s", sourceChain, destinationChain)
+	}
+}
+
+func receiveAFromO(kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	ux.Logger.PrintToUser("Issuing ImportTx O -> A")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign ImportTx O -> A transaction on the ledger device *** ")
+	}
+
+	unsignedTx, err := wallet.A().Builder().NewImportTx(
+		odygoconstants.OmegaChainID,
+		&to,
+	)
+	if err != nil {
+		return fmt.Errorf("error building tx: %w", err)
+	}
+	tx := alphatxs.Tx{Unsigned: unsignedTx}
+	if err := wallet.A().Signer().Sign(context.Background(), &tx); err != nil {
+		return fmt.Errorf("error signing tx: %w", err)
+	}
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	err = wallet.A().IssueTx(
+		&tx,
+		common.WithContext(ctx),
+	)
+	if err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
+		} else {
+			err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func receiveDFromO(kc keychain.Keychain, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	ethKc := secp256k1fx.NewKeychain()
+	if secp256k1fxKc, ok := kc.(*secp256k1fx.Keychain); ok {
+		ethKc = secp256k1fxKc
+	}
+
+	ethAddrs := ethKc.EthAddresses()
+	ethAddrFromKc := ethAddrs.List()[0]
+
+	ux.Logger.PrintToUser("Issuing ImportTx O -> D")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign ImportTx O -> D transaction on the ledger device *** ")
+	}
+
+	dWallet := wallet.D()
+
+	_, err = dWallet.IssueImportTx(odygoconstants.OmegaChainID, ethAddrFromKc)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func receiveOFromD(kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	ux.Logger.PrintToUser("Issuing ImportTx D -> O")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign ImportTx D -> O transaction on the ledger device *** ")
+	}
+
+	_, err = subnet.IssueOFromChainImportTx(
+		wallet.D().BlockchainID(),
+		wallet,
+		ledgerIndex != wrongLedgerIndexVal,
+		true,
+		&to,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func receiveAFromD(kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	ux.Logger.PrintToUser("Issuing ImportTx D -> A")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign ImportTx D -> A transaction on the ledger device *** ")
+	}
+
+	unsignedTx, err := wallet.A().Builder().NewImportTx(
+		wallet.D().BlockchainID(),
+		&to,
+	)
+	if err != nil {
+		return fmt.Errorf("error building tx: %w", err)
+	}
+	tx := alphatxs.Tx{Unsigned: unsignedTx}
+	if err := wallet.A().Signer().Sign(context.Background(), &tx); err != nil {
+		return fmt.Errorf("error signing tx: %w", err)
+	}
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	err = wallet.A().IssueTx(
+		&tx,
+		common.WithContext(ctx),
+	)
+	if err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
+		} else {
+			err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func receiveOFromA(kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
+		return err
+	}
+	ux.Logger.PrintToUser("Issuing ImportTx A -> O")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign ImportTx A -> O transaction on the ledger device *** ")
+	}
+
+	_, err = subnet.IssueOFromChainImportTx(
+		wallet.A().BlockchainID(),
+		wallet,
+		ledgerIndex != wrongLedgerIndexVal,
+		true,
+		&to,
+	)
+	if err != nil {
+		ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
+		return err
+	}
+
+	return nil
+}
+
+func receiveDFromA(kc keychain.Keychain, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	ux.Logger.PrintToUser("Issuing ImportTx A -> D")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign ImportTx A -> D transaction on the ledger device *** ")
+	}
+
+	dWallet := wallet.D()
+
+	ethKc := secp256k1fx.NewKeychain()
+	if secp256k1fxKc, ok := kc.(*secp256k1fx.Keychain); ok {
+		ethKc = secp256k1fxKc
+	}
+
+	ethAddrs := ethKc.EthAddresses()
+	ethAddrFromKc := ethAddrs.List()[0]
+
+	_, err = dWallet.IssueImportTx(wallet.A().BlockchainID(), ethAddrFromKc)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func receiveOFromO(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	if receiveRecoveryStep == 0 {
+		err := receiveAFromO(kc, to, network)
+		if err != nil {
+			ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
+			return err
+		}
+
+		time.Sleep(5 * time.Second)
+		receiveRecoveryStep++
+	}
+	if receiveRecoveryStep == 1 {
 		wallet, err := primary.MakeWallet(
 			context.Background(),
 			&primary.WalletConfig{
@@ -311,153 +689,382 @@ func transferF(*cobra.Command, []string) error {
 			},
 		)
 		if err != nil {
+			ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
 			return err
 		}
-		output := &dione.TransferableOutput{
-			Asset: dione.Asset{ID: wallet.O().DIONEAssetID()},
-			Out: &secp256k1fx.TransferOutput{
-				Amt:          amount + fee*3,
-				OutputOwners: to,
-			},
-		}
-		outputs := []*dione.TransferableOutput{output}
-		ux.Logger.PrintToUser("Issuing ExportTx O -> A")
-
-		if ledgerIndex != wrongLedgerIndexVal {
-			ux.Logger.PrintToUser("*** Please sign 'Export Tx / O to A Chain' transaction on the ledger device *** ")
-		}
-		unsignedTx, err := wallet.O().Builder().NewExportTx(
-			wallet.A().BlockchainID(),
-			outputs,
+		ux.Logger.PrintToUser("Issuing ExportTx A -> O")
+		_, err = subnet.IssueAToOExportTx(
+			wallet,
+			ledgerIndex != wrongLedgerIndexVal,
+			true,
+			wallet.O().DIONEAssetID(),
+			amount+fee*1,
+			&to,
 		)
 		if err != nil {
-			return fmt.Errorf("error building tx: %w", err)
-		}
-		tx := txs.Tx{Unsigned: unsignedTx}
-		if err := wallet.O().Signer().Sign(context.Background(), &tx); err != nil {
-			return fmt.Errorf("error signing tx: %w", err)
-		}
-
-		ctx, cancel := utils.GetAPIContext()
-		defer cancel()
-		err = wallet.O().IssueTx(
-			&tx,
-			common.WithContext(ctx),
-		)
-		if err != nil {
-			if ctx.Err() != nil {
-				err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
-			} else {
-				err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
-			}
+			ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
 			return err
 		}
-	} else {
-		if receiveRecoveryStep == 0 {
-			wallet, err := primary.MakeWallet(
-				context.Background(),
-				&primary.WalletConfig{
-					URI:           network.Endpoint,
-					DIONEKeychain: kc,
-					EthKeychain:   secp256k1fx.NewKeychain(),
-				},
-			)
-			if err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
-				return err
-			}
-			ux.Logger.PrintToUser("Issuing ImportTx O -> A")
-			if ledgerIndex != wrongLedgerIndexVal {
-				ux.Logger.PrintToUser("*** Please sign ImportTx transaction on the ledger device *** ")
-			}
-			unsignedTx, err := wallet.A().Builder().NewImportTx(
-				odygoconstants.OmegaChainID,
-				&to,
-			)
-			if err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
-				return fmt.Errorf("error building tx: %w", err)
-			}
-			tx := alphatxs.Tx{Unsigned: unsignedTx}
-			if err := wallet.A().Signer().Sign(context.Background(), &tx); err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
-				return fmt.Errorf("error signing tx: %w", err)
-			}
-
-			ctx, cancel := utils.GetAPIContext()
-			defer cancel()
-			err = wallet.A().IssueTx(
-				&tx,
-				common.WithContext(ctx),
-			)
-			if err != nil {
-				if ctx.Err() != nil {
-					err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
-				} else {
-					err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
-				}
-				ux.Logger.PrintToUser(logging.LightRed.Wrap("ERROR: restart from this step by using the same command"))
-				return err
-			}
-
-			time.Sleep(2 * time.Second)
-			receiveRecoveryStep++
-		}
-		if receiveRecoveryStep == 1 {
-			wallet, err := primary.MakeWallet(
-				context.Background(),
-				&primary.WalletConfig{
-					URI:           network.Endpoint,
-					DIONEKeychain: kc,
-					EthKeychain:   secp256k1fx.NewKeychain(),
-				},
-			)
-			if err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
-				return err
-			}
-			ux.Logger.PrintToUser("Issuing ExportTx A -> O")
-			_, err = subnet.IssueAToOExportTx(
-				wallet,
-				ledgerIndex != wrongLedgerIndexVal,
-				true,
-				wallet.O().DIONEAssetID(),
-				amount+fee*1,
-				&to,
-			)
-			if err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
-				return err
-			}
-			time.Sleep(2 * time.Second)
-			receiveRecoveryStep++
-		}
-		if receiveRecoveryStep == 2 {
-			wallet, err := primary.MakeWallet(
-				context.Background(),
-				&primary.WalletConfig{
-					URI:           network.Endpoint,
-					DIONEKeychain: kc,
-					EthKeychain:   secp256k1fx.NewKeychain(),
-				},
-			)
-			if err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
-				return err
-			}
-			ux.Logger.PrintToUser("Issuing ImportTx A -> O")
-			_, err = subnet.IssueOFromAImportTx(
-				wallet,
-				ledgerIndex != wrongLedgerIndexVal,
-				true,
-				&to,
-			)
-			if err != nil {
-				ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
-				return err
-			}
+		time.Sleep(5 * time.Second)
+		receiveRecoveryStep++
+	}
+	if receiveRecoveryStep == 2 {
+		err := receiveOFromA(kc, to, network)
+		if err != nil {
+			ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
+			return err
 		}
 	}
+
+	return nil
+}
+
+func oToO(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	return oToA(amount, fee*3, kc, to, network)
+}
+
+func aToA(amount uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Base Tx / A to A Chain' transaction on the ledger device *** ")
+	}
+
+	// For A-chain, we can use export/import pattern
+	output := &dione.TransferableOutput{
+		Asset: dione.Asset{ID: wallet.A().DIONEAssetID()},
+		Out: &secp256k1fx.TransferOutput{
+			Amt:          amount,
+			OutputOwners: to,
+		},
+	}
+	outputs := []*dione.TransferableOutput{output}
+
+	unsignedTx, err := wallet.A().Builder().NewBaseTx(
+		outputs,
+	)
+	if err != nil {
+		return fmt.Errorf("error building base tx: %w", err)
+	}
+	tx := alphatxs.Tx{Unsigned: unsignedTx}
+	if err := wallet.A().Signer().Sign(context.Background(), &tx); err != nil {
+		return fmt.Errorf("error signing tx: %w", err)
+	}
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	if err := wallet.A().IssueTx(&tx, common.WithContext(ctx)); err != nil {
+		if ctx.Err() != nil {
+			return fmt.Errorf("timeout issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+	}
+
+	ux.Logger.PrintToUser("Export transaction issued. Transaction ID: %s", tx.ID())
+	ux.Logger.PrintToUser("Waiting for transaction to be accepted...")
+	time.Sleep(2 * time.Second)
+
+	return nil
+}
+
+func oToA(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	output := &dione.TransferableOutput{
+		Asset: dione.Asset{ID: wallet.O().DIONEAssetID()},
+		Out: &secp256k1fx.TransferOutput{
+			Amt:          amount + fee,
+			OutputOwners: to,
+		},
+	}
+	outputs := []*dione.TransferableOutput{output}
+	ux.Logger.PrintToUser("Issuing ExportTx O -> A")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / O to A Chain' transaction on the ledger device *** ")
+	}
+	unsignedTx, err := wallet.O().Builder().NewExportTx(
+		wallet.A().BlockchainID(),
+		outputs,
+	)
+	if err != nil {
+		return fmt.Errorf("error building tx: %w", err)
+	}
+	tx := txs.Tx{Unsigned: unsignedTx}
+	if err := wallet.O().Signer().Sign(context.Background(), &tx); err != nil {
+		return fmt.Errorf("error signing tx: %w", err)
+	}
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	err = wallet.O().IssueTx(
+		&tx,
+		common.WithContext(ctx),
+	)
+	if err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
+		} else {
+			err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return err
+	}
+	return nil
+}
+
+func oToD(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / O to D Chain' transaction on the ledger device *** ")
+	}
+
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		return err
+	}
+	output := &dione.TransferableOutput{
+		Asset: dione.Asset{ID: wallet.O().DIONEAssetID()},
+		Out: &secp256k1fx.TransferOutput{
+			Amt:          amount + fee,
+			OutputOwners: to,
+		},
+	}
+	outputs := []*dione.TransferableOutput{output}
+	ux.Logger.PrintToUser("Issuing ExportTx O -> D")
+
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / O to D Chain' transaction on the ledger device *** ")
+	}
+	unsignedTx, err := wallet.O().Builder().NewExportTx(
+		wallet.D().BlockchainID(),
+		outputs,
+	)
+	if err != nil {
+		return fmt.Errorf("error building tx: %w", err)
+	}
+	tx := txs.Tx{Unsigned: unsignedTx}
+	if err := wallet.O().Signer().Sign(context.Background(), &tx); err != nil {
+		return fmt.Errorf("error signing tx: %w", err)
+	}
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	err = wallet.O().IssueTx(
+		&tx,
+		common.WithContext(ctx),
+	)
+	if err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
+		} else {
+			err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return err
+	}
+	return nil
+}
+
+func aToO(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / A to O Chain' transaction on the ledger device *** ")
+	}
+
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
+		return err
+	}
+	ux.Logger.PrintToUser("Issuing ExportTx A -> O")
+	_, err = subnet.IssueAToOExportTx(
+		wallet,
+		ledgerIndex != wrongLedgerIndexVal,
+		true,
+		wallet.O().DIONEAssetID(),
+		amount+fee*1,
+		&to,
+	)
+	if err != nil {
+		ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
+		return err
+	}
+
+	return nil
+}
+
+func aToD(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / A to D Chain' transaction on the ledger device *** ")
+	}
+
+	wallet, err := primary.MakeWallet(
+		context.Background(),
+		&primary.WalletConfig{
+			URI:           network.Endpoint,
+			DIONEKeychain: kc,
+			EthKeychain:   secp256k1fx.NewKeychain(),
+		},
+	)
+	if err != nil {
+		ux.Logger.PrintToUser(logging.LightRed.Wrap(fmt.Sprintf("ERROR: restart from this step by using the same command with extra arguments: --%s %d", receiveRecoveryStepFlag, receiveRecoveryStep)))
+		return err
+	}
+	ux.Logger.PrintToUser("Issuing ExportTx A -> D")
+
+	unsignedTx, err := wallet.A().Builder().NewExportTx(
+		odygoconstants.OmegaChainID,
+		[]*dione.TransferableOutput{
+			{
+				Asset: dione.Asset{
+					ID: wallet.A().DIONEAssetID(),
+				},
+				Out: &secp256k1fx.TransferOutput{
+					Amt:          amount,
+					OutputOwners: to,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("error building tx: %w", err)
+	}
+	tx := alphatxs.Tx{Unsigned: unsignedTx}
+	if err := wallet.A().Signer().Sign(context.Background(), &tx); err != nil {
+		return fmt.Errorf("error signing tx: %w", err)
+	}
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+	err = wallet.A().IssueTx(
+		&tx,
+		common.WithContext(ctx),
+	)
+	if err != nil {
+		if ctx.Err() != nil {
+			err = fmt.Errorf("timeout issuing/verifying tx with ID %s: %w", tx.ID(), err)
+		} else {
+			err = fmt.Errorf("error issuing tx with ID %s: %w", tx.ID(), err)
+		}
+		return err
+	}
+
+	return nil
+}
+
+func dToO(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / D to O Chain' transaction on the ledger device *** ")
+	}
+
+	ethKc := secp256k1fx.NewKeychain()
+	if secp256k1fxKc, ok := kc.(*secp256k1fx.Keychain); ok {
+		ethKc = secp256k1fxKc
+	}
+
+	wallet, err := primary.MakeWallet(context.Background(), &primary.WalletConfig{
+		URI:           network.Endpoint,
+		DIONEKeychain: kc,
+		EthKeychain:   ethKc,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to initialize wallet: %w", err)
+	}
+
+	dWallet := wallet.D()
+
+	ux.Logger.PrintToUser("Issuing ExportTx D -> O")
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+
+	exportTx, err := dWallet.IssueExportTx(
+		odygoconstants.OmegaChainID,
+		[]*secp256k1fx.TransferOutput{{
+			Amt:          amount,
+			OutputOwners: to,
+		}},
+		common.WithContext(ctx),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to issue export transaction: %w", err)
+	}
+
+	ux.Logger.PrintToUser("Export transaction issued. Transaction ID: %s", exportTx.ID())
+	return nil
+}
+
+func dToA(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+	if ledgerIndex != wrongLedgerIndexVal {
+		ux.Logger.PrintToUser("*** Please sign 'Export Tx / D to A Chain' transaction on the ledger device *** ")
+	}
+
+	ethKc := secp256k1fx.NewKeychain()
+	if secp256k1fxKc, ok := kc.(*secp256k1fx.Keychain); ok {
+		ethKc = secp256k1fxKc
+	}
+
+	wallet, err := primary.MakeWallet(context.Background(), &primary.WalletConfig{
+		URI:           network.Endpoint,
+		DIONEKeychain: kc,
+		EthKeychain:   ethKc,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to initialize wallet: %w", err)
+	}
+
+	dWallet := wallet.D()
+
+	ux.Logger.PrintToUser("Issuing ExportTx D -> A")
+
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+
+	exportTx, err := dWallet.IssueExportTx(
+		wallet.A().BlockchainID(),
+		[]*secp256k1fx.TransferOutput{{
+			Amt:          amount,
+			OutputOwners: to,
+		}},
+		common.WithContext(ctx),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to issue export transaction: %w", err)
+	}
+
+	ux.Logger.PrintToUser("Export transaction issued. Transaction ID: %s", exportTx.ID())
 
 	return nil
 }

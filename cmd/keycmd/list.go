@@ -18,6 +18,7 @@ import (
 	ledger "github.com/DioneProtocol/odysseygo/utils/crypto/ledger"
 	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
 	"github.com/DioneProtocol/odysseygo/utils/units"
+	"github.com/DioneProtocol/odysseygo/vms/alpha"
 	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/olekukonko/tablewriter"
@@ -30,6 +31,7 @@ const (
 	mainnetFlag       = "mainnet"
 	allFlag           = "all-networks"
 	dchainFlag        = "dchain"
+	achainFlag        = "achain"
 	ledgerIndicesFlag = "ledger"
 	useNanoDioneFlag  = "use-nano-dione"
 )
@@ -40,6 +42,7 @@ var (
 	mainnet       bool
 	all           bool
 	dchain        bool
+	achain        bool
 	useNanoDione  bool
 	ledgerIndices []uint
 )
@@ -90,6 +93,13 @@ keys or for the ledger addresses associated to certain indices.`,
 		"list D-Chain addresses",
 	)
 	cmd.Flags().BoolVarP(
+		&achain,
+		achainFlag,
+		"c",
+		true,
+		"list A-Chain addresses",
+	)
+	cmd.Flags().BoolVarP(
 		&useNanoDione,
 		useNanoDioneFlag,
 		"n",
@@ -109,21 +119,24 @@ keys or for the ledger addresses associated to certain indices.`,
 func getClients(networks []models.Network, dchain bool) (
 	map[models.Network]omegavm.Client,
 	map[models.Network]ethclient.Client,
+	map[models.Network]alpha.Client,
 	error,
 ) {
 	var err error
 	oClients := map[models.Network]omegavm.Client{}
 	dClients := map[models.Network]ethclient.Client{}
+	aClients := map[models.Network]alpha.Client{}
 	for _, network := range networks {
 		oClients[network] = omegavm.NewClient(network.Endpoint)
+		aClients[network] = alpha.NewClient(network.Endpoint, "A")
 		if dchain {
 			dClients[network], err = ethclient.Dial(network.DChainEndpoint())
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 		}
 	}
-	return oClients, dClients, nil
+	return oClients, dClients, aClients, nil
 }
 
 type addressInfo struct {
@@ -163,7 +176,7 @@ func listKeys(*cobra.Command, []string) error {
 	if queryLedger {
 		dchain = false
 	}
-	oClients, dClients, err := getClients(networks, dchain)
+	oClients, dClients, aClients, err := getClients(networks, dchain)
 	if err != nil {
 		return err
 	}
@@ -172,12 +185,12 @@ func listKeys(*cobra.Command, []string) error {
 		for _, index := range ledgerIndices {
 			ledgerIndicesU32 = append(ledgerIndicesU32, uint32(index))
 		}
-		addrInfos, err = getLedgerIndicesInfo(oClients, ledgerIndicesU32, networks)
+		addrInfos, err = getLedgerIndicesInfo(oClients, aClients, ledgerIndicesU32, networks, achain)
 		if err != nil {
 			return err
 		}
 	} else {
-		addrInfos, err = getStoredKeysInfo(oClients, dClients, networks, dchain)
+		addrInfos, err = getStoredKeysInfo(oClients, dClients, aClients, networks, dchain, achain)
 		if err != nil {
 			return err
 		}
@@ -189,8 +202,10 @@ func listKeys(*cobra.Command, []string) error {
 func getStoredKeysInfo(
 	oClients map[models.Network]omegavm.Client,
 	dClients map[models.Network]ethclient.Client,
+	aClients map[models.Network]alpha.Client,
 	networks []models.Network,
 	dchain bool,
+	achain bool,
 ) ([]addressInfo, error) {
 	files, err := os.ReadDir(app.GetKeyDir())
 	if err != nil {
@@ -204,7 +219,7 @@ func getStoredKeysInfo(
 	}
 	addrInfos := []addressInfo{}
 	for _, keyPath := range keyPaths {
-		keyAddrInfos, err := getStoredKeyInfo(oClients, dClients, networks, keyPath, dchain)
+		keyAddrInfos, err := getStoredKeyInfo(oClients, dClients, aClients, networks, keyPath, dchain, achain)
 		if err != nil {
 			return nil, err
 		}
@@ -216,9 +231,11 @@ func getStoredKeysInfo(
 func getStoredKeyInfo(
 	oClients map[models.Network]omegavm.Client,
 	dClients map[models.Network]ethclient.Client,
+	aClients map[models.Network]alpha.Client,
 	networks []models.Network,
 	keyPath string,
 	dchain bool,
+	achain bool,
 ) ([]addressInfo, error) {
 	addrInfos := []addressInfo{}
 	for _, network := range networks {
@@ -235,6 +252,16 @@ func getStoredKeyInfo(
 			}
 			addrInfos = append(addrInfos, addrInfo)
 		}
+		if achain {
+			aChainAddrs := sk.A()
+			for _, aChainAddr := range aChainAddrs {
+				addrInfo, err := getAChainAddrInfo(aClients, network, aChainAddr, "stored", keyName)
+				if err != nil {
+					return nil, err
+				}
+				addrInfos = append(addrInfos, addrInfo)
+			}
+		}
 		oChainAddrs := sk.O()
 		for _, oChainAddr := range oChainAddrs {
 			addrInfo, err := getOChainAddrInfo(oClients, network, oChainAddr, "stored", keyName)
@@ -249,8 +276,10 @@ func getStoredKeyInfo(
 
 func getLedgerIndicesInfo(
 	oClients map[models.Network]omegavm.Client,
+	aClients map[models.Network]alpha.Client,
 	ledgerIndices []uint32,
 	networks []models.Network,
+	achain bool,
 ) ([]addressInfo, error) {
 	ledgerDevice, err := ledger.New()
 	if err != nil {
@@ -266,7 +295,7 @@ func getLedgerIndicesInfo(
 	addrInfos := []addressInfo{}
 	for i, index := range ledgerIndices {
 		addr := addresses[i]
-		ledgerAddrInfos, err := getLedgerIndexInfo(oClients, index, networks, addr)
+		ledgerAddrInfos, err := getLedgerIndexInfo(oClients, aClients, index, networks, addr, achain)
 		if err != nil {
 			return []addressInfo{}, err
 		}
@@ -277,12 +306,31 @@ func getLedgerIndicesInfo(
 
 func getLedgerIndexInfo(
 	oClients map[models.Network]omegavm.Client,
+	aClients map[models.Network]alpha.Client,
 	index uint32,
 	networks []models.Network,
 	addr ids.ShortID,
+	achain bool,
 ) ([]addressInfo, error) {
 	addrInfos := []addressInfo{}
 	for _, network := range networks {
+		if achain {
+			aChainAddr, err := address.Format("A", key.GetHRP(network.ID), addr[:])
+			if err != nil {
+				return nil, err
+			}
+			addrInfo, err := getAChainAddrInfo(
+				aClients,
+				network,
+				aChainAddr,
+				"ledger",
+				fmt.Sprintf("index %d", index),
+			)
+			if err != nil {
+				return nil, err
+			}
+			addrInfos = append(addrInfos, addrInfo)
+		}
 		oChainAddr, err := address.Format("O", key.GetHRP(network.ID), addr[:])
 		if err != nil {
 			return nil, err
@@ -321,6 +369,30 @@ func getOChainAddrInfo(
 		name:    name,
 		chain:   "O-Chain (Bech32 format)",
 		address: oChainAddr,
+		balance: balance,
+		network: network.Name(),
+	}, nil
+}
+
+func getAChainAddrInfo(
+	aClients map[models.Network]alpha.Client,
+	network models.Network,
+	aChainAddr string,
+	kind string,
+	name string,
+) (addressInfo, error) {
+	balance, err := getAChainBalanceStr(aClients[network], aChainAddr)
+	if err != nil {
+		// just ignore local network errors
+		if network.Kind != models.Local {
+			return addressInfo{}, err
+		}
+	}
+	return addressInfo{
+		kind:    kind,
+		name:    name,
+		chain:   "A-Chain (Bech32 format)",
+		address: aChainAddr,
 		balance: balance,
 		network: network.Name(),
 	}, nil
@@ -387,6 +459,29 @@ func getDChainBalanceStr(dClient ethclient.Client, addrStr string) (string, erro
 		balanceStr = fmt.Sprintf("%9d", balance.Uint64())
 	} else {
 		balanceStr = fmt.Sprintf("%.9f", float64(balance.Uint64())/float64(units.Dione))
+	}
+	return balanceStr, nil
+}
+
+func getAChainBalanceStr(aClient alpha.Client, addr string) (string, error) {
+	pID, err := address.ParseToID(addr)
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := utils.GetAPIContext()
+	resp, err := aClient.GetBalance(ctx, pID, "DIONE", false)
+	cancel()
+	if err != nil {
+		return "", err
+	}
+	if resp.Balance == 0 {
+		return "0", nil
+	}
+	balanceStr := ""
+	if useNanoDione {
+		balanceStr = fmt.Sprintf("%9d", resp.Balance)
+	} else {
+		balanceStr = fmt.Sprintf("%.9f", float64(resp.Balance)/float64(units.Dione))
 	}
 	return balanceStr, nil
 }

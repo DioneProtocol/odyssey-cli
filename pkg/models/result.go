@@ -84,6 +84,9 @@ func (nr *NodeResults) HasErrors() bool {
 }
 
 func (nr *NodeResults) GetErrorHosts() []string {
+	nr.Lock.Lock()
+	defer nr.Lock.Unlock()
+
 	var nodes []string
 	for _, node := range nr.Results {
 		if node.Err != nil {

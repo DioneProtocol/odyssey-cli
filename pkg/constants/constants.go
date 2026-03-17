@@ -60,7 +60,7 @@ const (
 	SimulatePublicNetwork = "SIMULATE_PUBLIC_NETWORK"
 
 	TestnetAPIEndpoint = "https://testnode.dioneprotocol.com"
-	MainnetAPIEndpoint = "https://testnode.dioneprotocol.com"
+	MainnetAPIEndpoint = "https://node.dioneprotocol.com"
 
 	// this depends on bootstrap snapshot
 	LocalAPIEndpoint = "http://127.0.0.1:9650"
@@ -255,4 +255,7 @@ const (
 	DefaultConfirmTxTimeout = 20 * time.Second
 
 	PayTxsFeesMsg = "pay transaction fees"
+
+	// limits the number of active goroutines in this group to at most n
+	GCPInstanceCreationParallelism = 8
 )

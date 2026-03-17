@@ -257,6 +257,9 @@ func RequestURL(url string) (*http.Response, error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected http status code: %d", resp.StatusCode)
 	}
+
+	defer resp.Body.Close()
+
 	return resp, nil
 }
 
@@ -264,12 +267,12 @@ func ValidateURL(url string) error {
 	if err := validateURLFormat(url); err != nil {
 		return err
 	}
-	resp, err := RequestURL(url)
+
+	_, err := RequestURL(url)
 	if err != nil {
 		return err
 	}
-	// will just ignore this error, url is already validated
-	_ = resp.Body.Close()
+
 	return nil
 }
 
