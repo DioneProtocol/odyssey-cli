@@ -55,11 +55,11 @@ func createKey(_ *cobra.Command, args []string) error {
 		ux.Logger.PrintToUser("Key loaded")
 		networks := []models.Network{models.TestnetNetwork, models.MainnetNetwork}
 		dchain := true
-		oClients, dClients, err := getClients(networks, dchain)
+		oClients, dClients, aClients, err := getClients(networks, dchain)
 		if err != nil {
 			return err
 		}
-		addrInfos, err := getStoredKeyInfo(oClients, dClients, networks, keyPath, dchain, achain)
+		addrInfos, err := getStoredKeyInfo(oClients, dClients, aClients, networks, keyPath, dchain, achain)
 		if err != nil {
 			return err
 		}

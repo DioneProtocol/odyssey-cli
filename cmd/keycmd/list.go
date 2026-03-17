@@ -18,6 +18,7 @@ import (
 	ledger "github.com/DioneProtocol/odysseygo/utils/crypto/ledger"
 	"github.com/DioneProtocol/odysseygo/utils/formatting/address"
 	"github.com/DioneProtocol/odysseygo/utils/units"
+	"github.com/DioneProtocol/odysseygo/vms/alpha"
 	"github.com/DioneProtocol/odysseygo/vms/omegavm"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/olekukonko/tablewriter"
@@ -118,21 +119,24 @@ keys or for the ledger addresses associated to certain indices.`,
 func getClients(networks []models.Network, dchain bool) (
 	map[models.Network]omegavm.Client,
 	map[models.Network]ethclient.Client,
+	map[models.Network]alpha.Client,
 	error,
 ) {
 	var err error
 	oClients := map[models.Network]omegavm.Client{}
 	dClients := map[models.Network]ethclient.Client{}
+	aClients := map[models.Network]alpha.Client{}
 	for _, network := range networks {
 		oClients[network] = omegavm.NewClient(network.Endpoint)
+		aClients[network] = alpha.NewClient(network.Endpoint, "A")
 		if dchain {
 			dClients[network], err = ethclient.Dial(network.DChainEndpoint())
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 		}
 	}
-	return oClients, dClients, nil
+	return oClients, dClients, aClients, nil
 }
 
 type addressInfo struct {
@@ -172,7 +176,7 @@ func listKeys(*cobra.Command, []string) error {
 	if queryLedger {
 		dchain = false
 	}
-	oClients, dClients, err := getClients(networks, dchain)
+	oClients, dClients, aClients, err := getClients(networks, dchain)
 	if err != nil {
 		return err
 	}
@@ -181,12 +185,12 @@ func listKeys(*cobra.Command, []string) error {
 		for _, index := range ledgerIndices {
 			ledgerIndicesU32 = append(ledgerIndicesU32, uint32(index))
 		}
-		addrInfos, err = getLedgerIndicesInfo(oClients, ledgerIndicesU32, networks, achain)
+		addrInfos, err = getLedgerIndicesInfo(oClients, aClients, ledgerIndicesU32, networks, achain)
 		if err != nil {
 			return err
 		}
 	} else {
-		addrInfos, err = getStoredKeysInfo(oClients, dClients, networks, dchain, achain)
+		addrInfos, err = getStoredKeysInfo(oClients, dClients, aClients, networks, dchain, achain)
 		if err != nil {
 			return err
 		}
@@ -198,6 +202,7 @@ func listKeys(*cobra.Command, []string) error {
 func getStoredKeysInfo(
 	oClients map[models.Network]omegavm.Client,
 	dClients map[models.Network]ethclient.Client,
+	aClients map[models.Network]alpha.Client,
 	networks []models.Network,
 	dchain bool,
 	achain bool,
@@ -214,7 +219,7 @@ func getStoredKeysInfo(
 	}
 	addrInfos := []addressInfo{}
 	for _, keyPath := range keyPaths {
-		keyAddrInfos, err := getStoredKeyInfo(oClients, dClients, networks, keyPath, dchain, achain)
+		keyAddrInfos, err := getStoredKeyInfo(oClients, dClients, aClients, networks, keyPath, dchain, achain)
 		if err != nil {
 			return nil, err
 		}
@@ -226,6 +231,7 @@ func getStoredKeysInfo(
 func getStoredKeyInfo(
 	oClients map[models.Network]omegavm.Client,
 	dClients map[models.Network]ethclient.Client,
+	aClients map[models.Network]alpha.Client,
 	networks []models.Network,
 	keyPath string,
 	dchain bool,
@@ -249,7 +255,7 @@ func getStoredKeyInfo(
 		if achain {
 			aChainAddrs := sk.A()
 			for _, aChainAddr := range aChainAddrs {
-				addrInfo, err := getAChainAddrInfo(oClients, network, aChainAddr, "stored", keyName)
+				addrInfo, err := getAChainAddrInfo(aClients, network, aChainAddr, "stored", keyName)
 				if err != nil {
 					return nil, err
 				}
@@ -270,6 +276,7 @@ func getStoredKeyInfo(
 
 func getLedgerIndicesInfo(
 	oClients map[models.Network]omegavm.Client,
+	aClients map[models.Network]alpha.Client,
 	ledgerIndices []uint32,
 	networks []models.Network,
 	achain bool,
@@ -288,7 +295,7 @@ func getLedgerIndicesInfo(
 	addrInfos := []addressInfo{}
 	for i, index := range ledgerIndices {
 		addr := addresses[i]
-		ledgerAddrInfos, err := getLedgerIndexInfo(oClients, index, networks, addr, achain)
+		ledgerAddrInfos, err := getLedgerIndexInfo(oClients, aClients, index, networks, addr, achain)
 		if err != nil {
 			return []addressInfo{}, err
 		}
@@ -299,6 +306,7 @@ func getLedgerIndicesInfo(
 
 func getLedgerIndexInfo(
 	oClients map[models.Network]omegavm.Client,
+	aClients map[models.Network]alpha.Client,
 	index uint32,
 	networks []models.Network,
 	addr ids.ShortID,
@@ -312,7 +320,7 @@ func getLedgerIndexInfo(
 				return nil, err
 			}
 			addrInfo, err := getAChainAddrInfo(
-				oClients,
+				aClients,
 				network,
 				aChainAddr,
 				"ledger",
@@ -367,13 +375,13 @@ func getOChainAddrInfo(
 }
 
 func getAChainAddrInfo(
-	oClients map[models.Network]omegavm.Client,
+	aClients map[models.Network]alpha.Client,
 	network models.Network,
 	aChainAddr string,
 	kind string,
 	name string,
 ) (addressInfo, error) {
-	balance, err := getAChainBalanceStr(oClients[network], aChainAddr)
+	balance, err := getAChainBalanceStr(aClients[network], aChainAddr)
 	if err != nil {
 		// just ignore local network errors
 		if network.Kind != models.Local {
@@ -455,13 +463,13 @@ func getDChainBalanceStr(dClient ethclient.Client, addrStr string) (string, erro
 	return balanceStr, nil
 }
 
-func getAChainBalanceStr(oClient omegavm.Client, addr string) (string, error) {
+func getAChainBalanceStr(aClient alpha.Client, addr string) (string, error) {
 	pID, err := address.ParseToID(addr)
 	if err != nil {
 		return "", err
 	}
 	ctx, cancel := utils.GetAPIContext()
-	resp, err := oClient.GetBalance(ctx, []ids.ShortID{pID})
+	resp, err := aClient.GetBalance(ctx, pID, "DIONE", false)
 	cancel()
 	if err != nil {
 		return "", err
