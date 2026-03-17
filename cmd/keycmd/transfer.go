@@ -398,7 +398,7 @@ func sendF(
 	} else if sourceChain == OChain && destinationChain == OChain {
 		return oToO(amount, fee, kc, to, network)
 	} else if sourceChain == AChain && destinationChain == AChain {
-		return aToA(amount, fee, kc, to, network)
+		return aToA(amount, kc, to, network)
 	} else {
 		return fmt.Errorf("invalid source and destination chains: %s to %s", sourceChain, destinationChain)
 	}
@@ -723,7 +723,7 @@ func oToO(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.Output
 	return oToA(amount, fee*3, kc, to, network)
 }
 
-func aToA(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
+func aToA(amount uint64, kc keychain.Keychain, to secp256k1fx.OutputOwners, network models.Network) error {
 	wallet, err := primary.MakeWallet(
 		context.Background(),
 		&primary.WalletConfig{
@@ -744,7 +744,7 @@ func aToA(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.Output
 	output := &dione.TransferableOutput{
 		Asset: dione.Asset{ID: wallet.A().DIONEAssetID()},
 		Out: &secp256k1fx.TransferOutput{
-			Amt:          amount + fee,
+			Amt:          amount,
 			OutputOwners: to,
 		},
 	}
@@ -1005,12 +1005,16 @@ func dToO(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.Output
 
 	ux.Logger.PrintToUser("Issuing ExportTx D -> O")
 
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+
 	exportTx, err := dWallet.IssueExportTx(
 		odygoconstants.OmegaChainID,
 		[]*secp256k1fx.TransferOutput{{
-			Amt:          amount + fee*1,
+			Amt:          amount,
 			OutputOwners: to,
 		}},
+		common.WithContext(ctx),
 	)
 
 	if err != nil {
@@ -1044,12 +1048,16 @@ func dToA(amount uint64, fee uint64, kc keychain.Keychain, to secp256k1fx.Output
 
 	ux.Logger.PrintToUser("Issuing ExportTx D -> A")
 
+	ctx, cancel := utils.GetAPIContext()
+	defer cancel()
+
 	exportTx, err := dWallet.IssueExportTx(
 		wallet.A().BlockchainID(),
 		[]*secp256k1fx.TransferOutput{{
-			Amt:          amount + fee*1,
+			Amt:          amount,
 			OutputOwners: to,
 		}},
+		common.WithContext(ctx),
 	)
 
 	if err != nil {
